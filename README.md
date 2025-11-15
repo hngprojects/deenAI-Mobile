@@ -1,58 +1,92 @@
-# Welcome to your Expo app 👋
+# NoorAI – Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> A warm, intelligent, and faith-centered digital companion designed to help Muslims build a peaceful, consistent, and emotionally supportive relationship with the Qur'an.
 
-## Get started
+## 📖 What is NoorAI?
 
-1. Install dependencies
+NoorAI brings together AI-guided reflections, a clean Qur'an reading experience, and essential daily worship tools, all in one calming, distraction-free space. It's designed to provide peace, clarity, and emotional support rooted in Qur'anic wisdom.
 
-   ```bash
-   npm install
-   ```
+**NoorAI solves these challenges** by offering a unified, peaceful spiritual companion that centers everything around the Qur'an.
 
-2. Start the app
 
-   ```bash
-   npx expo start
-   ```
+## 📦 Installation & Setup
 
-In the output, you'll find options to open the app in a
+### Prerequisites
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Node.js (v16 or higher)
+- npm or yarn
+- Expo CLI (`npm install -g expo-cli`)
+- iOS Simulator (Mac) or Android Emulator
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Quick Start
 
-## Get a fresh project
-
-When you're ready, run:
-
+1. **Clone the repository**
 ```bash
-npm run reset-project
+git clone https://github.com/hngprojects/noorAI-Mobile
+cd noorai
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. **Install dependencies**
+```bash
+npm install
+# or
+yarn install
+```
 
-## Learn more
+3. **Configure environment variables**
+```bash
+cp .env.example .env
+# Edit .env with your API keys and configuration
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+4. **Start the development server**
+```bash
+npx expo start
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+5. **Run on your platform**
+- Press `i` for iOS simulator
+- Press `a` for Android emulator
+- Scan QR code with Expo Go app on your device
 
-## Join the community
+## 🏗️ Project Structure
 
-Join our community of developers creating universal apps.
+```
+noorai/
+├── src/
+│   ├── components/          # Reusable UI components
+│   ├── screens/             # App screens
+│   ├── navigation/          # Navigation configuration
+│   ├── services/            # API and backend services
+│   ├── hooks/               # Custom React hooks
+│   ├── utils/               # Utility functions
+│   ├── types/               # TypeScript definitions
+│   ├── constants/           # App constants
+│   └── assets/              # Images, fonts, icons
+├── App.tsx                  # Root component
+├── app.json                 # Expo configuration
+├── tsconfig.json            # TypeScript configuration
+└── package.json             # Dependencies
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 🤝 Contributing
 
+We welcome contributions that align with NoorAI's mission of providing a gentle, respectful, and authentic Islamic experience.
 
-git init
-git add .
-git commit -m "initial commit from create expo app"
-git branch -M main
-git remote add origin https://github.com/hngprojects/noorAI-Mobile.git
-git push -u origin main
+### How to Contribute
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Guidelines
+- Follow the existing code style and TypeScript conventions
+- Write meaningful commit messages
+- Test your changes thoroughly
+- Ensure accessibility standards are met
+- Respect the spiritual and cultural sensitivity of the app
+
+---
+
+**Built with ♥ for the Ummah** | *"And We send down of the Qur'an that which is healing and mercy for the believers"* (17:82)
