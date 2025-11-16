@@ -1,24 +1,25 @@
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
-import 'react-native-reanimated';
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { Stack } from "expo-router";
+import "react-native-reanimated";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { Text, TextInput } from "react-native";
+import CustomSplashScreen from "@/components/customSplashScreen"
 
-SplashScreen.preventAutoHideAsync(); 
+SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+  anchor: "(tabs)",
 };
 
-// GLOBAL FONT OVERRIDE (TypeScript Safe)
+// GLOBAL FONT OVERRIDE
 const applyGlobalFont = () => {
   const TextAny = Text as any;
   const TextInputAny = TextInput as any;
 
   if (!TextAny._hasFontOverride) {
-    TextAny._hasFontOverride = true;  // prevents double patching
+    TextAny._hasFontOverride = true;
 
     const oldTextRender = TextAny.render;
     TextAny.render = function (...args: any[]) {
@@ -48,16 +49,19 @@ function AppContent() {
   });
 
   useEffect(() => {
-    if (loaded) {
-      applyGlobalFont();   // Fonts Loaded
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]); 
+    const prepare = async () => {
+      if (loaded) {
+        applyGlobalFont();
+        await SplashScreen.hideAsync(); // Hide default splash
+      }
+    };
+    prepare();
+  }, [loaded]);
 
-  if (!loaded) return null;
+  if (!loaded) return <CustomSplashScreen />;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#1a1515ff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#1a1515ff" }}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="welcome-screen" />
         <Stack.Screen name="(tabs)" />
