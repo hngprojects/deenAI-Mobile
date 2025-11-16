@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
-import {  View,  Text,   StyleSheet,   ScrollView,   TouchableOpacity,  Alert,  Platform,  Linking, ActivityIndicator, Image} from "react-native";
-import { ArrowLeft, MapPin, Navigation, Map } from "lucide-react-native";
+import {  View,  Text,   StyleSheet,   ScrollView,   TouchableOpacity,  Alert,  Platform,  Linking, ActivityIndicator} from "react-native";
+import { ArrowLeft, MapPin, Navigation } from "lucide-react-native";
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PrimaryButton from "@/components/primaryButton";
@@ -34,20 +34,15 @@ export default function LocationPermissionScreen({ onNext }: { onNext: () => voi
   const [hasLocationServices, setHasLocationServices] = useState(true);
 
   // Generate static map image URL
-  const getMapImageUrl = (lat?: number, lon?: number) => {
-    const latitude = lat || 37.7749;
-    const longitude = lon || -122.4194;
-    const zoom = lat ? 13 : 10;
-    const size = '600x400';
+//   const getMapImageUrl = (lat?: number, lon?: number) => {
+//     const latitude = lat || 37.7749;
+//     const longitude = lon || -122.4194;
+//     const zoom = lat ? 13 : 10;
+//     const size = '600x400';
     
-    // Using OpenStreetMap static map service (free, no API key needed)
-    return `https://www.mapquestapi.com/staticmap/v5/map?key=YOUR_KEY_HERE&center=${latitude},${longitude}&size=${size}&zoom=${zoom}&type=map&locations=${latitude},${longitude}|marker-sm-616161`;
-  };
-
-  // Check permission status and location services on mount
-  useEffect(() => {
-    initializeLocation();
-  }, []);
+//     // Using OpenStreetMap static map service (free, no API key needed)
+//     return `https://www.mapquestapi.com/staticmap/v5/map?key=YOUR_KEY_HERE&center=${latitude},${longitude}&size=${size}&zoom=${zoom}&type=map&locations=${latitude},${longitude}|marker-sm-616161`;
+//   };
 
   // Initialize location services and check permissions
   const initializeLocation = async () => {
@@ -83,6 +78,12 @@ export default function LocationPermissionScreen({ onNext }: { onNext: () => voi
       console.error('Error initializing location:', error);
     }
   };
+
+  // Check permission status and location services on mount
+  useEffect(() => {
+    initializeLocation();
+  }, [initializeLocation]);
+
 
   // Load location from storage or fetch new one
   const loadStoredLocationOrFetch = async () => {

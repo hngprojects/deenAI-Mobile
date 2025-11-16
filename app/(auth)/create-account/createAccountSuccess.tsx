@@ -15,7 +15,7 @@ export default function CreateAccountSuccess() {
     }, 2000);
 
     return () => clearTimeout(timer); // clean up if component unmounts early
-  }, []);
+  }, [router]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

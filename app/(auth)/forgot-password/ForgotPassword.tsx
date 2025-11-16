@@ -18,7 +18,7 @@ export default function ForgotPassword() {
       {/* Title */}
       <Text style={styles.title}>Forgot Password</Text>
 
-      <Text style={styles.subtitle}>Enter your email address below and we'll send you a link to reset your password </Text>
+      <Text style={styles.subtitle}>Enter your email address below and we&apos;ll send you a link to reset your password </Text>
 
       <InputField
         label="Email Address"

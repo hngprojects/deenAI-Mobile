@@ -3,9 +3,8 @@ import { Stack } from 'expo-router';
 import 'react-native-reanimated';
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useCallback } from "react";
+import React, { useEffect } from "react";
 import { Text, TextInput } from "react-native";
-import React from 'react';
 
 SplashScreen.preventAutoHideAsync(); 
 
