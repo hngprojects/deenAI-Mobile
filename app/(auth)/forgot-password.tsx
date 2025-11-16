@@ -1,9 +1,9 @@
 import InputField from "@/components/InputField";
-import { router } from "expo-router";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { useState } from "react";
 import PrimaryButton from "@/components/primaryButton";
+import { router } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
+import { useState } from "react";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -33,7 +33,7 @@ export default function ForgotPassword() {
       </View>
 
       <Text style={styles.footerText}>
-        By using Noor AI, you agree to the{" "}
+        By using Deen AI, you agree to the{" "}
         <Text style={styles.link}>Terms and Privacy Policy.</Text>
       </Text>
     </ScrollView>

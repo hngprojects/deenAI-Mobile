@@ -1,3 +1,5 @@
+import ScreenHeader from '@/components/screenHeader';
+import SecondaryButton from '@/components/secondaryButton';
 import { useRouter } from 'expo-router';
 import { Bell } from 'lucide-react-native';
 import React from 'react';
@@ -11,8 +13,6 @@ import PrimaryButton from '../../components/primaryButton';
 import ScreenContainer from '../../components/ScreenContainer';
 import { useNotification } from '../../hooks/useNotification';
 import { theme } from '../../styles/theme';
-import ScreenHeader from '@/components/screenHeader';
-import SecondaryButton from '@/components/secondaryButton';
 
 export default function NotificationAccessScreen() {
     const router = useRouter();
@@ -54,7 +54,7 @@ export default function NotificationAccessScreen() {
             </View>
 
             <Text style={styles.title}>
-                Allow NoorAi to Send Notifications?
+                Allow DeenAi to Send Notifications?
             </Text>
 
             <Text style={styles.description}>
@@ -70,7 +70,7 @@ export default function NotificationAccessScreen() {
                 <SecondaryButton
                     title="Don't Allow"
                     onPress={handleDontAllow}
-                    // style={styles.secondaryButton}
+                // style={styles.secondaryButton}
                 />
             </View>
 

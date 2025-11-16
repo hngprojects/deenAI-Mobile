@@ -15,7 +15,7 @@ export default function Index() {
       <View style={styles.screenContainer}>
         <View style={styles.containerBoard}>
           <View style={styles.boardText}>
-            <Text style={styles.bText}>Welcome to Noor AI, Converse & Learn</Text>
+            <Text style={styles.bText}>Welcome to Deen AI, Converse & Learn</Text>
             <Text style={styles.pText}>A peaceful space to connect with the Quran every day. Seek answers, find light, and reflect in stillness.</Text>
           </View>
 

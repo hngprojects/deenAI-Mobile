@@ -1,6 +1,7 @@
 // app/(onboarding)/location-access.tsx
 
 import ScreenHeader from '@/components/screenHeader';
+import SecondaryButton from '@/components/secondaryButton';
 import { useRouter } from 'expo-router';
 import { MapPin } from 'lucide-react-native';
 import React from 'react';
@@ -15,7 +16,6 @@ import PrimaryButton from '../../components/primaryButton';
 import ScreenContainer from '../../components/ScreenContainer';
 import { useLocation } from '../../hooks/useLocation';
 import { theme } from '../../styles/theme';
-import SecondaryButton from '@/components/secondaryButton';
 
 export default function LocationAccessScreen() {
     const router = useRouter();
@@ -54,7 +54,7 @@ export default function LocationAccessScreen() {
             </View>
 
             <Text style={styles.title}>
-                Allow NoorAi to use your Location?
+                Allow DeenAi to use your Location?
             </Text>
 
             <Text style={styles.description}>
@@ -79,14 +79,14 @@ export default function LocationAccessScreen() {
                 <SecondaryButton
                     title="Don't Allow"
                     onPress={handleDontAllow}
-                    // style={styles.secondaryButton}
+                // style={styles.secondaryButton}
                 />
 
                 <SecondaryButton
                     title="Allow while using App"
                     onPress={handleRequestPermission}
-                    // style={styles.tertiaryButton}
-                    // loading={loading}
+                // style={styles.tertiaryButton}
+                // loading={loading}
                 />
             </View>
 

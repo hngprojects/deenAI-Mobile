@@ -1,5 +1,8 @@
 // app/(auth)/signup.tsx
 
+import ScreenContainer from '@/components/ScreenContainer';
+import ScreenHeader from '@/components/screenHeader';
+import { theme } from '@/styles/theme';
 import { useRouter } from 'expo-router';
 import { Formik } from 'formik';
 import React, { useState } from 'react';
@@ -14,9 +17,6 @@ import PrimaryButton from '../../components/primaryButton';
 import SocialLoginButton from '../../components/socialLoginButton';
 import { SignupFormValues, SocialProvider } from '../../types';
 import { SignupSchema } from '../../utils/validation';
-import ScreenContainer from '@/components/ScreenContainer';
-import ScreenHeader from '@/components/screenHeader';
-import { theme } from '@/styles/theme';
 
 export default function SignupScreen() {
     const router = useRouter();
@@ -179,7 +179,7 @@ export default function SignupScreen() {
             />
 
             <Text style={styles.termsText}>
-                By using Noor AI, you agree to the{' '}
+                By using Deen AI, you agree to the{' '}
                 <Text style={styles.termsLink}>Terms and Privacy Policy.</Text>
             </Text>
         </ScreenContainer>
