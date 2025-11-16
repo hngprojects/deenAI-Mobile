@@ -1,47 +1,65 @@
-import { TouchableOpacity, Text, View, StyleSheet, Image } from "react-native";
+import React from 'react';
+import { TouchableOpacity, Text, StyleSheet, Image, ImageSourcePropType } from 'react-native';
+import { SocialProvider } from '../types';
+import { theme } from '../styles/theme';
 
-interface Props {
-  icon: any;
-  label: string;
+interface SocialLoginButtonProps {
+  provider: SocialProvider;
   onPress: () => void;
 }
 
-export default function SocialButton({ icon, label, onPress }: Props) {
+const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({
+  provider,
+  onPress,
+}) => {
+  const config: Record<SocialProvider, { text: string; icon: ImageSourcePropType }> = {
+    apple: {
+      text: 'Continue with Apple',
+      icon: require('../assets/images/Apple.png'),
+    },
+    google: {
+      text: 'Continue with Google',
+      icon: require('../assets/images/Google.png'),
+    },
+  };
+
+  const { text, icon } = config[provider];
+
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
-      <View style={styles.iconWrapper}>
-        <Image source={icon} style={styles.icon} />
-      </View>
-      <Text style={styles.text}>{label}</Text>
-      <View style={{ width: 20 }} /> 
+    <TouchableOpacity
+      style={styles.button}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <Image source={icon} style={styles.icon} resizeMode="contain" />
+      <Text style={styles.text}>{text}</Text>
     </TouchableOpacity>
   );
-}
+};
 
 const styles = StyleSheet.create({
   button: {
-    height: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.color.white,
     borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    padding: 16,
     marginBottom: 12,
-    backgroundColor: "#fff",
-  },
-  iconWrapper: {
-    position: "absolute",
-    left: 16,
   },
   icon: {
-    width: 22,
-    height: 22,
-    resizeMode: "contain",
+    width: 20,
+    height: 20,
+    marginRight: 12,
   },
   text: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#333",
+    fontSize: 16,
+    fontFamily: theme.font.regular,
+    color: theme.color.secondary,
+    fontWeight: '500',
   },
 });
+
+export default SocialLoginButton;

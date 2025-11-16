@@ -1,75 +1,40 @@
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
-import 'react-native-reanimated';
-import { useFonts } from "expo-font";
-import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect } from "react";
-import { Text, TextInput } from "react-native";
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 
-SplashScreen.preventAutoHideAsync(); 
+SplashScreen.preventAutoHideAsync();
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
-
-// GLOBAL FONT OVERRIDE (TypeScript Safe)
-const applyGlobalFont = () => {
-  const TextAny = Text as any;
-  const TextInputAny = TextInput as any;
-
-  if (!TextAny._hasFontOverride) {
-    TextAny._hasFontOverride = true;  // prevents double patching
-
-    const oldTextRender = TextAny.render;
-    TextAny.render = function (...args: any[]) {
-      const origin = oldTextRender.apply(this, args);
-      return React.cloneElement(origin, {
-        style: [{ fontFamily: "NunitoSans" }, origin.props.style],
-      });
-    };
-  }
-
-  if (!TextInputAny._hasFontOverride) {
-    TextInputAny._hasFontOverride = true;
-
-    const oldInputRender = TextInputAny.render;
-    TextInputAny.render = function (...args: any[]) {
-      const origin = oldInputRender.apply(this, args);
-      return React.cloneElement(origin, {
-        style: [{ fontFamily: "NunitoSans" }, origin.props.style],
-      });
-    };
-  }
-};
-
-function AppContent() {
-  const [loaded] = useFonts({
-    NunitoSans: require("@/assets/fonts/NunitoSans-VariableFont.ttf"),
+export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    'NunitoSans-SemiBold': require('../assets/fonts/NunitoSans-SemiBold.ttf'),
+    'NunitoSans-Bold': require('../assets/fonts/NunitoSans-Bold.ttf'),
+    'NunitoSans-Regular': require('../assets/fonts/NunitoSans-Regular.ttf'),
+    'NunitoSans-Light': require('../assets/fonts/NunitoSans-Light.ttf'),
+    'NunitoSans-ExtraBold': require('../assets/fonts/NunitoSans-ExtraBold.ttf'),
+    'NunitoSans-Black': require('../assets/fonts/NunitoSans-Black.ttf'),
   });
 
   useEffect(() => {
-    if (loaded) {
-      applyGlobalFont();   // Fonts Loaded
+    if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [loaded]); 
+  }, [fontsLoaded]);
 
-  if (!loaded) return null;
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#1a1515ff' }}>
+    <ThemeProvider>
+      <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="welcome-screen" />
-        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        {/* <Stack.Screen name="(tabs)" /> */}
       </Stack>
-    </SafeAreaView>
-  );
-}
-
-export default function RootLayout() {
-  return (
-    <SafeAreaProvider>
-      <AppContent />
-    </SafeAreaProvider>
+    </ThemeProvider>
   );
 }

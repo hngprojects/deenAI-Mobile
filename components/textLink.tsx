@@ -1,4 +1,5 @@
-import { Text, TouchableOpacity, StyleSheet, View } from "react-native";
+import { theme } from "@/styles/theme";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface Props {
   label: string;
@@ -20,12 +21,13 @@ export default function TextLink({ label, linkText, onPress }: Props) {
 const styles = StyleSheet.create({
   container: { flexDirection: "row", marginTop: 14 },
   label: {
-    color: "#ddd",
+    color: theme.color.white,
     fontSize: 16,
+    fontFamily: theme.font.light,
   },
   link: {
-    color: "#f5d07f",
-    fontWeight: "600",
+    color: theme.color.brandLight,
     fontSize: 16,
+    fontFamily: theme.font.bold,
   },
 });
