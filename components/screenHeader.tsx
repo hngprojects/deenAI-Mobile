@@ -9,6 +9,7 @@ interface ScreenHeaderProps {
     showBackButton?: boolean;
     onBackPress?: () => void;
     rightComponent?: React.ReactNode;
+    titleAlign?: 'left' | 'center';
 }
 
 const ScreenHeader: React.FC<ScreenHeaderProps> = ({
@@ -16,6 +17,7 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
     showBackButton = true,
     onBackPress,
     rightComponent,
+    titleAlign = 'center',
 }) => {
     const router = useRouter();
 
@@ -41,7 +43,15 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
                 <View style={styles.backButton} />
             )}
 
-            <Text style={styles.headerTitle}>{title}</Text>
+            <Text
+                style={[
+                    styles.headerTitle,
+                    titleAlign === 'left' && { textAlign: 'left' }, 
+                ]}
+            >
+                {title}
+            </Text>
+
 
             {rightComponent ? (
                 <View style={styles.rightComponent}>{rightComponent}</View>

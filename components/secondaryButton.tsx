@@ -1,14 +1,15 @@
 import { theme } from "@/styles/theme";
-import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, ViewStyle } from "react-native";
 
 interface Props {
     title: string;
     onPress: () => void;
+    style?: ViewStyle | ViewStyle[];
 }
 
-export default function SecondaryButton({ title, onPress }: Props) {
+export default function SecondaryButton({ title, onPress, style }: Props) {
     return (
-        <TouchableOpacity style={styles.button} onPress={onPress}>
+        <TouchableOpacity style={[styles.button, style]} onPress={onPress}>
             <Text style={styles.text}>{title}</Text>
         </TouchableOpacity>
     );
