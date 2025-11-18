@@ -45,3 +45,5 @@ app-example
 project_structure.text
 
 tsconfig.json
+
+pnpm-lock.yaml
