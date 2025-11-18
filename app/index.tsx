@@ -1,14 +1,21 @@
 import OutlineButton from '@/components/OutlineButton';
 import SecondaryButton from '@/components/secondaryButton';
 import TextLink from '@/components/textLink';
+import { useGuestLogin } from '@/hooks/useAuth';
 import { theme } from '@/styles/theme';
 import { useRouter } from 'expo-router';
 import { Dimensions, ImageBackground, StyleSheet, Text, View } from 'react-native';
+// import { useGuestLogin } from '~/hooks/useAuth';
 
 const { width, height } = Dimensions.get('window')
 
 export default function Index() {
   const router = useRouter();
+  const { mutate: continueAsGuest, isPending } = useGuestLogin();
+
+  const handleGuestLogin = () => {
+    continueAsGuest();
+  };
 
   return (
     <ImageBackground source={require('../assets/images/onb.png')} style={styles.backgroundImage}>
@@ -25,8 +32,9 @@ export default function Index() {
           />
 
           <OutlineButton
-            title="Continue as a Guest"
-            onPress={() => router.replace("/(tabs)")}
+            title={isPending ? "Continuing..." : "Continue as a Guest"}
+            onPress={handleGuestLogin}
+            disabled={isPending}
             style={{ marginTop: 20 }}
           />
 

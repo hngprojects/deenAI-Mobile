@@ -53,7 +53,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
                             accessibilityRole="button"
                             accessibilityState={isFocused ? { selected: true } : {}}
                             accessibilityLabel={options.tabBarAccessibilityLabel}
-                            testID={options.tabBarTestID}
+                            // testID={options.tabBarTestID}
                             onPress={onPress}
                             onLongPress={onLongPress}
                             style={[
@@ -81,7 +81,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
 const styles = StyleSheet.create({
     container: {
         backgroundColor: 'transparent',
-        paddingHorizontal: 20,
+        paddingHorizontal: 5,
         paddingTop: 10,
     },
     tabBar: {
@@ -90,11 +90,9 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
         borderRadius: 50,
         height: 70,
-        paddingHorizontal: 10,
-
+        paddingHorizontal: 5,
     },
     tab: {
-        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
         height: 50,
