@@ -3,7 +3,11 @@ import { Share2, Trash2 } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function TodaysReflection() {
+interface ReflectionProps {
+  title?: string; // optional default
+}
+
+export default function TodaysReflection({ title = "Today&lsquo;s Reflection" }: ReflectionProps) {
     const handleDelete = () => {
         // TODO: Delete reflection
         console.log('Delete pressed');
@@ -21,13 +25,14 @@ export default function TodaysReflection() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Today's Reflection</Text>
+            <Text style={styles.title}>{title}</Text>
+
 
             <View style={styles.card}>
                 {/* Quote Section */}
                 <View style={styles.quoteSection}>
                     <Text style={styles.quote}>
-                        "Indeed, with hardship comes ease."
+                        &ldquo;Indeed, with hardship comes ease.&ldquo;
                     </Text>
                     <Text style={styles.reference}>— Surah Ash-Sharh (94:6)</Text>
                 </View>
@@ -35,7 +40,7 @@ export default function TodaysReflection() {
                 {/* Reflection Section */}
                 <View style={styles.reflectionSection}>
                     <Text style={styles.reflectionText}>
-                        This verse reminds me that Allah's mercy always follows struggle.
+                        This verse reminds me that Allah&lsquo;s mercy always follows struggle.
                         Even in my quietest moments of doubt, I know ease is already
                         written, I just need patience to see it unfold...
                     </Text>
@@ -80,7 +85,7 @@ const styles = StyleSheet.create({
         gap: 16,
     },
     title: {
-        fontSize: 16,
+        fontSize: 18,
         fontFamily: theme.font.bold,
         color: theme.color.secondary,
     },
@@ -101,14 +106,14 @@ const styles = StyleSheet.create({
     quote: {
         fontSize: 16,
         fontFamily: theme.font.semiBold,
-        color: theme.color.secondary,
+        color: theme.color.brand,
         lineHeight: 24,
         textAlign: 'center',
     },
     reference: {
         fontSize: 14,
         fontFamily: theme.font.regular,
-        color: '#666',
+        color: theme.color.brand,
         textAlign: 'center',
     },
     reflectionSection: {
