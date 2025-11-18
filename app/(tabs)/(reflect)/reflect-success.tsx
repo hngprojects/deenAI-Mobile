@@ -3,7 +3,7 @@
 import { View, Text, StyleSheet, } from 'react-native';
 import { theme } from '@/styles/theme';
 import ScreenContainer from '@/components/ScreenContainer';
-import PrimaryButton from '../../components/primaryButton';
+import PrimaryButton from '../../../components/primaryButton';
 import { useRouter } from 'expo-router';
 
 export default function ReflectSuccess() {

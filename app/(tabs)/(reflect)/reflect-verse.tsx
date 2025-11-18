@@ -5,7 +5,7 @@ import { theme } from '@/styles/theme';
 import ScreenContainer from '@/components/ScreenContainer';
 import ScreenHeader from '@/components/screenHeader';
 import ReflectionQuote from '@/components/reflect/ReflectionQuote';
-import PrimaryButton from '../../components/primaryButton';
+import PrimaryButton from '../../../components/primaryButton';
 import { ChevronDown, ChevronUp } from 'lucide-react-native';
 import SecondaryButton from '@/components/secondaryButton';
 import { useRouter } from 'expo-router';
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    gap: 12, 
+    gap: 12,
     paddingHorizontal: 16,
     marginTop: 22,
     marginBottom: 30,

@@ -6,7 +6,7 @@ import { Image } from 'react-native';
 
 export default function TabLayout() {
     return (
-        <ProtectedRoute requireAuth={false}> 
+        <ProtectedRoute requireAuth={false}>
             <Tabs
                 tabBar={(props) => <CustomTabBar {...props} />}
                 screenOptions={{
@@ -59,6 +59,12 @@ export default function TabLayout() {
                                 style={{ width: 24, height: 24, tintColor: color }}
                             />
                         ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="(reflect)"
+                    options={{
+                        href: null,
                     }}
                 />
             </Tabs>

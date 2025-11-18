@@ -10,13 +10,13 @@ import { useRouter } from 'expo-router';
 
 export default function ReflectScreen() {
   const router = useRouter();
-  
+
   return (
     <ScreenContainer>
-      <ScreenHeader 
-        titleAlign="left" 
-        showBackButton={false} 
-        title="Reflection" 
+      <ScreenHeader
+        titleAlign="left"
+        showBackButton={false}
+        title="Reflection"
       />
 
       <InputField
@@ -29,12 +29,12 @@ export default function ReflectScreen() {
 
       <PrimaryButton
         title="Reflect on this verse"
-        onPress={() => router.push('/reflect-verse')}
+        onPress={() => router.push('/(tabs)/(reflect)/reflect-verse')}
         style={{ marginTop: 12, marginBottom: 30 }}
       />
 
-      <TodaysReflection 
-        title='My Saved Reflections' 
+      <TodaysReflection
+        title='My Saved Reflections'
       />
     </ScreenContainer>
   );
