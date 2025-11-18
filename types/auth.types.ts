@@ -22,9 +22,9 @@ export interface AuthResponse {
     token: string;
 }
 
-export interface AuthError {
-    message: string;
-    field?: string;
+export interface AuthState {
+    user: User | null;
+    token: string | null;
+    isAuthenticated: boolean;
+    isLoading: boolean;
 }
-
-export type SocialProvider = 'apple' | 'google';

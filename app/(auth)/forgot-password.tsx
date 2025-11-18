@@ -1,20 +1,18 @@
 import InputField from "@/components/InputField";
 import PrimaryButton from "@/components/primaryButton";
+import ScreenContainer from "@/components/ScreenContainer";
+import ScreenHeader from "@/components/screenHeader";
+import { theme } from "@/styles/theme";
 import { router } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-        <ArrowLeft />
-      </TouchableOpacity>
-
-      <Text style={styles.title}>Forgot Password</Text>
+    <ScreenContainer>
+      <ScreenHeader title="Reset Password" />
 
       <Text style={styles.subtitle}>Enter your email address below and we&apos;ll send you a link to reset your password </Text>
 
@@ -28,7 +26,7 @@ export default function ForgotPassword() {
       <View style={{ marginTop: 10 }}>
         <PrimaryButton
           title="Send"
-          onPress={() => router.push("/forgot-password/ForgotPassword")}
+          onPress={() => router.push("/(auth)/reset-password")}
         />
       </View>
 
@@ -36,7 +34,9 @@ export default function ForgotPassword() {
         By using Deen AI, you agree to the{" "}
         <Text style={styles.link}>Terms and Privacy Policy.</Text>
       </Text>
-    </ScrollView>
+    </ScreenContainer>
+
+
   );
 }
 
@@ -57,11 +57,13 @@ const styles = StyleSheet.create({
     color: "#222",
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: "center",
-    color: "#555",
+    // color: "#555",
+    marginTop: 20,
     marginBottom: 26,
     lineHeight: 20,
+    fontFamily: theme.font.regular,
   },
   footerText: {
     marginTop: 20,

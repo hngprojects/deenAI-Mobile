@@ -1,116 +1,60 @@
-import { AuthResponse, LoginFormValues, SignupFormValues, SocialProvider, User } from '../types';
-
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
+import { AuthResponse, LoginFormValues, SignupFormValues, User } from "@/types";
 class AuthService {
-    private baseURL = 'https://your-api.com/api';
-
-    async signup(data: SignupFormValues): Promise<AuthResponse> {
-        try {
-            await delay(1500);
-
-            const response = await fetch(`${this.baseURL}/auth/signup`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: data.name,
-                    email: data.email,
-                    password: data.password,
-                }),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Signup failed');
-            }
-
-            const result = await response.json();
-
-            return result;
-        } catch (error) {
-            console.error('Signup error:', error);
-            throw error;
-        }
+    private async mockApiCall<T>(data: T, delay: number = 1000): Promise<T> {
+        return new Promise((resolve) => {
+            setTimeout(() => resolve(data), delay);
+        });
     }
 
-    async login(data: LoginFormValues): Promise<AuthResponse> {
-        try {
-            await delay(1500);
+    async login(credentials: LoginFormValues): Promise<AuthResponse> {
+        // Mock successful login
+        const mockUser: User = {
+            id: '1',
+            name: 'Test User',
+            email: credentials.email,
+            createdAt: new Date(),
+        };
 
-            const response = await fetch(`${this.baseURL}/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
+        const mockResponse: AuthResponse = {
+            user: mockUser,
+            token: 'mock-jwt-token-12345',
+        };
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Login failed');
-            }
-
-            const result = await response.json();
-            return result;
-        } catch (error) {
-            console.error('Login error:', error);
-            throw error;
-        }
+        return this.mockApiCall(mockResponse, 1500);
     }
 
-    async socialLogin(provider: SocialProvider, token: string): Promise<AuthResponse> {
-        try {
-            await delay(1500);
+    async signup(userData: SignupFormValues): Promise<AuthResponse> {
+        // Mock successful signup
+        const mockUser: User = {
+            id: '1',
+            name: userData.name,
+            email: userData.email,
+            createdAt: new Date(),
+        };
 
-            const response = await fetch(`${this.baseURL}/auth/${provider}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ token }),
-            });
+        const mockResponse: AuthResponse = {
+            user: mockUser,
+            token: 'mock-jwt-token-12345',
+        };
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Social login failed');
-            }
-
-            const result = await response.json();
-            return result;
-        } catch (error) {
-            console.error('Social login error:', error);
-            throw error;
-        }
+        return this.mockApiCall(mockResponse, 1500);
     }
 
     async logout(): Promise<void> {
-        try {
-        } catch (error) {
-            console.error('Logout error:', error);
-            throw error;
-        }
+        return this.mockApiCall(undefined, 500);
     }
 
-    async getCurrentUser(): Promise<User | null> {
-        try {
-            const response = await fetch(`${this.baseURL}/auth/me`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+    async getCurrentUser(token: string): Promise<User> {
+        // Mock current user
+        const mockUser: User = {
+            id: '1',
+            name: 'Test User',
+            email: 'test@example.com',
+            createdAt: new Date(),
+        };
 
-            if (!response.ok) return null;
-
-            const user = await response.json();
-            return user;
-        } catch (error) {
-            console.error('Get current user error:', error);
-            return null;
-        }
+        return this.mockApiCall(mockUser, 500);
     }
 }
 
-export default new AuthService();
+export const authService = new AuthService();

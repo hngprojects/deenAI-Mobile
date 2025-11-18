@@ -1,0 +1,80 @@
+name: CD – iOS Deployment (IPA to TestFlight/App Store)
+
+# ---------------------------------------------------------
+# Trigger on push to main or release branches
+# ---------------------------------------------------------
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+concurrency:
+  group: ios-cd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios-release:
+    name: Build IPA & Upload to TestFlight
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    steps:
+      # -----------------------------------------------------
+      # 1. Checkout code
+      # -----------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------
+      # 2. Set up Ruby for Fastlane
+      # -----------------------------------------------------
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+
+      # -----------------------------------------------------
+      # 3. Install Fastlane
+      # -----------------------------------------------------
+      - name: Install Fastlane
+        run: gem install fastlane -NV
+
+      # -----------------------------------------------------
+      # 4. Install iOS dependencies (CocoaPods)
+      # -----------------------------------------------------
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install --repo-update
+
+      # -----------------------------------------------------
+      # 5. Save App Store Connect API key to disk
+      # -----------------------------------------------------
+      - name: Save API Key
+        run: echo "${{ secrets.APP_STORE_CONNECT_API_KEY }}" > appstore_key.json
+
+      # -----------------------------------------------------
+      # 6. Run Fastlane lane for build + upload
+      # -----------------------------------------------------
+      - name: Build & Upload IPA
+        run: |
+          cd ios
+          fastlane ios build_and_upload
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+
+      # -----------------------------------------------------
+      # 7. Optional Slack Notification
+      # -----------------------------------------------------
+      - name: Slack Notify
+        if: ${{ secrets.SLACK_WEBHOOK != '' }}
+        uses: rtCamp/action-slack-notify@v2
+        with:
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          message: "iOS deployment completed: ${{ github.ref }}"
+          status: ${{ job.status }}
