@@ -1,23 +1,98 @@
-name: Mobile CI
+name: CI Pipeline for Pull Requests
 
+# ---------------------------------------------------------
+# Trigger workflow when a pull request is opened, synchronized, or reopened
+# targeting staging or main branch
+# ---------------------------------------------------------
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
     branches: [staging, main]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  ci-checks:
+
+  # =========================================================
+  # 1. Build & Quality Job: lint, tests, & Detox
+  # =========================================================
+  build-quality:
+    name: Build & Quality Checks
     runs-on: ubuntu-latest
+    timeout-minutes: 20   # Fail if this job exceeds 20 minutes
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run lint
-      - run: npm test -- --coverage
+          node-version: 20
+          cache: "npm"  # Node modules caching
+
+      # Step 3: Install dependencies using npm ci
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: Lint code
+      - name: Run Lint
+        run: npm run lint
+
+      # Step 5: Run unit tests with coverage
+      - name: Run Tests
+        run: npm test -- --coverage
+
+      # Step 6: Optional Detox E2E Tests (uncomment to enable Detox end-to-end testing)
+      # Note: Detox tests can significantly increase CI time.
+      # - name: Build Detox Android App
+      #   run: npm run build:e2e
+      #   timeout-minutes: 10 
+      #
+      # - name: Run Detox Android Tests
+      #   run: npm run test:e2e -- --configuration android.emu.release
+      #   env:
+      #     ANDROID_HOME: /usr/local/lib/android/sdk
+      #   timeout-minutes: 10 
+      #
+      # - name: Run Detox iOS Tests
+      #   run: npm run test:e2e -- --configuration ios.sim.release
+      #   if: runner.os == 'macOS'
+      #   timeout-minutes: 10 
+
+  # =========================================================
+  # 2. Security Scan Job: Snyk
+  # =========================================================
+  security-scan:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }} # Only run for PRs from the same repository
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      # Step 3: Install dependencies using npm ci
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: Run Snyk Security Scan
       - name: Security Scan
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        continue-on-error: true
+        continue-on-error: false
+
