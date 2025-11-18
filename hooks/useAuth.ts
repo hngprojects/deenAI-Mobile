@@ -1,113 +1,117 @@
-import { useState } from 'react';
-import { AuthError, LoginFormValues, SignupFormValues, SocialProvider, User } from '../types';
-import authService from '@/service/auth.service';
+import { authService } from '@/service/auth.service';
+import { useAuthStore } from '@/store/auth-store';
+import { LoginFormValues, SignupFormValues } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { router } from 'expo-router';
 
+export const useLogin = () => {
+    const { login: setAuth } = useAuthStore();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (credentials: LoginFormValues) => authService.login(credentials),
+        onMutate: () => {
+            useAuthStore.getState().setLoading(true);
+        },
+        onSuccess: (data) => {
+            setAuth(data.user, data.token);
+            queryClient.invalidateQueries({ queryKey: ['user'] });
+            router.replace('/(onboarding)/location-access');
+        },
+        onError: (error) => {
+            useAuthStore.getState().setLoading(false);
+            console.error('Login error:', error);
+        },
+        onSettled: () => {
+            useAuthStore.getState().setLoading(false);
+        },
+    });
+};
+
+export const useSignup = () => {
+    const { login: setAuth } = useAuthStore();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (userData: SignupFormValues) => authService.signup(userData),
+        onMutate: () => {
+            useAuthStore.getState().setLoading(true);
+        },
+        onSuccess: (data) => {
+            setAuth(data.user, data.token);
+            queryClient.invalidateQueries({ queryKey: ['user'] });
+            router.replace('/(onboarding)/location-access');
+        },
+        onError: (error) => {
+            useAuthStore.getState().setLoading(false);
+            console.error('Signup error:', error);
+        },
+        onSettled: () => {
+            useAuthStore.getState().setLoading(false);
+        },
+    });
+};
+
+export const useGuestLogin = () => {
+    const { setGuest } = useAuthStore();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async () => {
+            // Simulate API call for guest mode if needed
+            return Promise.resolve();
+        },
+        onSuccess: () => {
+            setGuest(true);
+            queryClient.invalidateQueries({ queryKey: ['user'] });
+            router.replace('/(tabs)');
+        },
+        onError: (error) => {
+            console.error('Guest login error:', error);
+        },
+    });
+};
+
+export const useLogout = () => {
+    const { logout: clearAuth } = useAuthStore();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: () => authService.logout(),
+        onSuccess: () => {
+            clearAuth();
+            queryClient.clear();
+            router.replace('/');
+        },
+        onError: (error) => {
+            console.error('Logout error:', error);
+        },
+    });
+};
+
+export const useCurrentUser = () => {
+    const { token, isAuthenticated } = useAuthStore();
+
+    return useQuery({
+        queryKey: ['user'],
+        queryFn: () => authService.getCurrentUser(token!),
+        enabled: !!token && isAuthenticated,
+        staleTime: 5 * 60 * 1000,
+    });
+};
+
+// Enhanced auth hook with guest support
 export const useAuth = () => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<AuthError | null>(null);
-
-    const signup = async (data: SignupFormValues) => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const response = await authService.signup(data);
-            setUser(response.user);
-
-            return response;
-        } catch (err: any) {
-            const authError: AuthError = {
-                message: err.message || 'Signup failed. Please try again.',
-            };
-            setError(authError);
-            throw authError;
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const login = async (data: LoginFormValues) => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const response = await authService.login(data);
-            setUser(response.user);
-
-            return response;
-        } catch (err: any) {
-            const authError: AuthError = {
-                message: err.message || 'Login failed. Please try again.',
-            };
-            setError(authError);
-            throw authError;
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const socialLogin = async (provider: SocialProvider) => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            // Here you would integrate with expo-apple-authentication or expo-google-sign-in
-            // For now, we'll simulate it
-            console.log(`Initiating ${provider} login...`);
-
-            // Example: Get token from Apple/Google
-            // const token = await getTokenFromProvider(provider);
-            // const response = await authService.socialLogin(provider, token);
-
-            // Simulated response
-            const response = {
-                user: {
-                    id: '123',
-                    name: 'Social User',
-                    email: 'user@example.com',
-                    createdAt: new Date(),
-                },
-                token: 'fake-token',
-            };
-
-            setUser(response.user);
-            return response;
-        } catch (err: any) {
-            const authError: AuthError = {
-                message: err.message || 'Social login failed. Please try again.',
-            };
-            setError(authError);
-            throw authError;
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const logout = async () => {
-        try {
-            setLoading(true);
-            await authService.logout();
-            setUser(null);
-        } catch (err: any) {
-            console.error('Logout error:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const clearError = () => {
-        setError(null);
-    };
+    const { user, token, isAuthenticated, isLoading, isGuest } = useAuthStore();
 
     return {
         user,
-        loading,
-        error,
-        signup,
-        login,
-        socialLogin,
-        logout,
-        clearError,
+        token,
+        isAuthenticated,
+        isLoading,
+        isGuest,
+        // Helper computed properties
+        canAccessPremium: isAuthenticated, // Only authenticated users get premium
+        shouldShowAuthPrompts: isGuest, // Show upgrade prompts to guests
     };
 };

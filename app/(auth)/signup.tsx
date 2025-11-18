@@ -1,5 +1,3 @@
-// app/(auth)/signup.tsx
-
 import ScreenContainer from '@/components/ScreenContainer';
 import ScreenHeader from '@/components/screenHeader';
 import { theme } from '@/styles/theme';
@@ -15,14 +13,16 @@ import {
 import InputField from '../../components/InputField';
 import PrimaryButton from '../../components/primaryButton';
 import SocialLoginButton from '../../components/socialLoginButton';
+import { useSignup } from '../../hooks/useAuth'; // Import the hook
 import { SignupFormValues, SocialProvider } from '../../types';
 import { SignupSchema } from '../../utils/validation';
 
 export default function SignupScreen() {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const { mutate: signup, isPending: loading } = useSignup();
 
     const initialValues: SignupFormValues = {
         name: '',
@@ -33,35 +33,27 @@ export default function SignupScreen() {
 
     const handleSignup = async (values: SignupFormValues) => {
         try {
-            setLoading(true);
+            signup(values, {
+                onError: (error: any) => {
+                    Alert.alert(
+                        'Signup Failed',
+                        error?.message || 'Signup failed. Please try again.'
+                    );
+                }
+            });
 
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            console.log('Signup values:', values);
-
-            router.push('/(onboarding)/location-access');
 
         } catch (err: any) {
-            Alert.alert('Error', err.message || 'Signup failed. Please try again.');
-        } finally {
-            setLoading(false);
+            console.error('Signup error:', err);
         }
     };
 
     const handleSocialLogin = async (provider: SocialProvider) => {
         try {
-            setLoading(true);
-
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            console.log(`${provider} login initiated`);
-
             router.push('/(onboarding)/location-access');
 
         } catch (err: any) {
             Alert.alert('Error', err.message || 'Social login failed. Please try again.');
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -90,9 +82,9 @@ export default function SignupScreen() {
                     errors,
                     touched,
                     isValid,
+                    dirty,
                 }) => (
                     <View style={styles.formContainer}>
-                        {/* Name Field */}
                         <InputField
                             label="Name"
                             placeholder="Enter your name"
@@ -157,10 +149,10 @@ export default function SignupScreen() {
                         />
 
                         <PrimaryButton
-                            title="Sign Up"
+                            title={loading ? "Creating Account..." : "Sign Up"}
                             onPress={() => handleSubmit()}
                             loading={loading}
-                            disabled={!isValid || loading}
+                            disabled={!isValid || !dirty || loading}
                             style={{ marginTop: 10 }}
                         />
                     </View>
@@ -172,10 +164,12 @@ export default function SignupScreen() {
             <SocialLoginButton
                 provider="apple"
                 onPress={() => handleSocialLogin('apple')}
+                // disabled={loading}
             />
             <SocialLoginButton
                 provider="google"
                 onPress={() => handleSocialLogin('google')}
+                // disabled={loading}
             />
 
             <Text style={styles.termsText}>
