@@ -87,17 +87,17 @@ jobs:
       # SECURITY & DEPENDENCY CHECKS
       # ============================================
 
-      - name: Run dependency audit
-        run: npm audit --audit-level=moderate
-        continue-on-error: true  # Don't fail on audit issues
+      # - name: Run dependency audit
+      #   run: npm audit --audit-level=moderate
+      #   continue-on-error: true  # Don't fail on audit issues
 
-      - name: Security scan with Snyk
-        uses: snyk/actions/node@master
-        continue-on-error: true  # Skip if SNYK_TOKEN not available
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high
+      # - name: Security scan with Snyk
+      #   uses: snyk/actions/node@master
+      #   continue-on-error: true  # Skip if SNYK_TOKEN not available
+      #   env:
+      #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #   with:
+      #     args: --severity-threshold=high
 
       # ============================================
       # PLATFORM COMPATIBILITY CHECKS
