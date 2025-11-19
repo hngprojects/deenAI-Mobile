@@ -65,8 +65,9 @@ export default function ReflectScreen() {
       <View style={styles.buttonContainer}>
         <PrimaryButton
           title="Save reflection"
-          // onPress={() => router.push('/reflect/reflect-success')}
-          onPress={() => router.push('/(tabs)/(reflect)/reflect-success')}
+          // onPress={() => router.push('/reflect/reflect-success')} 
+          onPress={() => router.push('/(tabs)/(reflect)/reflect-success')} //update route
+          
           style={styles.button}
         />
         <SecondaryButton

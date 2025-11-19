@@ -82,7 +82,7 @@ export default function ResetPassword() {
             </View>
 
             <View style={styles.resendContainer}>
-                <Text style={styles.resendText}>Didn't receive ? </Text>
+                <Text style={styles.resendText}>Didn&apos;t receive ? </Text>
                 <Text style={styles.resendLink} onPress={handleResendCode}>
                     Resend Code
                 </Text>
