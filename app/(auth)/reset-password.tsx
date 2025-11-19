@@ -36,6 +36,7 @@ export default function ResetPassword() {
         if (verificationCode.length === 6) {
             // TODO: Verify code and navigate to new password screen
             console.log("Verification code:", verificationCode);
+            // router.push("/(auth)/new-password");
             router.push("/(auth)/new-password");
         }
     };
