@@ -23,7 +23,7 @@ jobs:
   # ============================================
   ci:
     name: CI - Quality Checks
-    runs-on: self-hosted
+    runs-on: hng-13-runner
 
     steps:
       - name: Checkout code
