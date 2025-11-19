@@ -23,7 +23,7 @@ jobs:
   # ============================================
   ci:
     name: CI - Quality Checks
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
