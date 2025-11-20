@@ -49,3 +49,6 @@ eas.json
 project_structure.text
 
 tsconfig.json
+
+deenai-release.keystore
+keystore.txt
