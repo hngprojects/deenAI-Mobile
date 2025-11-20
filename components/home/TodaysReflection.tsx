@@ -4,7 +4,7 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface ReflectionProps {
-  title?: string; // optional default
+  title?: string;
 }
 
 export default function TodaysReflection({ title = "Today&lsquo;s Reflection" }: ReflectionProps) {
@@ -18,10 +18,10 @@ export default function TodaysReflection({ title = "Today&lsquo;s Reflection" }:
         console.log('Share pressed');
     };
 
-    const handleAiAssistant = () => {
-        // TODO: Open AI assistant
-        console.log('AI assistant pressed');
-    };
+    // const handleAiAssistant = () => {
+    //     // TODO: Open AI assistant
+    //     console.log('AI assistant pressed');
+    // };
 
     return (
         <View style={styles.container}>
@@ -29,7 +29,6 @@ export default function TodaysReflection({ title = "Today&lsquo;s Reflection" }:
 
 
             <View style={styles.card}>
-                {/* Quote Section */}
                 <View style={styles.quoteSection}>
                     <Text style={styles.quote}>
                         &ldquo;Indeed, with hardship comes ease.&ldquo;
@@ -37,7 +36,6 @@ export default function TodaysReflection({ title = "Today&lsquo;s Reflection" }:
                     <Text style={styles.reference}>— Surah Ash-Sharh (94:6)</Text>
                 </View>
 
-                {/* Reflection Section */}
                 <View style={styles.reflectionSection}>
                     <Text style={styles.reflectionText}>
                         This verse reminds me that Allah&lsquo;s mercy always follows struggle.
@@ -46,7 +44,6 @@ export default function TodaysReflection({ title = "Today&lsquo;s Reflection" }:
                     </Text>
                 </View>
 
-                {/* Footer */}
                 <View style={styles.footer}>
                     <Text style={styles.savedDate}>Saved on Nov 2, 2025</Text>
                     <View style={styles.actions}>

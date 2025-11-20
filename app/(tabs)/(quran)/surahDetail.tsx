@@ -4,8 +4,10 @@ import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 
 import { theme } from '@/styles/theme';
-import VerseItem from '../../components/verseItem'
-import { RootStackParamList } from '../(tabs)/quran'; 
+// import VerseItem from '../../components/verseItem'
+// import { RootStackParamList } from '../(tabs)/quran';
+import VerseItem from '@/components/verseItem';
+import { RootStackParamList } from '../quran';
 
 type SurahDetailRouteProp = RouteProp<RootStackParamList, 'surahDetail'>;
 

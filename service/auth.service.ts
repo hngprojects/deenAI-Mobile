@@ -1,59 +1,93 @@
-import { AuthResponse, LoginFormValues, SignupFormValues, User } from "@/types";
+import { AuthResponse, AuthTokens, LoginFormValues, OtpResponse, RequestOtpPayload, ResetPasswordPayload, SignupFormValues, User, VerifyOtpPayload } from '@/types/auth.types';
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 class AuthService {
-    private async mockApiCall<T>(data: T, delay: number = 1000): Promise<T> {
-        return new Promise((resolve) => {
-            setTimeout(() => resolve(data), delay);
-        });
+    private async apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+        const url = `${API_BASE_URL}${endpoint}`;
+
+        const config: RequestInit = {
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers,
+            },
+            ...options,
+        };
+
+        const response = await fetch(url, config);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `Request failed with status ${response.status}`);
+        }
+
+        return await response.json();
     }
 
     async login(credentials: LoginFormValues): Promise<AuthResponse> {
-        // Mock successful login
-        const mockUser: User = {
-            id: '1',
-            name: 'Test User',
-            email: credentials.email,
-            createdAt: new Date(),
-        };
-
-        const mockResponse: AuthResponse = {
-            user: mockUser,
-            token: 'mock-jwt-token-12345',
-        };
-
-        return this.mockApiCall(mockResponse, 1500);
+        return this.apiCall<AuthResponse>('/auth/login', {
+            method: 'POST',
+            body: JSON.stringify(credentials),
+        });
     }
 
     async signup(userData: SignupFormValues): Promise<AuthResponse> {
-        // Mock successful signup
-        const mockUser: User = {
-            id: '1',
-            name: userData.name,
-            email: userData.email,
-            createdAt: new Date(),
-        };
+        const { confirmPassword, ...apiData } = userData;
 
-        const mockResponse: AuthResponse = {
-            user: mockUser,
-            token: 'mock-jwt-token-12345',
-        };
-
-        return this.mockApiCall(mockResponse, 1500);
+        return this.apiCall<AuthResponse>('/auth/register', {
+            method: 'POST',
+            body: JSON.stringify(apiData),
+        });
     }
 
-    async logout(): Promise<void> {
-        return this.mockApiCall(undefined, 500);
+    async logout(token: string): Promise<void> {
+        console.log('🚪 Logout Attempt');
+
+        return this.apiCall<void>('/auth/logout', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
     }
 
     async getCurrentUser(token: string): Promise<User> {
-        // Mock current user
-        const mockUser: User = {
-            id: '1',
-            name: 'Test User',
-            email: 'test@example.com',
-            createdAt: new Date(),
-        };
+        console.log('👤 Get Current User Attempt');
 
-        return this.mockApiCall(mockUser, 500);
+        return this.apiCall<User>('/auth/me', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+    }
+
+    async refreshToken(refreshToken: string): Promise<{ tokens: AuthTokens }> {
+        console.log('🔄 Refreshing access token...');
+
+        return this.apiCall<{ tokens: AuthTokens }>('/auth/refresh', {
+            method: 'POST',
+            body: JSON.stringify({ refreshToken }),
+        });
+    }
+
+    async requestOtp(payload: RequestOtpPayload): Promise<OtpResponse> {
+        return this.apiCall<OtpResponse>('/auth/request-otp', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
+    }
+
+    async verifyOtp(payload: VerifyOtpPayload): Promise<OtpResponse> {
+        return this.apiCall<OtpResponse>('/auth/verify-otp', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
+    }
+
+    async resetPassword(payload: ResetPasswordPayload): Promise<OtpResponse> {
+        return this.apiCall<OtpResponse>('/auth/reset-password', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
     }
 }
 

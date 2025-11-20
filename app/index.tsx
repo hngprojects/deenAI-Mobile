@@ -1,21 +1,27 @@
 import OutlineButton from '@/components/OutlineButton';
 import SecondaryButton from '@/components/secondaryButton';
 import TextLink from '@/components/textLink';
-import { useGuestLogin } from '@/hooks/useAuth';
+import { useAuth, useGuestLogin } from '@/hooks/useAuth';
 import { theme } from '@/styles/theme';
-import { useRouter } from 'expo-router';
-import { Dimensions, ImageBackground, StyleSheet, Text, View } from 'react-native';
-// import { useGuestLogin } from '~/hooks/useAuth';
-
-const { width, height } = Dimensions.get('window')
+import { Redirect, useRouter } from 'expo-router';
+import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 
 export default function Index() {
   const router = useRouter();
+  const { isAuthenticated, isGuest, isLoading } = useAuth();
   const { mutate: continueAsGuest, isPending } = useGuestLogin();
+
+  if (!isLoading && (isAuthenticated || isGuest)) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   const handleGuestLogin = () => {
     continueAsGuest();
   };
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <ImageBackground source={require('../assets/images/onb.png')} style={styles.backgroundImage}>

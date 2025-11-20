@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import ScreenContainer from '@/components/ScreenContainer';
 import HomeHeader from '@/components/home/HomeHeader';
 import UpcomingSolat from '@/components/home/UpcomingSolat';
@@ -21,7 +21,7 @@ export default function HomeScreen() {
                 <UpcomingSolat />
                 <QuickActions />
                 <TodaysReflection />
-                
+
             </View>
         </ScreenContainer>
     );

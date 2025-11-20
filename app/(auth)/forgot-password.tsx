@@ -2,31 +2,62 @@ import InputField from "@/components/InputField";
 import PrimaryButton from "@/components/primaryButton";
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
+import { useRequestOtp } from "@/hooks/useAuth";
 import { theme } from "@/styles/theme";
-import { router } from "expo-router";
+import { ForgotPasswordSchema } from "@/utils/validation";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const requestOtpMutation = useRequestOtp();
+
+  const handleSendOtp = async () => {
+    try {
+      setEmailError("");
+
+      await ForgotPasswordSchema.validate({ email }, { abortEarly: false });
+
+      await requestOtpMutation.mutateAsync(email.trim().toLowerCase());
+    } catch (error: any) {
+      if (error.name === "ValidationError") {
+        setEmailError(error.errors[0]);
+      } else {
+        Alert.alert(
+          "Error",
+          error.message || "Failed to send verification code. Please try again."
+        );
+      }
+    }
+  };
 
   return (
     <ScreenContainer>
       <ScreenHeader title="Reset Password" />
 
-      <Text style={styles.subtitle}>Enter your email address below and we&apos;ll send you a link to reset your password </Text>
+      <Text style={styles.subtitle}>
+        Enter your email address below and we&apos;ll send you a verification code to reset your password
+      </Text>
 
       <InputField
         label="Email Address"
         placeholder="Enter your email address"
         value={email}
-        onChangeText={setEmail}
+        onChangeText={(text) => {
+          setEmail(text);
+          if (emailError) setEmailError("");
+        }}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        error={emailError}
       />
 
       <View style={{ marginTop: 10 }}>
         <PrimaryButton
-          title="Send"
-          onPress={() => router.push("/(auth)/reset-password")}
+          title={requestOtpMutation.isPending ? "Sending..." : "Send"}
+          onPress={handleSendOtp}
+          disabled={requestOtpMutation.isPending}
         />
       </View>
 
@@ -35,35 +66,18 @@ export default function ForgotPassword() {
         <Text style={styles.link}>Terms and Privacy Policy.</Text>
       </Text>
     </ScreenContainer>
-
-
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 24,
-    paddingBottom: 80,
-  },
-  backBtn: {
-    marginBottom: 12,
-    width: 40,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 6,
-    color: "#222",
-  },
   subtitle: {
     fontSize: 16,
     textAlign: "center",
-    // color: "#555",
     marginTop: 20,
     marginBottom: 26,
-    lineHeight: 20,
+    lineHeight: 22,
     fontFamily: theme.font.regular,
+    color: "#333",
   },
   footerText: {
     marginTop: 20,
@@ -71,9 +85,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#777",
     lineHeight: 18,
+    fontFamily: theme.font.regular,
   },
   link: {
-    color: "#b86e00",
-    fontWeight: "600",
+    color: theme.color.brand,
+    fontFamily: theme.font.semiBold,
   },
 });

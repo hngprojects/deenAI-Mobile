@@ -19,7 +19,7 @@ export default function AnimatedSplash() {
                 useNativeDriver: true,
             }),
         ]).start();
-    }, []);
+    }, [fadeAnim, scaleAnim]);
 
     return (
         <View style={styles.container}>
