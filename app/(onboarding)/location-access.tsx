@@ -1,5 +1,3 @@
-// app/(onboarding)/location-access.tsx
-
 import ScreenHeader from '@/components/screenHeader';
 import SecondaryButton from '@/components/secondaryButton';
 import { useRouter } from 'expo-router';

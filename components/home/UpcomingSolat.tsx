@@ -17,7 +17,6 @@ export default function UpcomingSolat() {
 
     return (
         <View style={styles.container}>
-            {/* Header */}
             <View style={styles.header}>
                 <View>
                     <Text style={styles.todayText}>Today</Text>
@@ -28,7 +27,6 @@ export default function UpcomingSolat() {
                 </TouchableOpacity>
             </View>
 
-            {/* Prayer Card */}
             <TouchableOpacity
                 style={styles.prayerCard}
                 onPress={handlePrayerPress}
@@ -38,7 +36,7 @@ export default function UpcomingSolat() {
                     <View style={styles.iconContainer}>
                         <Image
                             source={require('../../assets/images/pTime.png')}
-                            style={styles.cardIcon}
+                            // style={styles.cardIcon}
                             resizeMode="contain"
                         />
                     </View>
