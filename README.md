@@ -1,12 +1,12 @@
-# NoorAI – Mobile
+# DeenAI – Mobile
 
 > A warm, intelligent, and faith-centered digital companion designed to help Muslims build a peaceful, consistent, and emotionally supportive relationship with the Qur'an.
 
-## 📖 What is NoorAI?
+## 📖 What is DeenAI?
 
-NoorAI brings together AI-guided reflections, a clean Qur'an reading experience, and essential daily worship tools, all in one calming, distraction-free space. It's designed to provide peace, clarity, and emotional support rooted in Qur'anic wisdom.
+DeenAI brings together AI-guided reflections, a clean Qur'an reading experience, and essential daily worship tools, all in one calming, distraction-free space. It's designed to provide peace, clarity, and emotional support rooted in Qur'anic wisdom.
 
-**NoorAI solves these challenges** by offering a unified, peaceful spiritual companion that centers everything around the Qur'an.
+**DeenAI solves these challenges** by offering a unified, peaceful spiritual companion that centers everything around the Qur'an.
 
 ## 📦 Installation & Setup
 
@@ -22,7 +22,7 @@ NoorAI brings together AI-guided reflections, a clean Qur'an reading experience,
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/hngprojects/noorAI-Mobile
+git clone https://github.com/hngprojects/deenAI-Mobile
 cd deenai
 ```
 
@@ -75,7 +75,7 @@ deenai/
 
 ## 🤝 Contributing
 
-We welcome contributions that align with NoorAI's mission of providing a gentle, respectful, and authentic Islamic experience.
+We welcome contributions that align with DeenAI's mission of providing a gentle, respectful, and authentic Islamic experience.
 
 ### How to Contribute
 

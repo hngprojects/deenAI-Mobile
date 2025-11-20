@@ -1,10 +1,15 @@
+import { useAuth, useLogout } from '@/hooks/useAuth';
 import { theme } from '@/styles/theme';
 import { Bell } from 'lucide-react-native';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function HomeHeader() {
-    const userName = 'Ismail Yusuf';
+    const { user, isGuest } = useAuth();
+    const logoutMutation = useLogout();
+
+    // Use the user's name from auth store, fallback to "Guest" if guest user
+    const userName = user?.name || (isGuest ? 'Guest' : 'User');
 
     const getInitials = (name: string) => {
         const names = name.trim().split(' ');
@@ -14,6 +19,32 @@ export default function HomeHeader() {
         return name.substring(0, 2).toUpperCase();
     };
 
+    const handleAvatarPress = () => {
+        console.log('🔴 Avatar pressed, showing alert');
+        Alert.alert(
+            'Logout',
+            'Are you sure you want to logout?',
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Logout',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await logoutMutation.mutateAsync();
+                        } catch (error) {
+                            console.error('Logout failed:', error);
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
+    { true }
     const handleNotificationPress = () => {
         // TODO: Navigate to notifications
         console.log('Notifications pressed');
@@ -22,9 +53,18 @@ export default function HomeHeader() {
     return (
         <View style={styles.container}>
             <View style={styles.userInfo}>
-                <View style={styles.avatar}>
+                <TouchableOpacity
+                    style={styles.avatar}
+                    onPress={handleAvatarPress}
+                    // disabled={isLoggingOut}
+                    activeOpacity={0.7}
+                >
+                    {/* {isLoggingOut ? (
+                        <ActivityIndicator size="small" color={theme.color.white} />
+                    ) : (
+                    )} */}
                     <Text style={styles.avatarText}>{getInitials(userName)}</Text>
-                </View>
+                </TouchableOpacity>
                 <View style={styles.greeting}>
                     <Text style={styles.greetingText}>Assalam Alaykum</Text>
                     <Text style={styles.userName}>{userName}</Text>
@@ -36,7 +76,7 @@ export default function HomeHeader() {
                 onPress={handleNotificationPress}
             >
                 <Bell size={24} color={theme.color.secondary} strokeWidth={2} />
-                <View style={styles.notificationBadge} />
+                {!isGuest && <View style={styles.notificationBadge} />}
             </TouchableOpacity>
         </View>
     );

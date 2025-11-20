@@ -8,6 +8,7 @@ interface ScreenHeaderProps {
     title: string;
     showBackButton?: boolean;
     onBackPress?: () => void;
+    backRoute?: string; // ← New prop for custom route
     rightComponent?: React.ReactNode;
     titleAlign?: 'left' | 'center';
 }
@@ -16,6 +17,7 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
     title,
     showBackButton = true,
     onBackPress,
+    backRoute,
     rightComponent,
     titleAlign = 'center',
 }) => {
@@ -24,6 +26,8 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
     const handleBackPress = () => {
         if (onBackPress) {
             onBackPress();
+        } else if (backRoute) {
+            router.push(backRoute);
         } else {
             router.back();
         }
@@ -46,12 +50,11 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
             <Text
                 style={[
                     styles.headerTitle,
-                    titleAlign === 'left' && { textAlign: 'left' }, 
+                    titleAlign === 'left' && { textAlign: 'left' },
                 ]}
             >
                 {title}
             </Text>
-
 
             {rightComponent ? (
                 <View style={styles.rightComponent}>{rightComponent}</View>
