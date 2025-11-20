@@ -6,11 +6,13 @@ import { theme } from '../styles/theme';
 interface SocialLoginButtonProps {
   provider: SocialProvider;
   onPress: () => void;
+  disabled?: boolean;
 }
 
 const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({
   provider,
   onPress,
+  disabled
 }) => {
   const config: Record<SocialProvider, { text: string; icon: ImageSourcePropType }> = {
     apple: {

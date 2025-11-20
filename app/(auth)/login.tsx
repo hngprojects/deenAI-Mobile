@@ -6,7 +6,7 @@ import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { theme } from '@/styles/theme';
 import { useRouter } from 'expo-router';
 import { Formik } from 'formik';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Alert,
     StyleSheet,
@@ -20,6 +20,13 @@ import SocialLoginButton from '../../components/socialLoginButton';
 import { useLogin } from '../../hooks/useAuth';
 import { LoginFormValues, SocialProvider } from '../../types';
 import { LoginSchema } from '../../utils/validation';
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import * as AuthSession from 'expo-auth-session';
+import { loginWithBackend } from "@/service/oauth.service";
+
+WebBrowser.maybeCompleteAuthSession();
+
 
 export default function LoginScreen() {
     const router = useRouter();
@@ -56,22 +63,61 @@ export default function LoginScreen() {
         }
     };
 
-    const handleSocialLogin = async (provider: SocialProvider) => {
-        if (!isConnected) {
-            showNoConnectionToast();
+    const [request, response, promptAsync] = Google.useAuthRequest({
+        clientId: "",
+          redirectUri: AuthSession.makeRedirectUri({
+            scheme: "nooraimobile",
+            path: "redirect"
+        }),
+        scopes: ["profile", "email"],
+    });
+
+
+    // RUN WHEN GOOGLE LOGIN RETURNS A RESULT
+    useEffect(() => {
+        if (response?.type === "success") {
+        const idToken = response.authentication?.idToken;
+
+        if (!idToken) {
+            console.log("No ID Token returned from Google");
             return;
         }
 
-        try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            console.log(`${provider} login initiated`);
+        handleBackendLogin(idToken);
+    }
+    }, [response]);
 
-            router.push('/(tabs)');
+    // Send Token to backend
+    const handleBackendLogin = async (idToken: string) => {
+        const result = await loginWithBackend(idToken);
 
-        } catch (err: any) {
-            Alert.alert('Error', err.message || 'Social login failed. Please try again.');
+        if (result.ok) {
+        console.log("Backend login success:", result.data);
+
+        // Store tokens here (SecureStore, AsyncStorage, etc.)
+        // Navigate user inside app
+        router.push("/(tabs)");
+        } else {
+        Alert.alert("Login failed", result.data.message);
         }
     };
+
+    const handleSocialLogin = async (provider: SocialProvider) => {
+        if (!isConnected) {
+        showNoConnectionToast();
+        return;
+        }
+
+        console.log(`${provider} login initiated`);
+
+        if (provider === "google") {
+
+        // OPEN GOOGLE LOGIN MODAL
+        await promptAsync();
+        }
+
+        // You can add other providers later
+  };
 
     const handleForgotPassword = () => {
         router.push('/(auth)/forgot-password');
@@ -172,12 +218,12 @@ export default function LoginScreen() {
                 <SocialLoginButton
                     provider="apple"
                     onPress={() => handleSocialLogin('apple')}
-                    // disabled={loading}
+                    disabled={loading}
                 />
                 <SocialLoginButton
                     provider="google"
                     onPress={() => handleSocialLogin('google')}
-                    // disabled={loading}
+                    disabled={!request}
                 />
 
                 <Text style={styles.termsText}>

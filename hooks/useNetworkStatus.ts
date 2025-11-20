@@ -6,7 +6,7 @@ export const useNetworkStatus = () => {
     const [showToast, setShowToast] = useState(false);
     const [toastType, setToastType] = useState<'connected' | 'disconnected'>('connected');
     const previousState = useRef<boolean | null>(null);
-    const hideToastTimeout = useRef<NodeJS.Timeout | null>(null);
+    const hideToastTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(state => {
