@@ -2,44 +2,46 @@ import InputField from "@/components/InputField";
 import PrimaryButton from "@/components/primaryButton";
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
+import { useResetPassword } from "@/hooks/useAuth";
 import { theme } from "@/styles/theme";
 import { ResetPasswordSchema } from "@/utils/validation";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 
 export default function NewPassword() {
+    const { email, otp } = useLocalSearchParams<{ email: string; otp: string }>();
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
-    const [isLoading, setIsLoading] = useState(false);
+
+    const resetPasswordMutation = useResetPassword();
 
     const handleReset = async () => {
         try {
-            // Clear previous errors
             setErrors({});
 
-            // Validate with Yup schema
             await ResetPasswordSchema.validate(
                 { password: newPassword, confirmPassword },
                 { abortEarly: false }
             );
 
-            setIsLoading(true);
+            if (!email || !otp) {
+                Alert.alert("Error", "Session expired. Please restart the password reset process.");
+                router.replace("/(auth)/forgot-password");
+                return;
+            }
 
-            // TODO: Implement password reset API call
-            console.log("Resetting password...");
-
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            router.replace("/(auth)/success");
+            await resetPasswordMutation.mutateAsync({
+                email: email as string,
+                otp: otp as string,
+                newPassword: newPassword
+            });
 
         } catch (error: any) {
             if (error.name === "ValidationError") {
-                // Handle Yup validation errors
                 const validationErrors: { password?: string; confirmPassword?: string } = {};
                 error.inner.forEach((err: any) => {
                     if (err.path) {
@@ -48,11 +50,11 @@ export default function NewPassword() {
                 });
                 setErrors(validationErrors);
             } else {
-                // Handle API errors
-                Alert.alert("Error", "Failed to reset password. Please try again.");
+                Alert.alert(
+                    "Error",
+                    error.message || "Failed to reset password. Please try again."
+                );
             }
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -61,7 +63,7 @@ export default function NewPassword() {
             <ScreenHeader title="Reset password" />
 
             <Text style={styles.subtitle}>
-                Create a new password, your password should{"\n"}be easy to remember
+                Create a new password. Your password should{"\n"}be easy to remember
             </Text>
 
             <InputField
@@ -70,7 +72,6 @@ export default function NewPassword() {
                 value={newPassword}
                 onChangeText={(text) => {
                     setNewPassword(text);
-                    // Clear error when user starts typing
                     if (errors.password) {
                         setErrors({ ...errors, password: undefined });
                     }
@@ -79,6 +80,7 @@ export default function NewPassword() {
                 showPasswordToggle
                 onTogglePassword={() => setShowNewPassword(!showNewPassword)}
                 error={errors.password}
+                editable={!resetPasswordMutation.isPending}
             />
 
             <InputField
@@ -87,7 +89,6 @@ export default function NewPassword() {
                 value={confirmPassword}
                 onChangeText={(text) => {
                     setConfirmPassword(text);
-                    // Clear error when user starts typing
                     if (errors.confirmPassword) {
                         setErrors({ ...errors, confirmPassword: undefined });
                     }
@@ -96,18 +97,19 @@ export default function NewPassword() {
                 showPasswordToggle
                 onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
                 error={errors.confirmPassword}
+                editable={!resetPasswordMutation.isPending}
             />
 
             <View style={{ marginTop: 10 }}>
                 <PrimaryButton
-                    title={isLoading ? "Resetting..." : "Reset"}
+                    title={resetPasswordMutation.isPending ? "Resetting..." : "Reset"}
                     onPress={handleReset}
-                    disabled={isLoading}
+                    disabled={resetPasswordMutation.isPending}
                 />
             </View>
 
             <Text style={styles.footerText}>
-                By using Deen Ai, you agree to the{" "}
+                By using Deen AI, you agree to the{" "}
                 <Text style={styles.link}>Terms and Privacy Policy.</Text>
             </Text>
         </ScreenContainer>

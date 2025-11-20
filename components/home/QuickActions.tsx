@@ -1,14 +1,19 @@
 import { theme } from "@/styles/theme";
-import { useRouter } from "expo-router";
+import { router } from "expo-router";
 import React from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function QuickActions() {
-  const router = useRouter();
-
   const handleDeenAiPress = () => {
     // TODO: Navigate to Deen AI chat
-    router.push("/(deenai)");
+    console.log("Deen AI pressed");
   };
 
   const handleHadithPress = () => {
@@ -50,13 +55,15 @@ export default function QuickActions() {
           resizeMode="contain"
         />
 
-        <View style={styles.cardContent}>
-          <Text style={styles.hadithTitle}>Learn about Hadiths</Text>
-          <Text style={styles.hadithDescription}>
-            Find light and guidance for how you feel, see, through the Quran or
-            Hadith.
-          </Text>
-        </View>
+        <Pressable onPress={() => router.push("/hadiths")}>
+          <View style={styles.cardContent}>
+            <Text style={styles.hadithTitle}>Learn about Hadiths</Text>
+            <Text style={styles.hadithDescription}>
+              Find light and guidance for how you feel, see, through the Quran
+              or Hadith.
+            </Text>
+          </View>
+        </Pressable>
       </TouchableOpacity>
     </View>
   );

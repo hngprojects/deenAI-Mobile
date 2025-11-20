@@ -1,5 +1,3 @@
-// hooks/useNotification.ts
-
 import { useState } from 'react';
 import notificationService, {
     NotificationPermissionResult,

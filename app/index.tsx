@@ -1,19 +1,27 @@
-import OutlineButton from "@/components/OutlineButton";
-import SecondaryButton from "@/components/secondaryButton";
-import TextLink from "@/components/textLink";
-import { useGuestLogin } from "@/hooks/useAuth";
-import { theme } from "@/styles/theme";
-import { useRouter } from "expo-router";
-import { ImageBackground, StyleSheet, Text, View } from "react-native";
-// import { useGuestLogin } from '~/hooks/useAuth';
+import OutlineButton from '@/components/OutlineButton';
+import SecondaryButton from '@/components/secondaryButton';
+import TextLink from '@/components/textLink';
+import { useAuth, useGuestLogin } from '@/hooks/useAuth';
+import { theme } from '@/styles/theme';
+import { Redirect, useRouter } from 'expo-router';
+import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 
 export default function Index() {
   const router = useRouter();
+  const { isAuthenticated, isGuest, isLoading } = useAuth();
   const { mutate: continueAsGuest, isPending } = useGuestLogin();
+
+  if (!isLoading && (isAuthenticated || isGuest)) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   const handleGuestLogin = () => {
     continueAsGuest();
   };
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <ImageBackground

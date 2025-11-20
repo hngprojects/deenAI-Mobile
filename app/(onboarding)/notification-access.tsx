@@ -22,7 +22,7 @@ export default function NotificationAccessScreen() {
         const result = await requestPermission();
 
         if (result.granted) {
-            router.replace('/(tabs)');
+            router.replace('/(auth)/login');
         } else {
             Alert.alert(
                 'Permission Denied',
@@ -39,7 +39,7 @@ export default function NotificationAccessScreen() {
     };
 
     const handleDontAllow = () => {
-        router.replace('/(tabs)');
+        router.replace('/(auth)/login');
     };
 
     return (

@@ -2,7 +2,7 @@ import * as Yup from 'yup';
 
 export const SignupSchema = Yup.object().shape({
     name: Yup.string()
-        .min(2, 'Name must be at least 2 characters')
+        .min(3, 'Name must be at least 3 characters')
         .max(50, 'Name must be less than 50 characters')
         .required('Name is required')
         .matches(/^[a-zA-Z\s]+$/, 'Name can only contain letters and spaces'),
@@ -14,12 +14,12 @@ export const SignupSchema = Yup.object().shape({
         .trim(),
 
     password: Yup.string()
-        .min(6, 'Password must be at least 6 characters')
+        .min(8, 'Password must be at least 8 characters')
         .max(50, 'Password must be less than 50 characters')
         .required('Password is required')
         .matches(
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-            'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])/,
+            'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (!@#$%^&*)'
         ),
 
     confirmPassword: Yup.string()
@@ -35,13 +35,7 @@ export const LoginSchema = Yup.object().shape({
         .trim(),
 
     password: Yup.string()
-        .min(6, 'Password must be at least 6 characters')
-        .max(50, 'Password must be less than 50 characters')
-        .required('Password is required')
-        .matches(
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-            'Password must contain at least one uppercase letter, one lowercase letter, and one number'
-        ),
+        .required('Password is required'),
 });
 
 export const ForgotPasswordSchema = Yup.object().shape({
@@ -54,12 +48,12 @@ export const ForgotPasswordSchema = Yup.object().shape({
 
 export const ResetPasswordSchema = Yup.object().shape({
     password: Yup.string()
-        .min(6, 'Password must be at least 6 characters')
+        .min(8, 'Password must be at least 8 characters')
         .max(50, 'Password must be less than 50 characters')
         .required('Password is required')
         .matches(
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-            'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])/,
+            'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (!@#$%^&*)'
         ),
 
     confirmPassword: Yup.string()
@@ -73,7 +67,7 @@ export const validateEmail = (email: string): boolean => {
 };
 
 export const getPasswordStrength = (password: string): 'weak' | 'medium' | 'strong' => {
-    if (password.length < 6) return 'weak';
+    if (password.length < 8) return 'weak';
 
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
@@ -82,7 +76,7 @@ export const getPasswordStrength = (password: string): 'weak' | 'medium' | 'stro
 
     const strength = [hasUpperCase, hasLowerCase, hasNumbers, hasSpecialChar].filter(Boolean).length;
 
-    if (strength >= 3 && password.length >= 8) return 'strong';
-    if (strength >= 2 && password.length >= 6) return 'medium';
+    if (strength === 4 && password.length >= 8) return 'strong';
+    if (strength >= 3 && password.length >= 8) return 'medium';
     return 'weak';
 };

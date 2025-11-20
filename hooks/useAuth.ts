@@ -1,7 +1,7 @@
 import { authService } from '@/service/auth.service';
 import { useAuthStore } from '@/store/auth-store';
-import { LoginFormValues, SignupFormValues } from '@/types';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { LoginFormValues, SignupFormValues } from '@/types/auth.types';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 
 export const useLogin = () => {
@@ -14,13 +14,22 @@ export const useLogin = () => {
             useAuthStore.getState().setLoading(true);
         },
         onSuccess: (data) => {
-            setAuth(data.user, data.token);
-            queryClient.invalidateQueries({ queryKey: ['user'] });
-            router.replace('/(onboarding)/location-access');
+            if (data.success) {
+                setAuth(
+                    data.data.user,
+                    data.data.tokens.accessToken,
+                    data.data.tokens.refreshToken
+                );
+                queryClient.invalidateQueries({ queryKey: ['user'] });
+                router.replace('/(tabs)');
+            } else {
+                throw new Error(data.message || 'Login failed');
+            }
         },
         onError: (error) => {
             useAuthStore.getState().setLoading(false);
             console.error('Login error:', error);
+            throw error;
         },
         onSettled: () => {
             useAuthStore.getState().setLoading(false);
@@ -29,26 +38,20 @@ export const useLogin = () => {
 };
 
 export const useSignup = () => {
-    const { login: setAuth } = useAuthStore();
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (userData: SignupFormValues) => authService.signup(userData),
-        onMutate: () => {
-            useAuthStore.getState().setLoading(true);
+        mutationFn: (userData: SignupFormValues) => {
+            const { confirmPassword, ...apiData } = userData;
+            return authService.signup(apiData);
         },
+        onMutate: () => useAuthStore.getState().setLoading(true),
         onSuccess: (data) => {
-            setAuth(data.user, data.token);
             queryClient.invalidateQueries({ queryKey: ['user'] });
             router.replace('/(onboarding)/location-access');
         },
-        onError: (error) => {
-            useAuthStore.getState().setLoading(false);
-            console.error('Signup error:', error);
-        },
-        onSettled: () => {
-            useAuthStore.getState().setLoading(false);
-        },
+        onError: () => useAuthStore.getState().setLoading(false),
+        onSettled: () => useAuthStore.getState().setLoading(false),
     });
 };
 
@@ -57,50 +60,83 @@ export const useGuestLogin = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async () => {
-            // Simulate API call for guest mode if needed
-            return Promise.resolve();
-        },
+        mutationFn: async () => Promise.resolve(),
         onSuccess: () => {
             setGuest(true);
             queryClient.invalidateQueries({ queryKey: ['user'] });
             router.replace('/(tabs)');
         },
-        onError: (error) => {
-            console.error('Guest login error:', error);
-        },
     });
 };
 
 export const useLogout = () => {
-    const { logout: clearAuth } = useAuthStore();
+    const { token, clearAuth } = useAuthStore();
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: () => authService.logout(),
-        onSuccess: () => {
+        mutationFn: async () => {
+            if (token) {
+                await authService.logout(token);
+            }
+        },
+        onMutate: () => {
             clearAuth();
             queryClient.clear();
-            router.replace('/');
+        },
+        onSuccess: () => {
+            console.log('✅ Logged out successfully');
+            router.replace('/(auth)/login');
         },
         onError: (error) => {
-            console.error('Logout error:', error);
+            console.error('❌ Logout error:', error);
+            router.replace('/(auth)/login');
         },
     });
 };
 
-export const useCurrentUser = () => {
-    const { token, isAuthenticated } = useAuthStore();
-
-    return useQuery({
-        queryKey: ['user'],
-        queryFn: () => authService.getCurrentUser(token!),
-        enabled: !!token && isAuthenticated,
-        staleTime: 5 * 60 * 1000,
+export const useRequestOtp = () => {
+    return useMutation({
+        mutationFn: (email: string) => authService.requestOtp({ email }),
+        onSuccess: (data, email) => {
+            console.log('✅ OTP requested successfully');
+            router.push({
+                pathname: '/(auth)/reset-password',
+                params: { email },
+            });
+        },
+        onError: (error) => {
+            console.error('❌ Request OTP error:', error);
+        },
     });
 };
 
-// Enhanced auth hook with guest support
+export const useVerifyOtp = () => {
+    return useMutation({
+        mutationFn: ({ email, otp }: { email: string; otp: string }) =>
+            authService.verifyOtp({ email, otp }),
+        onSuccess: () => {
+            console.log('✅ OTP verified successfully');
+        },
+        onError: (error) => {
+            console.error('❌ Verify OTP error:', error);
+        },
+    });
+};
+
+export const useResetPassword = () => {
+    return useMutation({
+        mutationFn: ({ email, otp, newPassword }: { email: string; otp: string; newPassword: string }) =>
+            authService.resetPassword({ email, otp, newPassword }),
+        onSuccess: () => {
+            console.log('✅ Password reset successfully');
+            router.replace('/(auth)/login');
+        },
+        onError: (error) => {
+            console.error('❌ Reset password error:', error);
+        },
+    });
+};
+
 export const useAuth = () => {
     const { user, token, isAuthenticated, isLoading, isGuest } = useAuthStore();
 
@@ -110,8 +146,7 @@ export const useAuth = () => {
         isAuthenticated,
         isLoading,
         isGuest,
-        // Helper computed properties
-        canAccessPremium: isAuthenticated, // Only authenticated users get premium
-        shouldShowAuthPrompts: isGuest, // Show upgrade prompts to guests
+        canAccessPremium: isAuthenticated,
+        shouldShowAuthPrompts: isGuest,
     };
 };

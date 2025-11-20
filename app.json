@@ -1,5 +1,6 @@
 {
   "expo": {
+    "owner": "fahd02",
     "name": "DeenAi-Mobile",
     "slug": "DeenAi-Mobile",
     "version": "1.0.0",
@@ -11,7 +12,15 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "This app needs your location to provide accurate prayer times for your area."
+        "NSLocationWhenInUseUsageDescription": "This app needs your location to provide accurate prayer times for your area.",
+        "NSAppTransportSecurity": {
+          "NSExceptionDomains": {
+            "api.ottoman.emerj.net": {
+              "NSExceptionAllowsInsecureHTTPLoads": true,
+              "NSIncludesSubdomains": true
+            }
+          }
+        }
       }
     },
     "android": {
@@ -64,7 +73,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "8fb44929-ba6c-41a3-9c6c-f0630a10329e"
+        "projectId": "39baae56-45a4-4b1c-aea2-07aa052e20d9"
       }
     }
   }
