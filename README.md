@@ -6,7 +6,7 @@
 
 DeenAI brings together AI-guided reflections, a clean Qur'an reading experience, and essential daily worship tools, all in one calming, distraction-free space. It's designed to provide peace, clarity, and emotional support rooted in Qur'anic wisdom.
 
-**DeenAI solves these challenges** by offering a unified, peaceful spiritual companion that centers everything around the Qur'an.
+**DeemAI solves these challenges** by offering a unified, peaceful spiritual companion that centers everything around the Qur'an.
 
 ## 📦 Installation & Setup
 
