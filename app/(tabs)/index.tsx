@@ -21,6 +21,7 @@ export default function HomeScreen() {
                 <UpcomingSolat />
                 <QuickActions />
                 <TodaysReflection />
+                
             </View>
         </ScreenContainer>
     );

@@ -47,3 +47,5 @@ app-example
 eas.json
 
 project_structure.text
+
+tsconfig.json
