@@ -1,11 +1,11 @@
-import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
 import ScreenContainer from '@/components/ScreenContainer';
 import HomeHeader from '@/components/home/HomeHeader';
-import UpcomingSolat from '@/components/home/UpcomingSolat';
 import QuickActions from '@/components/home/QuickActions';
 import TodaysReflection from '@/components/home/TodaysReflection';
+import UpcomingSolat from '@/components/home/UpcomingSolat';
 import { theme } from '@/styles/theme';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 
 export default function HomeScreen() {
     return (
