@@ -5,10 +5,10 @@ const HadithCollectionLayout = () => {
   return (
     <Stack>
       <Stack.Screen name="hadiths" options={{ title: "Hadiths Collection" }} />
-      {/* <Stack.Screen
-        name="(id/hadith-categories)"
-        options={{ headerShown: false }}
-      /> */}
+      <Stack.Screen
+        name="(id)/hadith-categories"
+        options={{ title: "Sahih Muslim" }}
+      />
     </Stack>
   );
 };

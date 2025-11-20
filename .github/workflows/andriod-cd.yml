@@ -1,0 +1,82 @@
+name: CD-Android — Deploy to Google Play
+
+# -----------------------------------------------------------
+# Trigger: Deploy on release tag OR manual trigger
+# -----------------------------------------------------------
+on:
+  push:
+    tags:
+      - 'v*'              # Trigger on version tags like v1.0.0
+  workflow_dispatch: {}   # Manual trigger
+
+concurrency:
+  group: android-cd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-android:
+    name: Deploy AAB to Google Play
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      # -----------------------------------------------------
+      # 1) Checkout code
+      # -----------------------------------------------------
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      # -----------------------------------------------------
+      # 2) Setup Java for Android signing + uploading
+      # -----------------------------------------------------
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # -----------------------------------------------------
+      # 3) Download the signed AAB prepared by CI
+      # If CI produced "signed-android-aab":
+      # -----------------------------------------------------
+      - name: Download CI Signed AAB Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: signed-android-aab
+          path: release/
+
+      - name: List release artifacts
+        run: ls -la release || true
+
+      - name: Verify AAB exists
+        run: |
+          test -n "$(ls release/*.aab 2>/dev/null)" || (echo "AAB not found: check artifact name/path" && exit 1)
+
+      # -----------------------------------------------------
+      # 4) Deploy to Google Play (Internal, Alpha, Beta, Prod)
+      #
+      # REQUIRED SECRET:
+      #   PLAYSTORE_SERVICE_ACCOUNT_JSON  → Google API file
+      #
+      # -----------------------------------------------------
+      - name: Upload AAB to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJson: ${{ secrets.PLAYSTORE_SERVICE_ACCOUNT_JSON }}
+          packageName: deenaids.app
+          releaseFiles: release/*.aab
+          track: internal    # internal | alpha | beta | production
+
+      # -----------------------------------------------------
+      # 5) Notify Slack or Teams
+      # -----------------------------------------------------
+      - name: Notify Slack
+        if: ${{ secrets.SLACK_WEBHOOK != '' }}
+        uses: rtCamp/action-slack-notify@v2
+        with:
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          message: "Android Deployment Complete — ${{ github.ref }}"
+          status: ${{ job.status }}

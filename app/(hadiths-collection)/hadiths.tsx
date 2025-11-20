@@ -44,18 +44,18 @@ const hadithBooks = [
 const HadithsCollections = () => {
   const router = useRouter();
 
-  //   const handleCardPress = (bookTitle) => {
-  //     // 💡 Use router.push() with a query string to pass the title.
-  //     // The bookTitle will be available as a route parameter on the child page.
-  //     router.push(`/hadith-categories?title=${bookTitle}`);
-  //   };
+  const handleCardPress = (bookTitle) => {
+    // 💡 Use router.push() with a query string to pass the title.
+    // The bookTitle will be available as a route parameter on the child page.
+    router.push(`/hadith-categories?title=${bookTitle}`);
+  };
   return (
     <ScrollView style={styles.container}>
       {hadithBooks.map((book, index) => (
         <TouchableOpacity
           key={index}
           style={styles.card}
-          //   onPress={handleCardPress}
+          onPress={handleCardPress}
           activeOpacity={0.7}
         >
           <Image source={book.image} style={styles.image} />
