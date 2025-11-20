@@ -9,6 +9,7 @@ const HadithCollectionLayout = () => {
         name="(id)/hadith-categories"
         options={{ title: "Sahih Muslim" }}
       />
+      <Stack.Screen name="(id)/revelation" options={{ title: "Revelation" }} />
     </Stack>
   );
 };

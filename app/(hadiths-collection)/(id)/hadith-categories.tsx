@@ -1,5 +1,7 @@
+import { router } from "expo-router";
 import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
+
 const categories = [
   { id: 1, title: "Revelation", range: "1-7" },
   { id: 2, title: "Belief", range: "8-85" },
@@ -21,7 +23,15 @@ const HadithCategories = () => {
       <Text style={styles.header}>List</Text>
 
       {categories.map((item) => (
-        <View key={item.id} style={styles.row}>
+        <Pressable
+          key={item.id}
+          style={styles.row}
+          onPress={() => {
+            if (item.title === "Revelation") {
+              router.push("/revelation");
+            }
+          }}
+        >
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{item.id}</Text>
           </View>
@@ -29,7 +39,7 @@ const HadithCategories = () => {
           <Text style={styles.title}>{item.title}</Text>
 
           <Text style={styles.range}>{item.range}</Text>
-        </View>
+        </Pressable>
       ))}
     </ScrollView>
   );
