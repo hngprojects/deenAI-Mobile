@@ -5,19 +5,19 @@ import React, { useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface ReflectionProps {
-  title?: string;
-  verse?: string;
-  reference?: string;
-  text?: string;
-  date?: string;
-  style?: object;
+    title?: string;
+    verse?: string;
+    reference?: string;
+    text?: string;
+    date?: string;
+    style?: object;
 }
 
 const defaultReflection = {
-  verse: "Indeed, with hardship comes ease.",
-  reference: "Surah Ash-Sharh (94:6)",
-  text: "This verse reminds me that Allah's mercy always follows struggle...",
-  date: "Nov 2, 2025",
+    verse: "Indeed, with hardship comes ease.",
+    reference: "Surah Ash-Sharh (94:6)",
+    text: "This verse reminds me that Allah's mercy always follows struggle...",
+    date: "Nov 2, 2025",
 };
 
 export default function TodaysReflection({
@@ -30,7 +30,7 @@ export default function TodaysReflection({
 }: ReflectionProps) {
     const router = useRouter();
     const [modalVisible, setModalVisible] = useState(false);
-    
+
     const handleDelete = () => {
         setModalVisible(true);
     };
@@ -90,10 +90,10 @@ export default function TodaysReflection({
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
-                        <Text style={{fontWeight: 700, alignItems: "center"}}>Confirm Delete</Text>
+                        <Text style={{ fontWeight: 700, textAlign: "center", fontSize: 18, color: "#1a1a1a" }}>Confirm Delete</Text>
                         <Text style={styles.modalText}>Are you sure you want to delete your reflection?</Text>
                         <View style={styles.modalButtons}>
-                            <TouchableOpacity style={[styles.modalButton, { backgroundColor: '#ccc' }]}>
+                            <TouchableOpacity style={[styles.modalButton, { borderColor: "#1a1a1a", borderWidth: 1}]}>
                                 <Text>Keep My Reflection</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={[styles.modalButton, { backgroundColor: '#f55' }]}>
@@ -104,7 +104,7 @@ export default function TodaysReflection({
                 </View>
             </Modal>
 
-            
+
 
             {/* <TouchableOpacity
                 style={styles.aiButton}
@@ -231,9 +231,37 @@ const styles = StyleSheet.create({
     aiIcon: {
         fontSize: 28,
     },
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-    modalContent: { width: '80%', backgroundColor: '#fff', borderRadius: 12, padding: 20, gap: 16 },
-    modalText: { fontSize: 16, fontFamily: theme.font.semiBold, textAlign: 'center' },
-    modalButtons: { display: "flex", justifyContent: 'space-between', gap: 12 },
-    modalButton: { flex: 1, padding: 12, borderRadius: 8, alignItems: 'center', height: 50 },
+    modalOverlay: { 
+        flex: 1, 
+        backgroundColor: '#0000004D', 
+        justifyContent: 'center', 
+        alignItems: 'center' 
+    },
+    modalContent: { 
+        width: 378, 
+        height: 253,
+        backgroundColor: '#fff', 
+        borderRadius: 12, 
+        padding: 20, 
+        gap: 16 
+    },
+    modalText: { 
+        fontSize: 14, 
+        fontFamily: theme.font.semiBold, 
+        color: '#1A1A1A',
+        textAlign: 'center' 
+    },
+    modalButtons: { 
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: 'space-between', 
+        gap: 12 
+    },
+    modalButton: { 
+        flex: 1, 
+        padding: 20, 
+        borderRadius: 16, 
+        alignItems: 'center', 
+        height: 50
+    },
 });
