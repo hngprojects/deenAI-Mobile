@@ -16,7 +16,7 @@ export default function ReflectSuccess() {
         <Text style={styles.containerText}>Your reflection has been added to your journal, a space you can return to anytime for peace and remembrance.</Text>
         <PrimaryButton
           title="Open reflection journal "
-          onPress={() => { }}
+          onPress={() => router.push('/saved-reflection')}
           style={styles.button}
         />
         <Text

@@ -33,6 +33,9 @@ yarn-error.*
 # local env files
 .env*.local
 
+# dotenv
+.env
+
 # typescript
 *.tsbuildinfo
 
@@ -41,7 +44,11 @@ app-example
 # generated native folders
 /ios
 /android
+eas.json
 
 project_structure.text
 
 tsconfig.json
+
+deenai-release.keystore
+keystore.txt

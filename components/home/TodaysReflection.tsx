@@ -1,54 +1,71 @@
 import { theme } from '@/styles/theme';
-import { Share2, Trash2 } from 'lucide-react-native';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Edit2, Trash2 } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface ReflectionProps {
-  title?: string; // optional default
+    title?: string;
+    verse?: string;
+    reference?: string;
+    text?: string;
+    date?: string;
+    style?: object;
 }
 
-export default function TodaysReflection({ title = "Today&lsquo;s Reflection" }: ReflectionProps) {
+const defaultReflection = {
+    verse: "Indeed, with hardship comes ease.",
+    reference: "Surah Ash-Sharh (94:6)",
+    text: "This verse reminds me that Allah's mercy always follows struggle...",
+    date: "Nov 2, 2025",
+};
+
+export default function TodaysReflection({
+    title,
+    verse = defaultReflection.verse,
+    reference = defaultReflection.reference,
+    text = defaultReflection.text,
+    date = defaultReflection.date,
+    style
+}: ReflectionProps) {
+    const router = useRouter();
+    const [modalVisible, setModalVisible] = useState(false);
+
     const handleDelete = () => {
-        // TODO: Delete reflection
-        console.log('Delete pressed');
+        setModalVisible(true);
     };
 
-    const handleShare = () => {
-        // TODO: Share reflection
-        console.log('Share pressed');
-    };
+    // const handleShare = () => {
+    //     // TODO: Share reflection
+    //     console.log('Share pressed');
+    // };
 
-    const handleAiAssistant = () => {
-        // TODO: Open AI assistant
-        console.log('AI assistant pressed');
-    };
+    // const handleAiAssistant = () => {
+    //     // TODO: Open AI assistant
+    //     console.log('AI assistant pressed');
+    // };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, style]}>
             <Text style={styles.title}>{title}</Text>
 
 
             <View style={styles.card}>
-                {/* Quote Section */}
                 <View style={styles.quoteSection}>
                     <Text style={styles.quote}>
-                        &ldquo;Indeed, with hardship comes ease.&ldquo;
+                        &ldquo;{verse}&ldquo;
                     </Text>
-                    <Text style={styles.reference}>— Surah Ash-Sharh (94:6)</Text>
+                    <Text style={styles.reference}>— {reference}</Text>
                 </View>
 
-                {/* Reflection Section */}
                 <View style={styles.reflectionSection}>
                     <Text style={styles.reflectionText}>
-                        This verse reminds me that Allah&lsquo;s mercy always follows struggle.
-                        Even in my quietest moments of doubt, I know ease is already
-                        written, I just need patience to see it unfold...
+                        {text}
                     </Text>
                 </View>
 
-                {/* Footer */}
                 <View style={styles.footer}>
-                    <Text style={styles.savedDate}>Saved on Nov 2, 2025</Text>
+                    <Text style={styles.savedDate}>Saved on {date}</Text>
                     <View style={styles.actions}>
                         <TouchableOpacity
                             style={styles.actionButton}
@@ -58,13 +75,36 @@ export default function TodaysReflection({ title = "Today&lsquo;s Reflection" }:
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.actionButton}
-                            onPress={handleShare}
+                            onPress={() => router.push('/edit-reflection')}
                         >
-                            <Share2 size={20} color="#999" strokeWidth={2} />
+                            <Edit2 size={20} color="#999" strokeWidth={2} />
                         </TouchableOpacity>
                     </View>
                 </View>
             </View>
+
+            <Modal
+                transparent
+                animationType="fade"
+                visible={modalVisible}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={{ fontWeight: 700, textAlign: "center", fontSize: 18, color: "#1a1a1a" }}>Confirm Delete</Text>
+                        <Text style={styles.modalText}>Are you sure you want to delete your reflection?</Text>
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity style={[styles.modalButton, { borderColor: "#1a1a1a", borderWidth: 1}]}>
+                                <Text>Keep My Reflection</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={[styles.modalButton, { backgroundColor: '#f55' }]}>
+                                <Text style={{ color: '#fff' }}>Yes! Delete Reflection</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+
 
             {/* <TouchableOpacity
                 style={styles.aiButton}
@@ -190,5 +230,38 @@ const styles = StyleSheet.create({
     },
     aiIcon: {
         fontSize: 28,
+    },
+    modalOverlay: { 
+        flex: 1, 
+        backgroundColor: '#0000004D', 
+        justifyContent: 'center', 
+        alignItems: 'center' 
+    },
+    modalContent: { 
+        width: 378, 
+        height: 253,
+        backgroundColor: '#fff', 
+        borderRadius: 12, 
+        padding: 20, 
+        gap: 16 
+    },
+    modalText: { 
+        fontSize: 14, 
+        fontFamily: theme.font.semiBold, 
+        color: '#1A1A1A',
+        textAlign: 'center' 
+    },
+    modalButtons: { 
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: 'space-between', 
+        gap: 12 
+    },
+    modalButton: { 
+        flex: 1, 
+        padding: 20, 
+        borderRadius: 16, 
+        alignItems: 'center', 
+        height: 50
     },
 });

@@ -1,48 +1,96 @@
 import PrimaryButton from "@/components/primaryButton";
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
+import { useRequestOtp, useVerifyOtp } from "@/hooks/useAuth";
 import { theme } from "@/styles/theme";
-import { router } from "expo-router";
-import { useRef, useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 
 export default function ResetPassword() {
+    const { email } = useLocalSearchParams<{ email: string }>();
     const [code, setCode] = useState(["", "", "", "", "", ""]);
     const inputRefs = useRef<(TextInput | null)[]>([]);
 
+    const verifyOtpMutation = useVerifyOtp();
+    const requestOtpMutation = useRequestOtp();
+
+    useEffect(() => {
+        setTimeout(() => inputRefs.current[0]?.focus(), 100);
+    }, []);
+
     const handleCodeChange = (text: string, index: number) => {
-        // Only allow numbers
         if (text && !/^\d+$/.test(text)) return;
 
         const newCode = [...code];
         newCode[index] = text;
         setCode(newCode);
 
-        // Auto-focus next input
         if (text && index < 5) {
             inputRefs.current[index + 1]?.focus();
         }
     };
 
     const handleKeyPress = (e: any, index: number) => {
-        // Handle backspace
         if (e.nativeEvent.key === "Backspace" && !code[index] && index > 0) {
             inputRefs.current[index - 1]?.focus();
         }
     };
 
-    const handleVerify = () => {
+    const handleVerify = async () => {
         const verificationCode = code.join("");
-        if (verificationCode.length === 6) {
-            // TODO: Verify code and navigate to new password screen
-            console.log("Verification code:", verificationCode);
-            router.push("/(auth)/new-password");
+
+        if (verificationCode.length !== 6) {
+            Alert.alert("Error", "Please enter the complete 6-digit verification code");
+            return;
+        }
+
+        if (!email) {
+            Alert.alert("Error", "Email not found. Please try again.");
+            router.back();
+            return;
+        }
+
+        try {
+            await verifyOtpMutation.mutateAsync({
+                email: email as string,
+                otp: verificationCode
+            });
+
+            router.push({
+                pathname: "/(auth)/new-password",
+                params: { email, otp: verificationCode }
+            });
+        } catch (error: any) {
+            Alert.alert(
+                "Verification Failed",
+                error.message || "Invalid verification code. Please try again."
+            );
+            setCode(["", "", "", "", "", ""]);
+            inputRefs.current[0]?.focus();
         }
     };
 
-    const handleResendCode = () => {
-        // TODO: Implement resend code logic
-        console.log("Resending code...");
+    const handleResendCode = async () => {
+        if (!email) {
+            Alert.alert("Error", "Email not found. Please try again.");
+            return;
+        }
+
+        try {
+            await requestOtpMutation.mutateAsync(email as string);
+            Alert.alert(
+                "Success",
+                "A new verification code has been sent to your email"
+            );
+            setCode(["", "", "", "", "", ""]);
+            inputRefs.current[0]?.focus();
+        } catch (error: any) {
+            Alert.alert(
+                "Error",
+                error.message || "Failed to resend code. Please try again."
+            );
+        }
     };
 
     return (
@@ -50,8 +98,9 @@ export default function ResetPassword() {
             <ScreenHeader title="Reset password" />
 
             <Text style={styles.subtitle}>
-                A verification code has been sent to your email.{"\n"}
-                Enter the code below to verify your account
+                A verification code has been sent to{"\n"}
+                <Text style={styles.emailText}>{email}</Text>
+                {"\n"}Enter the code below to verify your account
             </Text>
 
             <View style={styles.codeContainer}>
@@ -69,21 +118,29 @@ export default function ResetPassword() {
                         keyboardType="number-pad"
                         maxLength={1}
                         selectTextOnFocus
+                        editable={!verifyOtpMutation.isPending}
                     />
                 ))}
             </View>
 
             <View style={{ marginTop: 24 }}>
                 <PrimaryButton
-                    title="Verify"
+                    title={verifyOtpMutation.isPending ? "Verifying..." : "Verify"}
                     onPress={handleVerify}
+                    disabled={verifyOtpMutation.isPending}
                 />
             </View>
 
             <View style={styles.resendContainer}>
-                <Text style={styles.resendText}>Didn't receive ? </Text>
-                <Text style={styles.resendLink} onPress={handleResendCode}>
-                    Resend Code
+                <Text style={styles.resendText}>Didn&apos;t receive? </Text>
+                <Text
+                    style={[
+                        styles.resendLink,
+                        requestOtpMutation.isPending && styles.resendLinkDisabled
+                    ]}
+                    onPress={requestOtpMutation.isPending ? undefined : handleResendCode}
+                >
+                    {requestOtpMutation.isPending ? "Sending..." : "Resend Code"}
                 </Text>
             </View>
         </ScreenContainer>
@@ -99,6 +156,10 @@ const styles = StyleSheet.create({
         lineHeight: 22,
         fontFamily: theme.font.regular,
         color: "#333",
+    },
+    emailText: {
+        color: theme.color.brand,
+        fontFamily: theme.font.semiBold,
     },
     codeContainer: {
         flexDirection: "row",
@@ -137,5 +198,8 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: theme.color.brand,
         fontFamily: theme.font.semiBold,
+    },
+    resendLinkDisabled: {
+        color: "#999",
     },
 });

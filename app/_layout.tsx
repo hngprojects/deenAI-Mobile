@@ -1,8 +1,9 @@
 import AnimatedSplash from "@/components/AnimatedSplash";
 import { ThemeProvider } from '@/context/ThemeContext';
+import { useAuth } from '@/hooks/useAuth';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -13,10 +14,56 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
     },
   },
 });
+
+function RootLayoutNav() {
+  const { isAuthenticated, isLoading, isGuest } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+    const inTabsGroup = segments[0] === '(tabs)';
+    const inOnboardingGroup = segments[0] === '(onboarding)';
+    const inRoot = segments.length === 0;
+
+    console.log('🧭 Navigation check:', {
+      isAuthenticated,
+      isGuest,
+      segments,
+      inAuthGroup,
+      inTabsGroup,
+      inRoot,
+    });
+
+    if (isAuthenticated || isGuest) {
+      if (!inTabsGroup && !inOnboardingGroup) {
+        console.log('➡️ Redirecting to tabs');
+        router.replace('/(tabs)');
+      }
+    }
+    else {
+      if (inTabsGroup) {
+        console.log('➡️ Redirecting to login');
+        router.replace('/(auth)/login');
+      }
+    }
+  }, [isAuthenticated, isGuest, isLoading, router, segments]);
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(onboarding)" />
+      <Stack.Screen name="(tabs)" />
+    </Stack>
+  );
+}
 
 export default function RootLayout() {
   const [showCustomSplash, setShowCustomSplash] = useState(true);
@@ -32,17 +79,14 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded) {
-      // Hide native splash screen
       SplashScreen.hideAsync();
 
-      // Show custom splash for 2.5 seconds
       setTimeout(() => {
         setShowCustomSplash(false);
       }, 2500);
     }
   }, [fontsLoaded]);
 
-  // Show custom splash while fonts are loading or during splash delay
   if (!fontsLoaded || showCustomSplash) {
     return <AnimatedSplash />;
   }
@@ -51,11 +95,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)" />
-          {/* <Stack.Screen name="(tabs)" /> */}
-        </Stack>
+        <RootLayoutNav />
       </ThemeProvider>
     </QueryClientProvider>
   );
