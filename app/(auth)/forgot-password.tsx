@@ -37,7 +37,7 @@ export default function ForgotPassword() {
       <ScreenHeader title="Reset Password" />
 
       <Text style={styles.subtitle}>
-        Enter your email address below and we'll send you a verification code to reset your password
+        Enter your email address below and we&apos;ll send you a verification code to reset your password
       </Text>
 
       <InputField

@@ -1,6 +1,6 @@
 import { theme } from '@/styles/theme';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { ArrowRight, ChevronRight, MapPin } from 'lucide-react-native';
+import { ArrowRight} from 'lucide-react-native';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 

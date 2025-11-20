@@ -2,13 +2,12 @@ import { useAuth, useLogout } from '@/hooks/useAuth';
 import { theme } from '@/styles/theme';
 import { Bell } from 'lucide-react-native';
 import React from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function HomeHeader() {
     const { user, isGuest } = useAuth();
     const logoutMutation = useLogout();
 
-    // Use the user's name from auth store, fallback to "Guest" if guest user
     const userName = user?.name || (isGuest ? 'Guest' : 'User');
 
     const getInitials = (name: string) => {
@@ -44,7 +43,6 @@ export default function HomeHeader() {
         );
     };
 
-    { true }
     const handleNotificationPress = () => {
         // TODO: Navigate to notifications
         console.log('Notifications pressed');

@@ -4,9 +4,7 @@ import TextLink from '@/components/textLink';
 import { useAuth, useGuestLogin } from '@/hooks/useAuth';
 import { theme } from '@/styles/theme';
 import { Redirect, useRouter } from 'expo-router';
-import { Dimensions, ImageBackground, StyleSheet, Text, View } from 'react-native';
-
-const { width, height } = Dimensions.get('window')
+import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 
 export default function Index() {
   const router = useRouter();

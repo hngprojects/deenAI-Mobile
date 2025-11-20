@@ -18,10 +18,10 @@ export default function TodaysReflection({ title = "Today&lsquo;s Reflection" }:
         console.log('Share pressed');
     };
 
-    const handleAiAssistant = () => {
-        // TODO: Open AI assistant
-        console.log('AI assistant pressed');
-    };
+    // const handleAiAssistant = () => {
+    //     // TODO: Open AI assistant
+    //     console.log('AI assistant pressed');
+    // };
 
     return (
         <View style={styles.container}>

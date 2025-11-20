@@ -149,7 +149,7 @@ export default function PrivacyPolicy() {
                     You may request deletion of your account at any time.
                 </Text>
 
-                <Text style={styles.sectionTitle}>8. Children's Privacy</Text>
+                <Text style={styles.sectionTitle}>8. Children&apos;s Privacy</Text>
 
                 <Text style={styles.paragraph}>
                     Deen AI does not knowingly collect personal data from children under 13 without parental consent. If we learn that such data has been collected, we will remove it promptly.
@@ -164,7 +164,7 @@ export default function PrivacyPolicy() {
                 <Text style={styles.sectionTitle}>10. Changes to this Privacy Policy</Text>
 
                 <Text style={styles.paragraph}>
-                    We may update this Privacy Policy occasionally. Updated versions will be posted in the app with a revised "Last Updated" date.
+                    We may update this Privacy Policy occasionally. Updated versions will be posted in the app with a revised &quot;Last Updated&quot; date.
                 </Text>
 
                 <Text style={styles.sectionTitle}>11. Contact Us</Text>

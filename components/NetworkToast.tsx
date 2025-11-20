@@ -35,7 +35,7 @@ export default function NetworkToast({ isConnected, visible }: NetworkToastProps
                 useNativeDriver: true,
             }).start();
         }
-    }, [visible, isConnected]);
+    }, [visible, isConnected, translateY]);
 
     if (!visible) return null;
 

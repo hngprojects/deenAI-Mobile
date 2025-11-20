@@ -53,7 +53,7 @@ function RootLayoutNav() {
         router.replace('/(auth)/login');
       }
     }
-  }, [isAuthenticated, isGuest, isLoading, segments]);
+  }, [isAuthenticated, isGuest, isLoading, router, segments]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

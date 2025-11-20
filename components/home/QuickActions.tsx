@@ -31,7 +31,7 @@ export default function QuickActions() {
                         Uncover new &{'\n'}amazing things{'\n'}with Deen Ai
                     </Text>
                     <View style={styles.ctaButton}>
-                        <Text style={styles.ctaText}>Let's Chat</Text>
+                        <Text style={styles.ctaText}>Let&apos;s Chat</Text>
                     </View>
                 </View>
             </TouchableOpacity>
