@@ -1,13 +1,12 @@
-# NoorAI – Mobile
+# DeenAI – Mobile
 
 > A warm, intelligent, and faith-centered digital companion designed to help Muslims build a peaceful, consistent, and emotionally supportive relationship with the Qur'an.
 
-## 📖 What is NoorAI?
+## 📖 What is DeenAI?
 
-NoorAI brings together AI-guided reflections, a clean Qur'an reading experience, and essential daily worship tools, all in one calming, distraction-free space. It's designed to provide peace, clarity, and emotional support rooted in Qur'anic wisdom.
+DeenAI brings together AI-guided reflections, a clean Qur'an reading experience, and essential daily worship tools, all in one calming, distraction-free space. It's designed to provide peace, clarity, and emotional support rooted in Qur'anic wisdom.
 
-**NoorAI solves these challenges** by offering a unified, peaceful spiritual companion that centers everything around the Qur'an.
-
+**DeemAI solves these challenges** by offering a unified, peaceful spiritual companion that centers everything around the Qur'an.
 
 ## 📦 Installation & Setup
 
@@ -21,12 +20,14 @@ NoorAI brings together AI-guided reflections, a clean Qur'an reading experience,
 ### Quick Start
 
 1. **Clone the repository**
+
 ```bash
-git clone https://github.com/hngprojects/noorAI-Mobile
-cd noorai
+git clone https://github.com/hngprojects/deenAI-Mobile
+cd deenai
 ```
 
 2. **Install dependencies**
+
 ```bash
 npm install
 # or
@@ -34,17 +35,20 @@ yarn install
 ```
 
 3. **Configure environment variables**
+
 ```bash
 cp .env.example .env
 # Edit .env with your API keys and configuration
 ```
 
 4. **Start the development server**
+
 ```bash
 npx expo start
 ```
 
 5. **Run on your platform**
+
 - Press `i` for iOS simulator
 - Press `a` for Android emulator
 - Scan QR code with Expo Go app on your device
@@ -52,7 +56,7 @@ npx expo start
 ## 🏗️ Project Structure
 
 ```
-noorai/
+deenai/
 ├── src/
 │   ├── components/          # Reusable UI components
 │   ├── screens/             # App screens
@@ -71,9 +75,10 @@ noorai/
 
 ## 🤝 Contributing
 
-We welcome contributions that align with NoorAI's mission of providing a gentle, respectful, and authentic Islamic experience.
+We welcome contributions that align with DeenAI's mission of providing a gentle, respectful, and authentic Islamic experience.
 
 ### How to Contribute
+
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
@@ -81,6 +86,7 @@ We welcome contributions that align with NoorAI's mission of providing a gentle,
 5. Open a Pull Request
 
 ### Guidelines
+
 - Follow the existing code style and TypeScript conventions
 - Write meaningful commit messages
 - Test your changes thoroughly
@@ -89,4 +95,4 @@ We welcome contributions that align with NoorAI's mission of providing a gentle,
 
 ---
 
-**Built with ♥ for the Ummah** | *"And We send down of the Qur'an that which is healing and mercy for the believers"* (17:82)
+**Built with ♥ for the Ummah** | _"And We send down of the Qur'an that which is healing and mercy for the believers"_ (17:82)
