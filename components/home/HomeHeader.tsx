@@ -1,12 +1,14 @@
 import { useAuth, useLogout } from '@/hooks/useAuth';
 import { theme } from '@/styles/theme';
 import { Bell } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function HomeHeader() {
   const { user, isGuest } = useAuth();
   const logoutMutation = useLogout();
+  const router = useRouter();
 
   const userName = user?.name || (isGuest ? 'Guest' : 'User');
 
@@ -61,13 +63,23 @@ export default function HomeHeader() {
                         <ActivityIndicator size="small" color={theme.color.white} />
                     ) : (
                     )} */}
-          <Text style={styles.avatarText}>{getInitials(userName)}</Text>
+        <Text style={styles.avatarText}>{getInitials(userName)}</Text>
         </TouchableOpacity>
         <View style={styles.greeting}>
           <Text style={styles.greetingText}>Assalam Alaykum</Text>
           <Text style={styles.userName}>{userName}</Text>
         </View>
       </View>
+      
+      <View style={styles.notifyButtons}>
+      <TouchableOpacity onPress={() => router.push("/(tabs)/(tasbih)")}>
+        <Image
+            source={require("@/assets/images/tasbihIcon.png")}
+            style={styles.iconImage}
+            resizeMode="contain"
+          />
+      </TouchableOpacity>
+  
 
       <TouchableOpacity
         style={styles.notificationButton}
@@ -76,6 +88,7 @@ export default function HomeHeader() {
         <Bell size={24} color={theme.color.secondary} strokeWidth={2} />
         {!isGuest && <View style={styles.notificationBadge} />}
       </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -91,7 +104,7 @@ const styles = StyleSheet.create({
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 2,
   },
   avatar: {
     width: 56,
@@ -119,6 +132,19 @@ const styles = StyleSheet.create({
     fontFamily: theme.font.semiBold,
     color: theme.color.secondary,
   },
+
+  notifyButtons: {
+    flexDirection: "row",   // this puts children side by side
+    justifyContent: "space-between", // optional: space them out
+    alignItems: "center", // optional: vertically center
+  },
+
+  iconImage: {
+    width: 47,
+    height: 47, 
+    resizeMode: "contain",
+  },
+
   notificationButton: {
     width: 48,
     height: 48,
@@ -132,6 +158,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+
   notificationBadge: {
     position: 'absolute',
     top: 12,

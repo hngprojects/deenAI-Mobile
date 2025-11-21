@@ -31,6 +31,7 @@ export const lightTheme = {
     semiBold: 'NunitoSans-SemiBold',
     extraBold: 'NunitoSans-ExtraBold',
     black: 'NunitoSans-Black',
+    digital: 'DigitalNumbers-Regular'
   },
 };
 
@@ -62,6 +63,7 @@ export const darkTheme = {
     semiBold: 'NunitoSans-SemiBold',
     extraBold: 'NunitoSans-ExtraBold',
     black: 'NunitoSans-Black',
+    digital: 'DigitalNumbers-Regular'
   },
 };
 
