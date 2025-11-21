@@ -1,4 +1,5 @@
 import AnimatedSplash from "@/components/AnimatedSplash";
+import ToastProvider from "@/components/ToastProvider";
 import { ThemeProvider } from '@/context/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -95,6 +96,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <StatusBar style="light" />
+        <ToastProvider />
         <RootLayoutNav />
       </ThemeProvider>
     </QueryClientProvider>

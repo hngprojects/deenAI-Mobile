@@ -1,5 +1,6 @@
 import ScreenHeader from '@/components/screenHeader';
 import SecondaryButton from '@/components/secondaryButton';
+import { useAuthStore } from '@/store/auth-store';
 import { useRouter } from 'expo-router';
 import { Bell } from 'lucide-react-native';
 import React from 'react';
@@ -17,12 +18,14 @@ import { theme } from '../../styles/theme';
 export default function NotificationAccessScreen() {
     const router = useRouter();
     const { loading, requestPermission } = useNotification();
+    const { setOnboardingComplete } = useAuthStore();
 
     const handleAllow = async () => {
         const result = await requestPermission();
 
         if (result.granted) {
-            router.replace('/(auth)/login');
+            setOnboardingComplete(true);
+            router.replace('/(tabs)');
         } else {
             Alert.alert(
                 'Permission Denied',
@@ -31,7 +34,10 @@ export default function NotificationAccessScreen() {
                     { text: 'Cancel', style: 'cancel' },
                     {
                         text: 'Continue Anyway',
-                        onPress: () => router.replace('/(tabs)')
+                        onPress: () => {
+                            setOnboardingComplete(true);
+                            router.replace('/(tabs)');
+                        }
                     }
                 ]
             );
@@ -39,12 +45,13 @@ export default function NotificationAccessScreen() {
     };
 
     const handleDontAllow = () => {
-        router.replace('/(auth)/login');
+        setOnboardingComplete(true);
+        router.replace('/(tabs)');
     };
 
     return (
         <ScreenContainer>
-            <ScreenHeader title="Notification Access" />
+            <ScreenHeader title="Notification Access" showBackButton={false} />
 
             <View style={styles.iconContainer}>
                 <View style={styles.bellIconContainer}>
@@ -70,7 +77,6 @@ export default function NotificationAccessScreen() {
                 <SecondaryButton
                     title="Don't Allow"
                     onPress={handleDontAllow}
-                // style={styles.secondaryButton}
                 />
             </View>
 
@@ -108,7 +114,6 @@ const styles = StyleSheet.create({
         color: theme.color.secondary,
         textAlign: 'center',
         marginBottom: 16,
-        // paddingHorizontal: 10,
     },
     description: {
         fontSize: 16,
@@ -121,11 +126,6 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         gap: 12,
-    },
-    secondaryButton: {
-        backgroundColor: theme.color.white,
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
     },
     termsText: {
         textAlign: 'center',

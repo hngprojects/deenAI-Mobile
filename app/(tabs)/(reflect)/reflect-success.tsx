@@ -1,22 +1,30 @@
 "use client"
 
-import { View, Text, StyleSheet, } from 'react-native';
-import { theme } from '@/styles/theme';
 import ScreenContainer from '@/components/ScreenContainer';
-import PrimaryButton from '../../../components/primaryButton';
+import { theme } from '@/styles/theme';
 import { useRouter } from 'expo-router';
+import { StyleSheet, Text, View, } from 'react-native';
+import PrimaryButton from '../../../components/primaryButton';
+import { Image } from 'react-native';
 
 export default function ReflectSuccess() {
   const router = useRouter();
   return (
     <ScreenContainer>
       <View style={styles.container} >
+
+        <Image
+          source={require("../../../assets/images/refl.png")}
+          style={styles.icon}
+          resizeMode="contain"
+        />
+
         <Text style={styles.textHeader}>Your Reflection has been saved</Text>
 
         <Text style={styles.containerText}>Your reflection has been added to your journal, a space you can return to anytime for peace and remembrance.</Text>
         <PrimaryButton
           title="Open reflection journal "
-          onPress={() => router.push('/saved-reflection')}
+          onPress={() => router.push('/(tabs)/reflect')}
           style={styles.button}
         />
         <Text
@@ -56,6 +64,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     paddingLeft: 27,
     paddingRight: 27,
+    fontFamily: theme.font.regular,
   },
   button: {
     marginTop: 40,
@@ -64,7 +73,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#5E5B54",
     fontSize: 12,
-    marginTop: 8,
+    marginTop: 10,
     cursor: "pointer",
+  },
+  icon:{
+    width: 110,
+    height: 110,
   }
 })

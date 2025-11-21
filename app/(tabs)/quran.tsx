@@ -1,26 +1,16 @@
-import React, { useState, useMemo } from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import FeaturedSurahCard from "@/components/quran/featuredSurahCard";
+import SurahListItem from "@/components/quran/surahListItem";
+import ScreenContainer from "@/components/ScreenContainer";
+import ScreenHeader from "@/components/screenHeader";
+import { quranService } from "@/service/quran.service";
+import { theme } from "@/styles/theme";
+import { Surah } from "@/types/quran.types";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-
-import SurahListItem from "../../components/surahListItem";
-import FeaturedSurahCard from "../../components/featuredSurahCard";
+import { router } from "expo-router";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { ActivityIndicator, FlatList, Platform, StatusBar, StyleSheet, Text, View } from "react-native";
 import SearchBar from "../../components/searchBar";
-
-import { theme } from "@/styles/theme";
-import { surahs } from "../../mockData";
-
-
-export interface Surah {
-  number: number;
-  name: string;
-  englishName: string;
-  englishMeaning: string;
-  verses: number;
-  arabic: string[];
-  transliteration: string[];
-  translation: string[];
-}
 
 export type RootStackParamList = {
   Quran: undefined;
@@ -28,15 +18,34 @@ export type RootStackParamList = {
 };
 
 type QuranScreenProp = NativeStackNavigationProp<RootStackParamList, "Quran">;
-// ------------------------------------------------------------------
 
 export default function Quran() {
   const navigation = useNavigation<QuranScreenProp>();
   const [searchText, setSearchText] = useState("");
+  const [surahs, setSurahs] = useState<Surah[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    loadQuranData();
+  }, []);
 
-  const alFatihah = useMemo(() => surahs.find((s) => s.number === 1), []);
+  const loadQuranData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      await quranService.initialize();
+      const allSurahs = await quranService.getAllSurahs();
+      setSurahs(allSurahs);
+    } catch (err) {
+      console.error('Error loading Quran data:', err);
+      setError('Failed to load Quran data. Please restart the app.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const alFatihah = useMemo(() => surahs.find((s) => s.number === 1), [surahs]);
 
   const filteredSurahs = useMemo(() => {
     if (!searchText) {
@@ -47,46 +56,96 @@ export default function Quran() {
 
     return surahs.filter(
       (s) =>
-      
         s.englishName.toLowerCase().includes(lowerCaseSearch) ||
-        s.englishMeaning.toLowerCase().includes(lowerCaseSearch) ||
+        s.englishNameTranslation.toLowerCase().includes(lowerCaseSearch) ||
+        s.name.includes(searchText) ||
         s.number.toString().includes(lowerCaseSearch)
     );
-  }, [searchText]);
+  }, [searchText, surahs]);
 
-  const renderSurahCard = ({ item }: { item: Surah }) => (
+  const renderSurahCard = useCallback(({ item }: { item: Surah }) => (
     <SurahListItem
       surah={item}
-      onPress={() => navigation.navigate("surahDetail", { surah: item })}
+      onPress={() => router.push({
+        pathname: '/(tabs)/(quran)/surahDetail',
+        params: { surah: JSON.stringify(item) }
+      })}
     />
-  );
+  ), []);
 
-  const ListHeader = () => (
+  const ListHeader = useCallback(() => (
     <>
-      <Text style={styles.screenTitle}>Quran</Text>
-
-      <SearchBar
-        placeholder="Search a chapter"
-        searchText={searchText}
-        onSearchChange={setSearchText}
-      />
-
- 
       {!searchText && alFatihah && (
         <FeaturedSurahCard
           surah={alFatihah}
-          onPress={() =>
-            navigation.navigate("surahDetail", { surah: alFatihah })
-          }
+          onPress={() => router.push({
+            pathname: '/(tabs)/(quran)/surahDetail',
+            params: { surah: JSON.stringify(alFatihah) }
+          })}
         />
       )}
 
       <Text style={styles.surahsSectionHeader}>Surahs</Text>
     </>
-  );
+  ), [searchText, alFatihah]);
+
+  if (loading) {
+    return (
+      <ScreenContainer
+        backgroundColor={theme.color.white}
+        statusBarStyle="dark"
+        scrollable={false}
+        keyboardAvoiding={false}
+      >
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={theme.color.brand} />
+          <Text style={styles.loadingText}>Loading Quran...</Text>
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  if (error) {
+    return (
+      <ScreenContainer
+        backgroundColor={theme.color.white}
+        statusBarStyle="dark"
+        scrollable={false}
+        keyboardAvoiding={false}
+      >
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      </ScreenContainer>
+    );
+  }
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer
+      backgroundColor={theme.color.white}
+      statusBarStyle="dark"
+      scrollable={false}
+      showsVerticalScrollIndicator={false}
+      keyboardAvoiding={false}
+    >
+      <View style={styles.fixedHeader}>
+        <ScreenHeader
+          titleAlign="left"
+          showBackButton={false}
+          title="Quran"
+          titleStyle={{
+            fontSize: 28,
+            fontFamily: theme.font.bold,
+          }}
+        />
+
+        <SearchBar
+          placeholder="Search a chapter"
+          searchText={searchText}
+          onSearchChange={setSearchText}
+        />
+      </View>
+
       <FlatList
         data={filteredSurahs}
         keyExtractor={(item) => item.number.toString()}
@@ -94,19 +153,25 @@ export default function Quran() {
         ListHeaderComponent={ListHeader}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        style={styles.flatList}
       />
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  fixedHeader: {
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 10 : 54,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
     backgroundColor: theme.color.white,
   },
   listContent: {
     paddingHorizontal: 20,
     paddingBottom: 20,
+  },
+  flatList: {
+    flex: 1,
   },
   screenTitle: {
     fontSize: 28,
@@ -120,5 +185,23 @@ const styles = StyleSheet.create({
     fontFamily: theme.font.semiBold,
     color: theme.color.secondary,
     marginBottom: 15,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontFamily: theme.font.regular,
+    color: theme.color.secondary,
+  },
+  errorText: {
+    fontSize: 16,
+    fontFamily: theme.font.regular,
+    color: '#FF4444',
+    textAlign: 'center',
   },
 });

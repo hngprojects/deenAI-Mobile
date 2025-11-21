@@ -35,26 +35,23 @@ export default function LoginScreen() {
         password: '',
     };
 
-    const handleLogin = async (values: LoginFormValues) => {
-        if (!isConnected) {
-            showNoConnectionToast();
-            return;
-        }
+const handleLogin = async (values: LoginFormValues) => {
+    if (!isConnected) {
+        showNoConnectionToast();
+        return;
+    }
 
-        try {
-            login(values, {
-                onError: (error: any) => {
-                    Alert.alert(
-                        'Login Failed',
-                        error?.message || 'Invalid email or password. Please try again.'
-                    );
-                }
-            });
+    try {
+        login(values, {
+            onError: (error: any) => {
+                // Check if error is about unverified account
+            }
+        });
 
-        } catch (err: any) {
-            console.error('Login error:', err);
-        }
-    };
+    } catch (err: any) {
+        console.error('Login error:', err);
+    }
+};
 
     const handleSocialLogin = async (provider: SocialProvider) => {
         if (!isConnected) {

@@ -24,11 +24,11 @@ export default function AnimatedSplash() {
     return (
         <View style={styles.container}>
             {/* Background Image with decorative elements */}
-            <Image
+            {/* <Image
                 source={require("../assets/images/splashBg.png")}
                 style={styles.backgroundImage}
                 resizeMode="cover"
-            />
+            /> */}
 
             {/* Center Content */}
             <Animated.View
@@ -41,7 +41,7 @@ export default function AnimatedSplash() {
                 ]}
             >
                 <Image
-                    source={require("../assets/images/splashImg.png")}
+                    source={require("../assets/images/vectors.png")}
                     style={styles.bulbIcon}
                     resizeMode="contain"
                 />
@@ -58,7 +58,7 @@ export default function AnimatedSplash() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F5F5F5",
+        backgroundColor: "#F9F9F9",
         justifyContent: "center",
         alignItems: "center",
     },
@@ -72,8 +72,8 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     bulbIcon: {
-        width: 120,
-        height: 120,
+        width: 100,
+        height: 100,
         marginBottom: 16,
     },
     logoText: {

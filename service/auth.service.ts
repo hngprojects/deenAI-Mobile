@@ -50,6 +50,20 @@ class AuthService {
         });
     }
 
+    async resendVerification(payload: RequestOtpPayload): Promise<OtpResponse> {
+        return this.apiCall<OtpResponse>('/auth/resend-verification', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
+    }
+
+    async verifyEmail(payload: VerifyOtpPayload): Promise<OtpResponse> {
+        return this.apiCall<OtpResponse>('/auth/verify-email', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
+    }
+
     async getCurrentUser(token: string): Promise<User> {
         console.log('👤 Get Current User Attempt');
 
@@ -70,7 +84,7 @@ class AuthService {
     }
 
     async requestOtp(payload: RequestOtpPayload): Promise<OtpResponse> {
-        return this.apiCall<OtpResponse>('/auth/request-otp', {
+        return this.apiCall<OtpResponse>('/auth/forgot-password', {
             method: 'POST',
             body: JSON.stringify(payload),
         });

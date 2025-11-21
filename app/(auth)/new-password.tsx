@@ -3,11 +3,12 @@ import PrimaryButton from "@/components/primaryButton";
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
 import { useResetPassword } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
 import { theme } from "@/styles/theme";
 import { ResetPasswordSchema } from "@/utils/validation";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function NewPassword() {
     const { email, otp } = useLocalSearchParams<{ email: string; otp: string }>();
@@ -18,6 +19,7 @@ export default function NewPassword() {
     const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
 
     const resetPasswordMutation = useResetPassword();
+    const { showToast } = useToast();
 
     const handleReset = async () => {
         try {
@@ -29,8 +31,10 @@ export default function NewPassword() {
             );
 
             if (!email || !otp) {
-                Alert.alert("Error", "Session expired. Please restart the password reset process.");
-                router.replace("/(auth)/forgot-password");
+                showToast("Session expired. Please restart the password reset process.", "error");
+                setTimeout(() => {
+                    router.replace("/(auth)/forgot-password");
+                }, 1000);
                 return;
             }
 
@@ -50,9 +54,9 @@ export default function NewPassword() {
                 });
                 setErrors(validationErrors);
             } else {
-                Alert.alert(
-                    "Error",
-                    error.message || "Failed to reset password. Please try again."
+                showToast(
+                    error.message || "Failed to reset password. Please try again.",
+                    "error"
                 );
             }
         }

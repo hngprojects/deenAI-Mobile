@@ -60,3 +60,8 @@ export interface OtpResponse {
     success: boolean;
     message: string;
 }
+
+export interface VerifyEmailPayload {
+    email: string;
+    otp: string;
+}
