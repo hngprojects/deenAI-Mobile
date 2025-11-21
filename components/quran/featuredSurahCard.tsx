@@ -1,10 +1,9 @@
-// FeaturedSurahCard.tsx
-
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { theme } from "@/styles/theme";
-import { Surah } from "../app/(tabs)/quran";
+// import { Surah } from "../app/(tabs)/quran";
 import { BookText, ChevronRight } from "lucide-react-native";
+import { Surah } from "@/types/quran.types";
 
 interface FeaturedSurahCardProps {
   surah: Surah;

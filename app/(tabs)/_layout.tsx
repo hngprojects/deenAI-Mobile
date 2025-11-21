@@ -67,6 +67,12 @@ export default function TabLayout() {
                         href: null,
                     }}
                 />
+                <Tabs.Screen
+                    name="(quran)"
+                    options={{
+                        href: null,
+                    }}
+                />
             </Tabs>
         </ProtectedRoute>
     );

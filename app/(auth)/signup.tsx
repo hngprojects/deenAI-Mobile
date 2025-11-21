@@ -1,18 +1,19 @@
+import NetworkToast from '@/components/NetworkToast';
 import ScreenContainer from '@/components/ScreenContainer';
 import ScreenHeader from '@/components/screenHeader';
-import NetworkToast from '@/components/NetworkToast';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { useToast } from '@/hooks/useToast';
 import { theme } from '@/styles/theme';
 import { useRouter } from 'expo-router';
 import { Formik } from 'formik';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import InputField from '../../components/InputField';
 import PrimaryButton from '../../components/primaryButton';
 import SocialLoginButton from '../../components/socialLoginButton';
 import { useSignup } from '../../hooks/useAuth';
 import { SignupFormValues, SocialProvider } from '../../types';
 import { SignupSchema } from '../../utils/validation';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 export default function SignupScreen() {
     const router = useRouter();
@@ -20,8 +21,9 @@ export default function SignupScreen() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const { mutate: signup, isPending: loading } = useSignup();
+    const { showToast } = useToast();
 
-    const { isConnected, showToast, toastType, showNoConnectionToast } = useNetworkStatus();
+    const { isConnected, showToast: showNetworkToast, toastType, showNoConnectionToast } = useNetworkStatus();
 
     const initialValues: SignupFormValues = {
         name: '',
@@ -37,8 +39,9 @@ export default function SignupScreen() {
         }
 
         signup(values, {
-            onError: (error) => {
-                Alert.alert('Signup Failed', error.message);
+            onError: (error: any) => {
+                // Toast is already shown in useSignup hook
+                // No need for additional handling here
             }
         });
     };
@@ -49,12 +52,13 @@ export default function SignupScreen() {
             return;
         }
 
-        router.push('/(onboarding)/location-access');
+        showToast(`${provider} login coming soon!`, 'info');
+        // router.push('/(onboarding)/location-access');
     };
 
     return (
         <>
-            <NetworkToast type={toastType} visible={showToast} />
+            <NetworkToast type={toastType} visible={showNetworkToast} />
 
             <ScreenContainer>
                 <ScreenHeader title="Create new account" />
@@ -91,6 +95,7 @@ export default function SignupScreen() {
                                 error={touched.name && errors.name ? errors.name : undefined}
                                 autoCapitalize="words"
                                 returnKeyType="next"
+                                editable={!loading}
                             />
 
                             <InputField
@@ -104,6 +109,7 @@ export default function SignupScreen() {
                                 autoCapitalize="none"
                                 autoComplete="email"
                                 returnKeyType="next"
+                                editable={!loading}
                             />
 
                             <InputField
@@ -118,6 +124,7 @@ export default function SignupScreen() {
                                 onTogglePassword={() => setShowPassword(!showPassword)}
                                 autoCapitalize="none"
                                 returnKeyType="next"
+                                editable={!loading}
                             />
 
                             <InputField
@@ -133,6 +140,7 @@ export default function SignupScreen() {
                                 autoCapitalize="none"
                                 returnKeyType="done"
                                 onSubmitEditing={() => handleSubmit()}
+                                editable={!loading}
                             />
 
                             <PrimaryButton

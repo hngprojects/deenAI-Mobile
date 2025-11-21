@@ -1,11 +1,11 @@
 {
   "expo": {
-    "owner": "fahd02",
-    "name": "DeenAi-Mobile",
+    "owner": "deenai",
+    "name": "DeenAi",
     "slug": "DeenAi-Mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/splash-icon.png",
+    "icon": "./assets/images/icon.png",
     "scheme": "nooraimobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -21,14 +21,15 @@
             }
           }
         }
-      }
+      },
+      "bundleIdentifier": "com.allcodez.DeenAiMobile"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/noorai.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/android-icon.png",
+        "backgroundImage": "./assets/images/android-icon.png",
+        "monochromeImage": "./assets/images/android-icon.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -73,7 +74,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "39baae56-45a4-4b1c-aea2-07aa052e20d9"
+        "projectId": "524cdef3-3a7b-4fe8-b570-ca1758a8424d"
       }
     }
   }
