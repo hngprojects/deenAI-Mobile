@@ -64,13 +64,18 @@ export default function LoginScreen() {
     };
 
     const [request, response, promptAsync] = Google.useAuthRequest({
-        clientId: "",
-          redirectUri: AuthSession.makeRedirectUri({
-            scheme: "nooraimobile",
-            path: "redirect"
-        }),
+        clientId: "429430858800-vkdlvbkj95bgaa5lplpk8u92ssrrkuct.apps.googleusercontent.com",
         scopes: ["profile", "email"],
     });
+
+    // const [request, response, promptAsync] = Google.useAuthRequest({
+    //     clientId: "",
+    //       redirectUri: AuthSession.makeRedirectUri({
+    //         scheme: "nooraimobile",
+    //         path: "redirect"
+    //     }),
+    //     scopes: ["profile", "email"],
+    // });
 
 
     // RUN WHEN GOOGLE LOGIN RETURNS A RESULT
