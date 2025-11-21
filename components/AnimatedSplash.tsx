@@ -2,8 +2,8 @@ import React, { useEffect, useRef } from "react";
 import { Animated, Image, StyleSheet, View } from "react-native";
 
 export default function AnimatedSplash() {
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
     useEffect(() => {
         Animated.parallel([
@@ -50,9 +50,9 @@ export default function AnimatedSplash() {
                     style={styles.logoText}
                     resizeMode="contain"
                 /> */}
-            </Animated.View>
-        </View>
-    );
+      </Animated.View>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({

@@ -24,9 +24,9 @@ export default function ResetPassword() {
     const handleCodeChange = (text: string, index: number) => {
         if (text && !/^\d+$/.test(text)) return;
 
-        const newCode = [...code];
-        newCode[index] = text;
-        setCode(newCode);
+    const newCode = [...code];
+    newCode[index] = text;
+    setCode(newCode);
 
         if (text && index < 5) {
             inputRefs.current[index + 1]?.focus();
@@ -88,9 +88,9 @@ export default function ResetPassword() {
         }
     };
 
-    return (
-        <ScreenContainer>
-            <ScreenHeader title="Reset password" />
+  return (
+    <ScreenContainer>
+      <ScreenHeader title="Reset password" />
 
             <Text style={styles.subtitle}>
                 A verification code has been sent to{"\n"}
