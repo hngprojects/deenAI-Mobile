@@ -165,7 +165,7 @@ export default function SurahDetail() {
         ListHeaderComponent={ListHeader}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        style={styles.flatList} c
+        style={styles.flatList}
       />
     </ScreenContainer>
   );

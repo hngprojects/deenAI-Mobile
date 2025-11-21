@@ -76,6 +76,7 @@ export default function RootLayout() {
     'NunitoSans-Light': require('../assets/fonts/NunitoSans-Light.ttf'),
     'NunitoSans-ExtraBold': require('../assets/fonts/NunitoSans-ExtraBold.ttf'),
     'NunitoSans-Black': require('../assets/fonts/NunitoSans-Black.ttf'),
+    'DigitalNumbers-Regular': require('../assets/fonts/DigitalNumbers-Regular.ttf'),
   });
 
   useEffect(() => {
