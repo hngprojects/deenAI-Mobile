@@ -25,7 +25,7 @@ export default function NetworkToast({ type, visible }: NetworkToastProps) {
                 friction: 8,
             }).start();
  
-            if (type) {
+            if (type === 'connected') {
                 setTimeout(() => {
                     Animated.timing(translateY, {
                         toValue: -100,
