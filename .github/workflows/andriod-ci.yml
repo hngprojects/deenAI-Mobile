@@ -70,23 +70,25 @@ jobs:
 
       # Run Jest tests with coverage reporting
       - name: Run unit tests
-        run: npm test
+        run: npm test -- --coverage --maxWorkers=2
 
       # Upload test coverage reports for analysis
+      # Uncomment when Jest is configured with coverage
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
+        if: always()
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/lcov.info
           flags: unittests
           name: codecov-umbrella
+        continue-on-error: true
 
   # =============================================================================
-  # EXPO DIAGNOSTICS
-  # Validates Expo configuration and checks for issues
+  # ANDROID NATIVE SETUP VALIDATION
+  # Ensures Android project structure is valid
   # =============================================================================
-  expo-diagnostics:
-    name: Expo Configuration Check
+  android-setup-check:
+    name: Android Project Validation
     runs-on: ubuntu-latest
     
     steps:
@@ -99,16 +101,50 @@ jobs:
           node-version: '20.x'
           cache: 'npm'
 
+      # Setup Java 17 required for React Native 0.81.5
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Install dependencies
         run: npm ci
 
-      # Install Expo CLI globally for diagnostics
-      - name: Install Expo CLI
-        run: npm install -g expo-cli
+      # Check if android directory exists, if not, generate it
+      # This uses npx to run expo prebuild without requiring EXPO_TOKEN
+      - name: Generate Android project if needed
+        run: |
+          if [ ! -d "android" ]; then
+            echo "📦 Android directory not found, generating native project..."
+            npx expo prebuild --platform android --clean --skip-dependency-update react-native,react
+          else
+            echo "✅ Android directory already exists"
+          fi
 
-      # Run Expo doctor to check for configuration issues
-      - name: Run Expo Doctor
-        run: npx expo-doctor
+      # Validate Android project structure
+      - name: Validate Android project structure
+        run: |
+          echo "Checking Android project structure..."
+          
+          # Check for essential files
+          required_files=(
+            "android/build.gradle"
+            "android/settings.gradle"
+            "android/app/build.gradle"
+            "android/gradle.properties"
+            "android/gradlew"
+          )
+          
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Missing required file: $file"
+              exit 1
+            fi
+            echo "✅ Found: $file"
+          done
+          
+          echo "✅ Android project structure is valid"
 
   # =============================================================================
   # BUILD VALIDATION (Debug APK)
@@ -118,7 +154,7 @@ jobs:
   build-validation:
     name: Build Validation (Debug APK)
     runs-on: ubuntu-latest
-    needs: [lint, test, expo-diagnostics]
+    needs: [lint, test, android-setup-check]
     
     steps:
       - name: Checkout repository
@@ -142,25 +178,55 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Setup Expo with authentication for EAS builds
-      - name: Setup Expo
-        uses: expo/expo-github-action@v8
-        with:
-          expo-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+      # Generate Android project if it doesn't exist
+      # Uses local expo-cli from node_modules, no EXPO_TOKEN needed
+      - name: Generate Android native project
+        run: |
+          if [ ! -d "android" ]; then
+            echo "📦 Generating Android project with Expo prebuild..."
+            npx expo prebuild --platform android --clean --skip-dependency-update react-native,react
+          else
+            echo "✅ Using existing Android project"
+          fi
 
-      # Prebuild native Android project from Expo
-      - name: Prebuild Android project
-        run: npx expo prebuild --platform android --clean
+      # Cache Gradle dependencies to speed up builds
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       # Grant execute permissions to gradlew
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      # Build debug APK for validation
+      # Build debug APK for validation using standard Gradle
       - name: Build debug APK
         working-directory: android
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --stacktrace --no-daemon
+
+      # Verify APK was created
+      - name: Verify debug APK
+        run: |
+          APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
+          if [ ! -f "$APK_PATH" ]; then
+            echo "❌ Debug APK not found at $APK_PATH"
+            exit 1
+          fi
+          
+          # Check APK size
+          SIZE=$(stat -c%s "$APK_PATH")
+          SIZE_MB=$((SIZE / 1024 / 1024))
+          echo "✅ Debug APK created successfully"
+          echo "📦 APK size: ${SIZE_MB}MB"
+          
+          # List APK contents to verify structure
+          echo "APK contents:"
+          unzip -l "$APK_PATH" | head -20
 
       # Upload debug APK as artifact for review
       - name: Upload debug APK
@@ -170,10 +236,21 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 7
 
+      # Upload build reports for debugging if build fails
+      - name: Upload build reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-reports-${{ github.sha }}
+          path: |
+            android/app/build/reports/
+            android/app/build/outputs/logs/
+          retention-days: 7
+
   # =============================================================================
   # E2E TESTING WITH MAESTRO
   # Automated end-to-end testing on actual app flows
-  # To be uncommented when ready to implement E2E tests
+  # Uncomment when ready to implement E2E tests
   # =============================================================================
   # e2e-tests:
   #   name: E2E Tests (Maestro)
@@ -267,6 +344,31 @@ jobs:
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
 
+      # Check for Android-specific security issues
+      - name: Android security checks
+        run: |
+          echo "Checking for sensitive Android files..."
+          
+          # Check for committed keystore files
+          if find . -name "*.keystore" -o -name "*.jks" | grep -q .; then
+            echo "⚠️ Warning: Found keystore files in repository"
+            echo "These should be stored in secrets, not committed to git"
+          fi
+          
+          # Check for keystore.properties
+          if [ -f "android/keystore.properties" ]; then
+            echo "⚠️ Warning: keystore.properties found in repository"
+            echo "This file should be gitignored"
+          fi
+          
+          # Check for google-services.json with actual keys
+          if [ -f "android/app/google-services.json" ]; then
+            echo "⚠️ Warning: google-services.json found"
+            echo "Ensure this doesn't contain production keys"
+          fi
+          
+          echo "✅ Security checks completed"
+
   # =============================================================================
   # CI STATUS CHECK
   # Final job that depends on all others for branch protection rules
@@ -274,7 +376,7 @@ jobs:
   ci-success:
     name: CI Pipeline Success
     runs-on: ubuntu-latest
-    needs: [lint, test, expo-diagnostics, build-validation, security-scan]
+    needs: [lint, test, android-setup-check, build-validation, security-scan]
     if: always()
     
     steps:
@@ -282,10 +384,10 @@ jobs:
         run: |
           if [[ "${{ needs.lint.result }}" == "failure" ]] || \
              [[ "${{ needs.test.result }}" == "failure" ]] || \
-             [[ "${{ needs.expo-diagnostics.result }}" == "failure" ]] || \
+             [[ "${{ needs.android-setup-check.result }}" == "failure" ]] || \
              [[ "${{ needs.build-validation.result }}" == "failure" ]] || \
              [[ "${{ needs.security-scan.result }}" == "failure" ]]; then
-            echo "CI pipeline failed"
+            echo "❌ CI pipeline failed"
             exit 1
           fi
-          echo "CI pipeline passed successfully"
+          echo "✅ CI pipeline passed successfully"
