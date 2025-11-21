@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 15,
         justifyContent: 'space-between',
     },
     backButton: {
