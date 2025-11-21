@@ -76,14 +76,6 @@ export default function HomeHeader() {
                 <Bell size={24} color={theme.color.secondary} strokeWidth={2} />
                 {!isGuest && <View style={styles.notificationBadge} />}
             </TouchableOpacity>
-
-            <TouchableOpacity
-                style={styles.notificationButton}
-                onPress={handleNotificationPress}
-            >
-                <Bell size={24} color={theme.color.secondary} strokeWidth={2} />
-                {!isGuest && <View style={styles.notificationBadge} />}
-            </TouchableOpacity>
         </View>
     );
 }
