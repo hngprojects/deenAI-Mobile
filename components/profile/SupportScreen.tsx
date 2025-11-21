@@ -32,6 +32,7 @@ export default function SupportScreen() {
           <Image
             source={require('../../assets/images/arrow-right.png')}
             style={styles.arrow}
+            resizeMode ='contain'
           />
         </TouchableOpacity>
 
@@ -64,6 +65,5 @@ const styles = StyleSheet.create({
   arrow: {
     width: 24,
     height: 24,
-    resizeMode: 'contain',
   },
 });

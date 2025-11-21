@@ -27,7 +27,6 @@ interface Option {
   iconKey: keyof typeof icons.left;
 }
 
-// --- ICON OBJECT ---
 const icons = {
   left: {
     edit: require('../../assets/images/edit.png'),
@@ -52,7 +51,7 @@ const profile = {
     { id: '3', title: 'Language', route: '/profile/language', iconKey: 'language' },
     { id: '4', title: 'Support', route: '/profile/support', iconKey: 'support' },
     { id: '5', title: 'Settings', route: '/settings', iconKey: 'settings' },
-    { id: '6', title: 'Sign Out', route: '/auth/signout', iconKey: 'signout' },
+    { id: '6', title: 'Sign Out', route: '/profile/signout', iconKey: 'signout' },
     { id: '7', title: 'Delete Account', route: '/profile/delete', iconKey: 'delete' },
   ],
 };
@@ -74,14 +73,18 @@ const ProfileScreen: React.FC = () => {
       </Text>
 
       <View style={styles.rightArrowWrapper}>
-        <Image source={icons.right} style={styles.arrowIconImage} />
+        <Image
+        source={icons.right}
+        style={styles.arrowIconImage}
+        resizeMode="contain"
+        />
       </View>
     </TouchableOpacity>
   );
 
   return (
     <ScreenContainer backgroundColor={theme.color.background}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         <View style={styles.header}>
           <Image source={profile.avatar} style={styles.avatar} />
 
@@ -106,6 +109,13 @@ const ProfileScreen: React.FC = () => {
           scrollEnabled={false}
           contentContainerStyle={{ paddingHorizontal: 20, marginTop: 30 }}
         />
+
+        <Image
+        source={require("../../assets/images/NOOR NAV.png")}
+        style={styles.navbarImage}
+        resizeMode="cover"  
+        />
+
       </ScrollView>
     </ScreenContainer>
   );
@@ -116,7 +126,7 @@ export default ProfileScreen;
 const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
-    marginTop: 30,
+    marginTop: 20,
     paddingHorizontal: 20,
   },
   avatar: {
@@ -135,7 +145,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 40,
     borderRadius: 25,
-    marginTop: 20,
+    marginTop: 15,
     elevation: 2,
   },
   editButtonText: {
@@ -147,7 +157,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 18,
     borderBottomWidth: 0.6,
-    borderColor: '#E5E7EB',
+    borderColor: '#FFFFFF',
   },
   leftIconWrapper: {
     width: 30,
@@ -159,7 +169,6 @@ const styles = StyleSheet.create({
   leftIconImage: {
     width: 24,
     height: 24,
-    resizeMode: 'contain',
   },
   rightArrowWrapper: {
     marginLeft: 'auto',
@@ -171,10 +180,17 @@ const styles = StyleSheet.create({
   arrowIconImage: {
     width: 22,
     height: 22,
-    resizeMode: 'contain',
   },
   optionText: {
     fontSize: 16,
     fontWeight: '500',
   },
-});
+  navbarImage: {
+  position: "absolute",  
+  bottom: -32,              
+  width: "100%",          
+  height: 110,                       
+  zIndex: 1,   
+  pointerEvents: "none",         
+},
+});   

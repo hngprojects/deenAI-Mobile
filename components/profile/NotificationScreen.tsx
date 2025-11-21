@@ -32,12 +32,15 @@ export default function NotificationScreen() {
             <Switch
               value={item.enabled}
               onValueChange={() => toggleNotification(item.id)}
-              trackColor={{ false: "#CCC", true: "#CCC" }} 
-              thumbColor="#FFF"
-              ios_backgroundColor="#CCC"
-              style={{ transform: [{ scaleX: 1.3 }, { scaleY: 1.5 }] }} 
+              trackColor={{
+                false: "#D0D0D0",  
+                true: "#D0D0D0",
+              }}
+              thumbColor="#FFFFFF"
+              ios_backgroundColor="#D0D0D0"
+              style={{ transform: [{ scaleX: 1.3 }, { scaleY: 1.5 }] }}
             />
-         </View>
+          </View>
         ))}
       </ScrollView>
     </View>

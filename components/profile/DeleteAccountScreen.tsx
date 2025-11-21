@@ -2,39 +2,43 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import ScreenHeader from "../screenHeader";
 import { theme } from "@/styles/theme";
+import { useRouter } from "expo-router"; 
 
 export default function DeleteAccountScreen() {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
       <ScreenHeader title="Delete Account" />
 
       <View style={styles.textWrapper}>
         <Text style={styles.boldText}>
-          Are you sure you want to delete your 
-          Account?
+          Are you sure you want to delete your Account?
         </Text>
+
         <Text style={styles.normalText}>
-           Once you delete your account, it cannot be undone. All
-             your data will permanently be erased from this app
-             includes your profile information. Preferences, saved 
-                 content, and any activity history.
-
-
+          Once you delete your account, it cannot be undone. All your data will permanently be erased from this app, including your profile information, preferences, saved content, and any activity history.
         </Text>
+
         <Text style={styles.normalText}>
-    
-            We’re sad to see you go, but we understand that 
-           sometimes it’s necessary. Please take a moment to 
-            consider the consequences before proceeding.
+          We’re sad to see you go, but we understand that sometimes it’s necessary. Please take a moment to consider the consequences before proceeding.
         </Text>
       </View>
 
       <View style={styles.buttonWrapper}>
-        <TouchableOpacity style={[styles.button, styles.cancelButton]}>
+        {/* Cancel button goes back */}
+        <TouchableOpacity
+          style={[styles.button, styles.cancelButton]}
+          onPress={() => router.back()}
+        >
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.button, styles.deleteButton]}>
+        {/* Delete button navigates to delete check page */}
+        <TouchableOpacity
+          style={[styles.button, styles.deleteButton]}
+          onPress={() => router.push("/profile/delete/deletecheck")}
+        >
           <Text style={styles.deleteButtonText}>Delete</Text>
         </TouchableOpacity>
       </View>
