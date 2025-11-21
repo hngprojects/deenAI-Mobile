@@ -10,6 +10,8 @@ export interface LoginFormValues {
     password: string;
 }
 
+export type SocialProvider = "google" | "apple";
+
 export interface User {
     id: string;
     name: string;

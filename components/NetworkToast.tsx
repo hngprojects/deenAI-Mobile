@@ -1,15 +1,21 @@
 import { theme } from '@/styles/theme';
 import React, { useEffect } from 'react';
 import { Animated, Image, StyleSheet, Text, View } from 'react-native';
-
+ 
+ 
 interface NetworkToastProps {
-    isConnected: boolean;
+    type: 'connected' | 'disconnected';
     visible: boolean;
 }
-
-export default function NetworkToast({ isConnected, visible }: NetworkToastProps) {
+ 
+// interface NetworkToastProps {
+//     isConnected: boolean;
+//     visible: boolean;
+// }
+ 
+export default function NetworkToast({ type, visible }: NetworkToastProps) {
     const translateY = React.useRef(new Animated.Value(-100)).current;
-
+ 
     useEffect(() => {
         if (visible) {
             Animated.spring(translateY, {
@@ -18,8 +24,8 @@ export default function NetworkToast({ isConnected, visible }: NetworkToastProps
                 tension: 50,
                 friction: 8,
             }).start();
-
-            if (isConnected) {
+ 
+            if (type) {
                 setTimeout(() => {
                     Animated.timing(translateY, {
                         toValue: -100,
@@ -35,24 +41,24 @@ export default function NetworkToast({ isConnected, visible }: NetworkToastProps
                 useNativeDriver: true,
             }).start();
         }
-    }, [visible, isConnected, translateY]);
-
+    }, [visible, type, translateY]);
+ 
     if (!visible) return null;
-
+ 
     return (
         <Animated.View
             style={[
                 styles.container,
-                isConnected ? styles.connected : styles.disconnected,
+                type ? styles.connected : styles.disconnected,
                 { transform: [{ translateY }] },
             ]}
         >
             <View style={styles.content}>
                 <Text style={styles.text}>
-                    {isConnected ? 'Connection Restored!' : 'Connection lost! Reconnect'}
+                    {type ? 'Connection Restored!' : 'Connection lost! Reconnect'}
                 </Text>
-
-                {isConnected ? (
+ 
+                {type ? (
                     <Image
                         source={require("../assets/images/signal.png")}
                         style={styles.icon}
@@ -69,7 +75,7 @@ export default function NetworkToast({ isConnected, visible }: NetworkToastProps
         </Animated.View>
     );
 }
-
+ 
 const styles = StyleSheet.create({
     container: {
         position: 'absolute',

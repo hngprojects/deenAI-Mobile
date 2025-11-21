@@ -4,7 +4,7 @@ import PricingCard, { PricingCardProps } from "@/components/subscription/Pricing
 import ScreenContainer from "@/components/ScreenContainer";
 import { theme } from "@/styles/theme";
 
-export default function PricingScreen() {
+export default function TasbihScreen() {
 const [billingCycle, setBillingCycle] = useState<"month" | "yearly">("month");
 
 const pricingData: PricingCardProps[] = [

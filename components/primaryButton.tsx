@@ -3,7 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, ViewStyle } from "react-native";
 
 interface Props {
   title: string;
-  onPress: () => void;
+  onPress?: () => void;
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle | ViewStyle[]; 

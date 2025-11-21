@@ -68,6 +68,14 @@ export default function HomeHeader() {
                     <Text style={styles.userName}>{userName}</Text>
                 </View>
             </View>
+            
+            <TouchableOpacity
+                style={styles.notificationButton}
+                onPress={handleNotificationPress}
+            >
+                <Bell size={24} color={theme.color.secondary} strokeWidth={2} />
+                {!isGuest && <View style={styles.notificationBadge} />}
+            </TouchableOpacity>
 
             <TouchableOpacity
                 style={styles.notificationButton}

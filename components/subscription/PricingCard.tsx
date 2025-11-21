@@ -1,5 +1,7 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import PrimaryButton from "../primaryButton";
+import { theme } from "@/styles/theme";
 
 export interface PricingCardProps {
   title: string;
@@ -33,101 +35,129 @@ export default function PricingCard({
       <Text style={styles.planTitle}>{title}</Text>
       <Text style={styles.planSubtitle}>{subtitle}</Text>
 
-      <Text style={styles.priceText}>
-        {price}
-        <Text style={styles.priceDuration}>/{duration}</Text>
-      </Text>
+   
+      <View style={styles.priceBox}>
+        <Text style={styles.priceText}>
+          {price}
+        <Text style={styles.priceDuration}>/ {duration}</Text>
+        </Text>
+      </View>
 
       <Text style={styles.sectionTitle}>Includes</Text>
 
       {features.map((item, idx) => (
-        <Text key={idx} style={styles.listItem}>✓ {item}</Text>
+        <View key={idx} style={styles.featureRow}>
+          <View style={styles.checkboxFilled}>
+            <Text style={styles.checkIcon}>✔</Text>
+          </View>
+
+          <Text style={styles.textTitle}>{item}</Text>
+        </View>
       ))}
 
-      <TouchableOpacity
-        onPress={onPress}
-        style={[styles.button, highlight ? styles.buttonPrimary : styles.buttonSecondary]}
-      >
-        <Text style={highlight ? styles.buttonPrimaryText : styles.buttonSecondaryText}>
-          {buttonText}
-        </Text>
-      </TouchableOpacity>
+  `   <PrimaryButton
+          title={buttonText}
+          style={{ marginTop: 12, marginBottom: 30 }}
+        />`
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
+    flex: 1,
+    borderRadius: 22,
+    padding: 18,
+    marginBottom: 24,
     borderWidth: 1,
-    borderColor: "#e5e5e5",
+    borderColor: '#E3E3E3',
   },
 
   badge: {
     alignSelf: "flex-start",
-    backgroundColor: "#FFB84C",
+    backgroundColor: "#964B00",
     paddingVertical: 4,
     paddingHorizontal: 10,
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: 10,
   },
   badgeText: {
-    color: "#633100",
-    fontSize: 12,
-    fontWeight: "600",
+    color: "#fff",
+    fontSize: 13,
   },
 
   planTitle: {
-    fontSize: 22,
-    fontWeight: "700",
+    fontSize: 30,
+    fontFamily: theme.font.bold,
+    color: "#404040",
+    marginBottom: 4,
+    fontWeight: 500
   },
   planSubtitle: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 16,
+    marginBottom: 2,
+    fontSize: 17,
+    fontFamily: theme.font.regular,
+    color: '#404040',
+    lineHeight: 24,
   },
 
   priceText: {
-    fontSize: 28,
+    fontSize: 29,
     fontWeight: "700",
   },
+priceBox: {
+  borderBottomWidth: 1,
+  borderBottomColor: "#bbb7b7ff",
+  paddingVertical: 9,
+},
+
   priceDuration: {
-    fontSize: 14,
-    color: "#666",
-  },
+    fontFamily: theme.font.regular,
+    color: '#404040',
+    fontSize: 14
+    },
 
   sectionTitle: {
-    marginTop: 18,
-    marginBottom: 8,
-    fontWeight: "600",
-    fontSize: 16,
+    fontSize: 18,
+    fontFamily: theme.font.semiBold,
+    lineHeight: 24,
+    color: '#404040',
+    marginTop: 23
   },
   listItem: {
-    fontSize: 14,
+    fontSize: 39,
     marginVertical: 3,
   },
 
-  /* Buttons */
-  button: {
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 20,
-    alignItems: "center",
+  textTitle: {
+    fontSize: 17,
+    fontFamily: theme.font.regular,
+    color: '#404040',
+    lineHeight: 24,
   },
-  buttonPrimary: {
-    backgroundColor: "#C37B1E",
-  },
-  buttonPrimaryText: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-  buttonSecondary: {
-    backgroundColor: "#f1f1f1",
-  },
-  buttonSecondaryText: {
-    fontWeight: "600",
-  },
+
+featureRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  marginVertical: 9,
+},
+
+checkboxFilled: {
+  width: 18,
+  height: 18,
+  borderWidth: 1.5,
+  borderColor: "#964B00",   // your theme color
+  borderRadius: 4,
+  justifyContent: "center",
+  alignItems: "center",
+  marginRight: 10,
+},
+
+checkIcon: {
+  fontSize: 12,
+  color: "#964B00", // same color as the border
+  fontWeight: "bold",
+},
+
+
 });
