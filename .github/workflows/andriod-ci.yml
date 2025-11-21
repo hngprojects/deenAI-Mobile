@@ -228,13 +228,36 @@ jobs:
           echo "APK contents:"
           unzip -l "$APK_PATH" | head -20
 
+      - name: Get version info
+        id: version
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq
+          VERSION=$(jq -r '.version' package.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "timestamp=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
+          echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      # Rename APK to include version from pre-deployment checks
+      - name: Rename debug APK
+        # NOTE: This assumes you have a job named 'pre-deployment-checks' 
+        # that outputs a variable named 'version'. 
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          OLD_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
+          NEW_NAME="deenAI-mobile-${VERSION}-debug.apk"
+          NEW_PATH="android/app/build/outputs/apk/debug/$NEW_NAME"
+          
+          echo "Renaming $OLD_PATH to $NEW_PATH"
+          mv "$OLD_PATH" "$NEW_PATH"
+          echo "RENAMED_APK_PATH=$NEW_PATH" >> $GITHUB_ENV # Set environment variable for the next step
+
       # Upload debug APK as artifact for review
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-${{ github.sha }}
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 7
+          name: deenAI-mobile-debug-${{ steps.version.outputs.version }}
+          path: ./path/to/deenAI-mobile-*.apk
+          retention-days: 14
 
       # Upload build reports for debugging if build fails
       - name: Upload build reports
@@ -324,6 +347,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for accurate secret scanning
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
