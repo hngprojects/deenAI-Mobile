@@ -21,31 +21,31 @@ export default function AnimatedSplash() {
         ]).start();
     }, [fadeAnim, scaleAnim]);
 
-  return (
-    <View style={styles.container}>
-      {/* Background Image with decorative elements */}
-      <Image
-        source={require("../assets/images/splashBg.png")}
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      />
+    return (
+        <View style={styles.container}>
+            {/* Background Image with decorative elements */}
+            {/* <Image
+                source={require("../assets/images/splashBg.png")}
+                style={styles.backgroundImage}
+                resizeMode="cover"
+            /> */}
 
-      {/* Center Content */}
-      <Animated.View
-        style={[
-          styles.centerContent,
-          {
-            opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }],
-          },
-        ]}
-      >
-        <Image
-          source={require("../assets/images/splashImg.png")}
-          style={styles.bulbIcon}
-          resizeMode="contain"
-        />
-        {/* <Image
+            {/* Center Content */}
+            <Animated.View
+                style={[
+                    styles.centerContent,
+                    {
+                        opacity: fadeAnim,
+                        transform: [{ scale: scaleAnim }],
+                    },
+                ]}
+            >
+                <Image
+                    source={require("../assets/images/vectors.png")}
+                    style={styles.bulbIcon}
+                    resizeMode="contain"
+                />
+                {/* <Image
                     source={require("@/assets/images/deenai-text.png")}
                     style={styles.logoText}
                     resizeMode="contain"
@@ -56,28 +56,28 @@ export default function AnimatedSplash() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  backgroundImage: {
-    position: "absolute",
-    width: "100%",
-    height: "100%",
-  },
-  centerContent: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  bulbIcon: {
-    width: 120,
-    height: 120,
-    marginBottom: 16,
-  },
-  logoText: {
-    width: 120,
-    height: 40,
-  },
+    container: {
+        flex: 1,
+        backgroundColor: "#F9F9F9",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    backgroundImage: {
+        position: "absolute",
+        width: "100%",
+        height: "100%",
+    },
+    centerContent: {
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    bulbIcon: {
+        width: 100,
+        height: 100,
+        marginBottom: 16,
+    },
+    logoText: {
+        width: 120,
+        height: 40,
+    },
 });

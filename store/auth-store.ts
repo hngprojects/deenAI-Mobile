@@ -6,12 +6,14 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 interface AuthStore extends AuthState {
     isGuest: boolean;
     refreshToken?: string | null;
+    hasCompletedOnboarding: boolean; // Track if user completed permissions
     login: (user: User, token: string, refreshToken?: string) => void;
     logout: () => void;
     setGuest: (isGuest: boolean) => void;
     setLoading: (loading: boolean) => void;
     clearAuth: () => void;
     updateToken: (token: string) => void;
+    setOnboardingComplete: (complete: boolean) => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -23,6 +25,7 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: false,
             isLoading: false,
             isGuest: false,
+            hasCompletedOnboarding: false,
 
             login: (user: User, token: string, refreshToken?: string) =>
                 set({
@@ -41,7 +44,8 @@ export const useAuthStore = create<AuthStore>()(
                     refreshToken: null,
                     isAuthenticated: false,
                     isLoading: false,
-                    isGuest: false
+                    isGuest: false,
+                    hasCompletedOnboarding: false
                 }),
 
             setGuest: (isGuest: boolean) =>
@@ -63,11 +67,15 @@ export const useAuthStore = create<AuthStore>()(
                     refreshToken: null,
                     isAuthenticated: false,
                     isLoading: false,
-                    isGuest: false
+                    isGuest: false,
+                    hasCompletedOnboarding: false
                 }),
 
             updateToken: (token: string) =>
                 set({ token }),
+
+            setOnboardingComplete: (complete: boolean) =>
+                set({ hasCompletedOnboarding: complete }),
         }),
         {
             name: 'auth-storage',

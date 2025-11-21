@@ -11,13 +11,10 @@ export interface Surah {
   progress?: number;
 }
 
-
 export type RootStackParamList = {
   Quran: undefined;
   SurahDetail: { surah: Surah };
 };
-
-
 
 export const surahs: Surah[] = [
   {

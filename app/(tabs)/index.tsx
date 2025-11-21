@@ -1,5 +1,3 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
 import ScreenContainer from '@/components/ScreenContainer';
 import HomeHeader from '@/components/home/HomeHeader';
 import QuickActions from '@/components/home/QuickActions';
@@ -22,7 +20,9 @@ export default function HomeScreen() {
                 <HomeHeader />
                 <UpcomingSolat />
                 <QuickActions />
-                <TodaysReflection />
+                <View style={{ paddingHorizontal: 20 }} >
+                    <TodaysReflection />
+                </View>
 
             </View>
         </ScreenContainer>

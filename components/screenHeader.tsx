@@ -1,16 +1,17 @@
 import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TextStyle, TouchableOpacity, View } from 'react-native';
 import { theme } from '../styles/theme';
 
 interface ScreenHeaderProps {
     title: string;
     showBackButton?: boolean;
     onBackPress?: () => void;
-    backRoute?: string; // ← New prop for custom route
+    backRoute?: string;
     rightComponent?: React.ReactNode;
     titleAlign?: 'left' | 'center';
+    titleStyle?: TextStyle;
 }
 
 const ScreenHeader: React.FC<ScreenHeaderProps> = ({
@@ -20,6 +21,7 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
     backRoute,
     rightComponent,
     titleAlign = 'center',
+    titleStyle,
 }) => {
     const router = useRouter();
 
@@ -44,13 +46,14 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
                     <ArrowLeft color={theme.color.secondary} size={24} />
                 </TouchableOpacity>
             ) : (
-                <View style={styles.backButton} />
+                <View style={[styles.backButton, { width: 0 }]} />
             )}
 
             <Text
                 style={[
                     styles.headerTitle,
                     titleAlign === 'left' && { textAlign: 'left' },
+                    titleStyle,
                 ]}
             >
                 {title}

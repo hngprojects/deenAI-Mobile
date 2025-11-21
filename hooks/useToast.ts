@@ -1,0 +1,25 @@
+import { create } from 'zustand';
+
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
+
+interface ToastState {
+    visible: boolean;
+    message: string;
+    type: ToastType;
+    duration: number;
+    showToast: (message: string, type?: ToastType, duration?: number) => void;
+    hideToast: () => void;
+}
+
+export const useToast = create<ToastState>((set) => ({
+    visible: false,
+    message: '',
+    type: 'info',
+    duration: 3000,
+    showToast: (message: string, type: ToastType = 'info', duration: number = 3000) => {
+        set({ visible: true, message, type, duration });
+    },
+    hideToast: () => {
+        set({ visible: false });
+    },
+}));

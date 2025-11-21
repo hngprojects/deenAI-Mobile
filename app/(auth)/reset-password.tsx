@@ -2,10 +2,11 @@ import PrimaryButton from "@/components/primaryButton";
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
 import { useRequestOtp, useVerifyOtp } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
 import { theme } from "@/styles/theme";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 
 export default function ResetPassword() {
     const { email } = useLocalSearchParams<{ email: string }>();
@@ -14,6 +15,7 @@ export default function ResetPassword() {
 
     const verifyOtpMutation = useVerifyOtp();
     const requestOtpMutation = useRequestOtp();
+    const { showToast } = useToast();
 
     useEffect(() => {
         setTimeout(() => inputRefs.current[0]?.focus(), 100);
@@ -41,12 +43,12 @@ export default function ResetPassword() {
         const verificationCode = code.join("");
 
         if (verificationCode.length !== 6) {
-            Alert.alert("Error", "Please enter the complete 6-digit verification code");
+            showToast("Please enter the complete 6-digit verification code", "warning");
             return;
         }
 
         if (!email) {
-            Alert.alert("Error", "Email not found. Please try again.");
+            showToast("Email not found. Please try again.", "error");
             router.back();
             return;
         }
@@ -62,9 +64,9 @@ export default function ResetPassword() {
                 params: { email, otp: verificationCode }
             });
         } catch (error: any) {
-            Alert.alert(
-                "Verification Failed",
-                error.message || "Invalid verification code. Please try again."
+            showToast(
+                error.message || "Invalid verification code. Please try again.",
+                "error"
             );
             setCode(["", "", "", "", "", ""]);
             inputRefs.current[0]?.focus();
@@ -73,23 +75,16 @@ export default function ResetPassword() {
 
     const handleResendCode = async () => {
         if (!email) {
-            Alert.alert("Error", "Email not found. Please try again.");
+            showToast("Email not found. Please try again.", "error");
             return;
         }
 
         try {
             await requestOtpMutation.mutateAsync(email as string);
-            Alert.alert(
-                "Success",
-                "A new verification code has been sent to your email"
-            );
             setCode(["", "", "", "", "", ""]);
             inputRefs.current[0]?.focus();
         } catch (error: any) {
-            Alert.alert(
-                "Error",
-                error.message || "Failed to resend code. Please try again."
-            );
+            // Error toast already shown in useRequestOtp hook
         }
     };
 
