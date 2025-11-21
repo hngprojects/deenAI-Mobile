@@ -13,6 +13,7 @@ import Bukhari from "../../assets/images/bukhari.png";
 import Dawud from "../../assets/images/dawud.png";
 import Muslim from "../../assets/images/muslim.png";
 import Tirmidhi from "../../assets/images/tirmidhi.png";
+import ScreenContainer from "@/components/ScreenContainer";
 
 const hadithBooks = [
   {
@@ -50,23 +51,26 @@ const HadithsCollections = () => {
     router.push(`/hadith-categories?title=${bookTitle}`);
   };
   return (
-    <ScrollView style={styles.container}>
-      {hadithBooks.map((book, index) => (
-        <TouchableOpacity
-          key={index}
-          style={styles.card}
-          onPress={handleCardPress}
-          activeOpacity={0.7}
-        >
-          <Image source={book.image} style={styles.image} />
+    <ScreenContainer>
+      <ScrollView style={styles.container}>
+        {hadithBooks.map((book, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.card}
+            onPress={handleCardPress}
+            activeOpacity={0.7}
+          >
+            <Image source={book.image} style={styles.image} />
 
-          <View style={styles.textContainer}>
-            <Text style={styles.title}>{book.title}</Text>
-            <Text style={styles.description}>{book.description}</Text>
-          </View>
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
+            <View style={styles.textContainer}>
+              <Text style={styles.title}>{book.title}</Text>
+              <Text style={styles.description}>{book.description}</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </ScreenContainer>
+
   );
 };
 
@@ -74,8 +78,8 @@ export default HadithsCollections;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 12,
-    backgroundColor: "#f2f2f2",
+    // padding: 12,
+    // backgroundColor: "#f2f2f2",
   },
   card: {
     flexDirection: "row",

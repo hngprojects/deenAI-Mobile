@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import React from "react";
 import {
   Image,
-  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -17,8 +16,7 @@ export default function QuickActions() {
   };
 
   const handleHadithPress = () => {
-    // TODO: Navigate to Hadith library
-    console.log("Hadith pressed");
+    router.push("/(tabs)/hadiths");
   };
 
   return (
@@ -55,15 +53,13 @@ export default function QuickActions() {
           resizeMode="contain"
         />
 
-        <Pressable onPress={() => router.push("/hadiths")}>
-          <View style={styles.cardContent}>
-            <Text style={styles.hadithTitle}>Learn about Hadiths</Text>
-            <Text style={styles.hadithDescription}>
-              Find light and guidance for how you feel, see, through the Quran
-              or Hadith.
-            </Text>
-          </View>
-        </Pressable>
+        <View style={styles.cardContent}>
+          <Text style={styles.hadithTitle}>Learn about Hadiths</Text>
+          <Text style={styles.hadithDescription}>
+            Find light and guidance for how you feel, see, through the Quran
+            or Hadith.
+          </Text>
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -105,10 +101,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   ctaButton: {
-    // backgroundColor: '#FFF5E6',
-    // paddingVertical: 8,
-    // paddingHorizontal: 16,
-    // borderRadius: 8,
     alignSelf: "flex-start",
   },
   ctaText: {
