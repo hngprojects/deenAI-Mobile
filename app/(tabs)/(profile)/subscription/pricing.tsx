@@ -68,8 +68,8 @@ const pricingData: PricingCardProps[] = [
         </TouchableOpacity>
       </View>
 
-      {pricingData.map((plan, index) => (
-        <PricingCard key={index} {...plan} />
+      {pricingData.map((plan) => (
+        <PricingCard key={plan.title} {...plan} />
       ))}
     </ScreenContainer>
   );
