@@ -1,5 +1,3 @@
-// app/(onboarding)/location-access.tsx
-
 import ScreenHeader from '@/components/screenHeader';
 import SecondaryButton from '@/components/secondaryButton';
 import { useRouter } from 'expo-router';
@@ -25,7 +23,7 @@ export default function LocationAccessScreen() {
         const result = await requestPermission();
 
         if (result.granted) {
-            router.push('/(onboarding)/notification-access');
+            router.replace('/(onboarding)/notification-access');
         } else {
             Alert.alert(
                 'Permission Denied',
@@ -34,7 +32,7 @@ export default function LocationAccessScreen() {
                     { text: 'Cancel', style: 'cancel' },
                     {
                         text: 'Continue Anyway',
-                        onPress: () => router.push('/(onboarding)/notification-access')
+                        onPress: () => router.replace('/(onboarding)/notification-access')
                     }
                 ]
             );
@@ -42,12 +40,12 @@ export default function LocationAccessScreen() {
     };
 
     const handleDontAllow = () => {
-        router.push('/(onboarding)/notification-access');
+        router.replace('/(onboarding)/notification-access');
     };
 
     return (
         <ScreenContainer>
-            <ScreenHeader title="Location Access" />
+            <ScreenHeader title="Location Access" showBackButton={false} />
 
             <View style={styles.iconContainer}>
                 <MapPin size={80} color={theme.color.brandLight} strokeWidth={1.5} />
@@ -79,14 +77,11 @@ export default function LocationAccessScreen() {
                 <SecondaryButton
                     title="Don't Allow"
                     onPress={handleDontAllow}
-                // style={styles.secondaryButton}
                 />
 
                 <SecondaryButton
                     title="Allow while using App"
                     onPress={handleRequestPermission}
-                // style={styles.tertiaryButton}
-                // loading={loading}
                 />
             </View>
 
@@ -127,31 +122,8 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         marginBottom: 30,
     },
-    mapPlaceholder: {
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#E8E8E8',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    mapText: {
-        marginTop: 10,
-        fontSize: 16,
-        fontFamily: theme.font.regular,
-        color: '#666',
-    },
     buttonContainer: {
         gap: 12,
-    },
-    secondaryButton: {
-        backgroundColor: theme.color.white,
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-    },
-    tertiaryButton: {
-        backgroundColor: theme.color.white,
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
     },
     termsText: {
         textAlign: 'center',

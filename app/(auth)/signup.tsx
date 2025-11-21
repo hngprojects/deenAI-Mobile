@@ -1,28 +1,29 @@
-// app/(auth)/signup.tsx
-
+import NetworkToast from '@/components/NetworkToast';
 import ScreenContainer from '@/components/ScreenContainer';
 import ScreenHeader from '@/components/screenHeader';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { useToast } from '@/hooks/useToast';
 import { theme } from '@/styles/theme';
 import { useRouter } from 'expo-router';
 import { Formik } from 'formik';
 import React, { useState } from 'react';
-import {
-    Alert,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import InputField from '../../components/InputField';
 import PrimaryButton from '../../components/primaryButton';
 import SocialLoginButton from '../../components/socialLoginButton';
+import { useSignup } from '../../hooks/useAuth';
 import { SignupFormValues, SocialProvider } from '../../types';
 import { SignupSchema } from '../../utils/validation';
 
 export default function SignupScreen() {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const { mutate: signup, isPending: loading } = useSignup();
+    const { showToast } = useToast();
+
+    const { isConnected, showToast: showNetworkToast, toastType, showNoConnectionToast } = useNetworkStatus();
 
     const initialValues: SignupFormValues = {
         name: '',
@@ -31,158 +32,147 @@ export default function SignupScreen() {
         confirmPassword: '',
     };
 
-    const handleSignup = async (values: SignupFormValues) => {
-        try {
-            setLoading(true);
-
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            console.log('Signup values:', values);
-
-            router.push('/(onboarding)/location-access');
-
-        } catch (err: any) {
-            Alert.alert('Error', err.message || 'Signup failed. Please try again.');
-        } finally {
-            setLoading(false);
+    const handleSignup = (values: SignupFormValues) => {
+        if (!isConnected) {
+            showNoConnectionToast();
+            return;
         }
+
+        signup(values, {
+            onError: (error: any) => {
+                // Toast is already shown in useSignup hook
+                // No need for additional handling here
+            }
+        });
     };
 
-    const handleSocialLogin = async (provider: SocialProvider) => {
-        try {
-            setLoading(true);
-
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            console.log(`${provider} login initiated`);
-
-            router.push('/(onboarding)/location-access');
-
-        } catch (err: any) {
-            Alert.alert('Error', err.message || 'Social login failed. Please try again.');
-        } finally {
-            setLoading(false);
+    const handleSocialLogin = (provider: SocialProvider) => {
+        if (!isConnected) {
+            showNoConnectionToast();
+            return;
         }
+
+        showToast(`${provider} login coming soon!`, 'info');
+        // router.push('/(onboarding)/location-access');
     };
 
     return (
-        <ScreenContainer>
-            <ScreenHeader title="Create new account" />
+        <>
+            <NetworkToast type={toastType} visible={showNetworkToast} />
 
-            <Text style={styles.description}>
-                Start by creating a free account, it helps you save your chats,
-                reflections, and progress with ease.
-            </Text>
+            <ScreenContainer>
+                <ScreenHeader title="Create new account" />
 
-            <Formik
-                initialValues={initialValues}
-                validationSchema={SignupSchema}
-                onSubmit={handleSignup}
-                validateOnMount={false}
-                validateOnChange={true}
-                validateOnBlur={true}
-            >
-                {({
-                    handleChange,
-                    handleBlur,
-                    handleSubmit,
-                    values,
-                    errors,
-                    touched,
-                    isValid,
-                }) => (
-                    <View style={styles.formContainer}>
-                        {/* Name Field */}
-                        <InputField
-                            label="Name"
-                            placeholder="Enter your name"
-                            value={values.name}
-                            onChangeText={handleChange('name')}
-                            onBlur={handleBlur('name')}
-                            error={touched.name && errors.name ? errors.name : undefined}
-                            autoCapitalize="words"
-                            returnKeyType="next"
-                        />
+                <Text style={styles.description}>
+                    Start by creating a free account, it helps you save your chats,
+                    reflections, and progress with ease.
+                </Text>
 
-                        <InputField
-                            label="Email Address"
-                            placeholder="Enter your email address"
-                            value={values.email}
-                            onChangeText={handleChange('email')}
-                            onBlur={handleBlur('email')}
-                            error={touched.email && errors.email ? errors.email : undefined}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                            autoComplete="email"
-                            returnKeyType="next"
-                        />
+                <Formik
+                    initialValues={initialValues}
+                    validationSchema={SignupSchema}
+                    onSubmit={handleSignup}
+                    validateOnChange={true}
+                    validateOnBlur={true}
+                >
+                    {({
+                        handleChange,
+                        handleBlur,
+                        handleSubmit,
+                        values,
+                        errors,
+                        touched,
+                        isValid,
+                        dirty,
+                    }) => (
+                        <View style={styles.formContainer}>
+                            <InputField
+                                label="Name"
+                                placeholder="Enter your name"
+                                value={values.name}
+                                onChangeText={handleChange('name')}
+                                onBlur={handleBlur('name')}
+                                error={touched.name && errors.name ? errors.name : undefined}
+                                autoCapitalize="words"
+                                returnKeyType="next"
+                                editable={!loading}
+                            />
 
-                        <InputField
-                            label="Create Password"
-                            placeholder="Enter your password"
-                            value={values.password}
-                            onChangeText={handleChange('password')}
-                            onBlur={handleBlur('password')}
-                            error={
-                                touched.password && errors.password
-                                    ? errors.password
-                                    : undefined
-                            }
-                            secureTextEntry={!showPassword}
-                            showPasswordToggle
-                            onTogglePassword={() => setShowPassword(!showPassword)}
-                            autoCapitalize="none"
-                            returnKeyType="next"
-                        />
+                            <InputField
+                                label="Email Address"
+                                placeholder="Enter your email address"
+                                value={values.email}
+                                onChangeText={handleChange('email')}
+                                onBlur={handleBlur('email')}
+                                error={touched.email && errors.email ? errors.email : undefined}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                autoComplete="email"
+                                returnKeyType="next"
+                                editable={!loading}
+                            />
 
-                        <InputField
-                            label="Confirm Password"
-                            placeholder="Confirm your password"
-                            value={values.confirmPassword}
-                            onChangeText={handleChange('confirmPassword')}
-                            onBlur={handleBlur('confirmPassword')}
-                            error={
-                                touched.confirmPassword && errors.confirmPassword
-                                    ? errors.confirmPassword
-                                    : undefined
-                            }
-                            secureTextEntry={!showConfirmPassword}
-                            showPasswordToggle
-                            onTogglePassword={() =>
-                                setShowConfirmPassword(!showConfirmPassword)
-                            }
-                            autoCapitalize="none"
-                            returnKeyType="done"
-                            onSubmitEditing={() => handleSubmit()}
-                        />
+                            <InputField
+                                label="Create Password"
+                                placeholder="Enter your password"
+                                value={values.password}
+                                onChangeText={handleChange('password')}
+                                onBlur={handleBlur('password')}
+                                error={touched.password && errors.password ? errors.password : undefined}
+                                secureTextEntry={!showPassword}
+                                showPasswordToggle
+                                onTogglePassword={() => setShowPassword(!showPassword)}
+                                autoCapitalize="none"
+                                returnKeyType="next"
+                                editable={!loading}
+                            />
 
-                        <PrimaryButton
-                            title="Sign Up"
-                            onPress={() => handleSubmit()}
-                            loading={loading}
-                            disabled={!isValid || loading}
-                            style={{ marginTop: 10 }}
-                        />
-                    </View>
-                )}
-            </Formik>
+                            <InputField
+                                label="Confirm Password"
+                                placeholder="Confirm your password"
+                                value={values.confirmPassword}
+                                onChangeText={handleChange('confirmPassword')}
+                                onBlur={handleBlur('confirmPassword')}
+                                error={touched.confirmPassword && errors.confirmPassword ? errors.confirmPassword : undefined}
+                                secureTextEntry={!showConfirmPassword}
+                                showPasswordToggle
+                                onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
+                                autoCapitalize="none"
+                                returnKeyType="done"
+                                onSubmitEditing={() => handleSubmit()}
+                                editable={!loading}
+                            />
 
-            <Text style={styles.divider}>or</Text>
+                            <PrimaryButton
+                                title={loading ? "Creating Account..." : "Sign Up"}
+                                onPress={() => handleSubmit()}
+                                loading={loading}
+                                disabled={!isValid || !dirty || loading}
+                                style={{ marginTop: 10 }}
+                            />
+                        </View>
+                    )}
+                </Formik>
 
-            <SocialLoginButton
-                provider="apple"
-                onPress={() => handleSocialLogin('apple')}
-            />
-            <SocialLoginButton
-                provider="google"
-                onPress={() => handleSocialLogin('google')}
-            />
+                <Text style={styles.divider}>or</Text>
 
-            <Text style={styles.termsText}>
-                By using Deen AI, you agree to the{' '}
-                <Text style={styles.termsLink}>Terms and Privacy Policy.</Text>
-            </Text>
-        </ScreenContainer>
+                <SocialLoginButton
+                    provider="apple"
+                    onPress={() => handleSocialLogin('apple')}
+                />
+                <SocialLoginButton
+                    provider="google"
+                    onPress={() => handleSocialLogin('google')}
+                />
+
+                <Text style={styles.termsText}>
+                    By using Deen AI, you agree to the{' '}
+                    <TouchableOpacity onPress={() => router.push("/(auth)/terms-privacy")}>
+                        <Text style={styles.termsLink}>Terms and Privacy Policy.</Text>
+                    </TouchableOpacity>
+                </Text>
+            </ScreenContainer>
+        </>
     );
 }
 
@@ -217,7 +207,6 @@ const styles = StyleSheet.create({
     },
     termsLink: {
         color: theme.color.brand,
-        fontWeight: '600',
         fontFamily: theme.font.semiBold,
     },
 });

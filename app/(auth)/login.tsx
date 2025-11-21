@@ -1,5 +1,8 @@
+import Checkbox from '@/components/Checkbox';
+import NetworkToast from '@/components/NetworkToast';
 import ScreenContainer from '@/components/ScreenContainer';
 import ScreenHeader from '@/components/screenHeader';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { theme } from '@/styles/theme';
 import { useRouter } from 'expo-router';
 import { Formik } from 'formik';
@@ -14,53 +17,56 @@ import {
 import InputField from '../../components/InputField';
 import PrimaryButton from '../../components/primaryButton';
 import SocialLoginButton from '../../components/socialLoginButton';
+import { useLogin } from '../../hooks/useAuth';
 import { LoginFormValues, SocialProvider } from '../../types';
 import { LoginSchema } from '../../utils/validation';
-import Checkbox from '@/components/Checkbox';
 
 export default function LoginScreen() {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
+
+    const { isConnected, showToast, toastType, showNoConnectionToast } = useNetworkStatus();
+
+    const { mutate: login, isPending: loading } = useLogin();
 
     const initialValues: LoginFormValues = {
         email: '',
         password: '',
     };
 
-    const handleLogin = async (values: LoginFormValues) => {
-        try {
-            setLoading(true);
+const handleLogin = async (values: LoginFormValues) => {
+    if (!isConnected) {
+        showNoConnectionToast();
+        return;
+    }
 
-            await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+        login(values, {
+            onError: (error: any) => {
+                // Check if error is about unverified account
+            }
+        });
 
-            console.log('Login values:', values);
-            console.log('Remember me:', rememberMe);
-
-            router.push('/(tabs)');
-
-        } catch (err: any) {
-            Alert.alert('Error', err.message || 'Login failed. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
+    } catch (err: any) {
+        console.error('Login error:', err);
+    }
+};
 
     const handleSocialLogin = async (provider: SocialProvider) => {
+        if (!isConnected) {
+            showNoConnectionToast();
+            return;
+        }
+
         try {
-            setLoading(true);
-
             await new Promise(resolve => setTimeout(resolve, 1500));
-
             console.log(`${provider} login initiated`);
 
             router.push('/(tabs)');
 
         } catch (err: any) {
             Alert.alert('Error', err.message || 'Social login failed. Please try again.');
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -69,107 +75,116 @@ export default function LoginScreen() {
     };
 
     return (
-        <ScreenContainer>
-            <ScreenHeader title="Log into account" />
+        <>
+            <NetworkToast type={toastType} visible={showToast} />
 
-            <View style={styles.welcomeContainer}>
-                <Text style={styles.welcomeSubtitle}>Welcome back!</Text>
-                <Text style={styles.welcomeSubtitle}>
-                    Ready to connect with NoorAI?
-                </Text>
-            </View>
+            <ScreenContainer>
+                <ScreenHeader title="Log into account" backRoute="/" />
 
-            <Formik
-                initialValues={initialValues}
-                validationSchema={LoginSchema}
-                onSubmit={handleLogin}
-                validateOnMount={false}
-                validateOnChange={true}
-                validateOnBlur={true}
-            >
-                {({
-                    handleChange,
-                    handleBlur,
-                    handleSubmit,
-                    values,
-                    errors,
-                    touched,
-                    isValid,
-                }) => (
-                    <View style={styles.formContainer}>
-                        {/* Email Field */}
-                        <InputField
-                            label="Email Address"
-                            placeholder="Enter your email address"
-                            value={values.email}
-                            onChangeText={handleChange('email')}
-                            onBlur={handleBlur('email')}
-                            error={touched.email && errors.email ? errors.email : undefined}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                            autoComplete="email"
-                            returnKeyType="next"
-                        />
+                <View style={styles.welcomeContainer}>
+                    <Text style={styles.welcomeSubtitle}>Welcome back!</Text>
+                    <Text style={styles.welcomeSubtitle}>
+                        Ready to connect with DeenAI?
+                    </Text>
+                </View>
 
-                        <InputField
-                            label="Password"
-                            placeholder="Enter your password"
-                            value={values.password}
-                            onChangeText={handleChange('password')}
-                            onBlur={handleBlur('password')}
-                            error={
-                                touched.password && errors.password
-                                    ? errors.password
-                                    : undefined
-                            }
-                            secureTextEntry={!showPassword}
-                            showPasswordToggle
-                            onTogglePassword={() => setShowPassword(!showPassword)}
-                            autoCapitalize="none"
-                            returnKeyType="done"
-                            onSubmitEditing={() => handleSubmit()}
-                        />
-
-                        <View style={styles.optionsContainer}>
-                            <Checkbox
-                                label="Remember me"
-                                checked={rememberMe}
-                                onPress={() => setRememberMe(!rememberMe)}
+                <Formik
+                    initialValues={initialValues}
+                    validationSchema={LoginSchema}
+                    onSubmit={handleLogin}
+                    validateOnMount={false}
+                    validateOnChange={true}
+                    validateOnBlur={true}
+                >
+                    {({
+                        handleChange,
+                        handleBlur,
+                        handleSubmit,
+                        values,
+                        errors,
+                        touched,
+                        isValid,
+                        dirty,
+                    }) => (
+                        <View style={styles.formContainer}>
+                            {/* Email Field */}
+                            <InputField
+                                label="Email Address"
+                                placeholder="Enter your email address"
+                                value={values.email}
+                                onChangeText={handleChange('email')}
+                                onBlur={handleBlur('email')}
+                                error={touched.email && errors.email ? errors.email : undefined}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                autoComplete="email"
+                                returnKeyType="next"
                             />
-                            <TouchableOpacity onPress={handleForgotPassword}>
-                                <Text style={styles.forgotPasswordText}>
-                                    Forgotten Password?
-                                </Text>
-                            </TouchableOpacity>
+
+                            <InputField
+                                label="Password"
+                                placeholder="Enter your password"
+                                value={values.password}
+                                onChangeText={handleChange('password')}
+                                onBlur={handleBlur('password')}
+                                error={
+                                    touched.password && errors.password
+                                        ? errors.password
+                                        : undefined
+                                }
+                                secureTextEntry={!showPassword}
+                                showPasswordToggle
+                                onTogglePassword={() => setShowPassword(!showPassword)}
+                                autoCapitalize="none"
+                                returnKeyType="done"
+                                onSubmitEditing={() => handleSubmit()}
+                            />
+
+                            <View style={styles.optionsContainer}>
+                                <Checkbox
+                                    label="Remember me"
+                                    checked={rememberMe}
+                                    onPress={() => setRememberMe(!rememberMe)}
+                                />
+                                <TouchableOpacity onPress={handleForgotPassword}>
+                                    <Text style={styles.forgotPasswordText}>
+                                        Forgotten Password?
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            <PrimaryButton
+                                title={loading ? "Logging in..." : "Login"}
+                                onPress={() => handleSubmit()}
+                                loading={loading}
+                                disabled={!isValid || !dirty || loading}
+                                style={{ marginTop: 10 }}
+                            />
                         </View>
+                    )}
+                </Formik>
 
-                        <PrimaryButton
-                            title="Login"
-                            onPress={() => handleSubmit()}
-                            loading={loading}
-                            disabled={!isValid || loading}
-                            style={{ marginTop: 10 }}
-                        />
-                    </View>
-                )}
-            </Formik>
+                <Text style={styles.divider}>or</Text>
 
-            <Text style={styles.divider}>or</Text>
+                <SocialLoginButton
+                    provider="apple"
+                    onPress={() => handleSocialLogin('apple')}
+                    // disabled={loading}
+                />
+                <SocialLoginButton
+                    provider="google"
+                    onPress={() => handleSocialLogin('google')}
+                    // disabled={loading}
+                />
 
-            <SocialLoginButton
-                provider="apple"
-                onPress={() => handleSocialLogin('apple')}
-            />
-            <SocialLoginButton
-                provider="google"
-                onPress={() => handleSocialLogin('google')}
-            />
-
-            <Text style={styles.termsText}>
-                By using Deen Ai, you agree to the{' '}
-                <Text style={styles.termsLink}>Terms and Privacy Policy.</Text>
-            </Text>
-        </ScreenContainer>
+                <Text style={styles.termsText}>
+                    By using Deen Ai, you agree to the{' '}
+                    <TouchableOpacity onPress={() => router.push("/(auth)/terms-privacy")}>
+                        <Text style={styles.termsLink}>Terms of service and Privacy Policy</Text>
+                    </TouchableOpacity>
+                </Text>
+            </ScreenContainer>
+        </>
     );
 }
 
@@ -190,7 +205,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     formContainer: {
-        marginBottom: 20,
+        // marginBottom: 20,
     },
     optionsContainer: {
         flexDirection: 'row',
@@ -207,8 +222,8 @@ const styles = StyleSheet.create({
     divider: {
         textAlign: 'center',
         fontSize: 16,
-        fontFamily: theme.font.regular,
-        color: '#999',
+        fontFamily: theme.font.bold,
+        // color: '#999',
         marginVertical: 20,
     },
     termsText: {

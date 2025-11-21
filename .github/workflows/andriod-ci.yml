@@ -1,0 +1,419 @@
+name: Android CI
+
+# Trigger CI on pull requests and pushes to main/staging branches
+# This ensures code quality before merging
+on:
+  pull_request:
+    branches: [main, staging]
+  push:
+    branches: [main, staging]
+
+# Cancel in-progress runs when a new commit is pushed
+# Saves CI minutes and provides faster feedback
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # =============================================================================
+  # LINTING & CODE QUALITY
+  # Catches syntax errors, style violations, and potential bugs early
+  # =============================================================================
+  lint:
+    name: ESLint & Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Checkout repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Setup Node.js environment with caching for faster installs
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      # Install dependencies with frozen lockfile for reproducibility
+      - name: Install dependencies
+        run: npm ci
+
+      # Run ESLint to check code quality and style
+      - name: Run ESLint
+        run: npm run lint
+
+      # Run TypeScript type checking to catch type errors
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
+  # =============================================================================
+  # UNIT & INTEGRATION TESTS
+  # Validates business logic and component behavior
+  # =============================================================================
+  test:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Run Jest tests with coverage reporting
+      - name: Run unit tests
+        run: npm test -- --coverage --maxWorkers=2
+
+      # Upload test coverage reports for analysis
+      # Uncomment when Jest is configured with coverage
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+        continue-on-error: true
+
+  # =============================================================================
+  # ANDROID NATIVE SETUP VALIDATION
+  # Ensures Android project structure is valid
+  # =============================================================================
+  android-setup-check:
+    name: Android Project Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      # Setup Java 17 required for React Native 0.81.5
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Check if android directory exists, if not, generate it
+      # This uses npx to run expo prebuild without requiring EXPO_TOKEN
+      - name: Generate Android project if needed
+        run: |
+          if [ ! -d "android" ]; then
+            echo "📦 Android directory not found, generating native project..."
+            npx expo prebuild --platform android --clean --skip-dependency-update react-native,react
+          else
+            echo "✅ Android directory already exists"
+          fi
+
+      # Validate Android project structure
+      - name: Validate Android project structure
+        run: |
+          echo "Checking Android project structure..."
+          
+          # Check for essential files
+          required_files=(
+            "android/build.gradle"
+            "android/settings.gradle"
+            "android/app/build.gradle"
+            "android/gradle.properties"
+            "android/gradlew"
+          )
+          
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Missing required file: $file"
+              exit 1
+            fi
+            echo "✅ Found: $file"
+          done
+          
+          echo "✅ Android project structure is valid"
+
+  # =============================================================================
+  # BUILD VALIDATION (Debug APK)
+  # Ensures the app builds successfully without signing
+  # Faster than full release build, good for CI validation
+  # =============================================================================
+  build-validation:
+    name: Build Validation (Debug APK)
+    runs-on: ubuntu-latest
+    needs: [lint, test, android-setup-check]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      # Setup Java 17 required for React Native 0.81.5
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Generate Android project if it doesn't exist
+      # Uses local expo-cli from node_modules, no EXPO_TOKEN needed
+      - name: Generate Android native project
+        run: |
+          if [ ! -d "android" ]; then
+            echo "📦 Generating Android project with Expo prebuild..."
+            npx expo prebuild --platform android --clean --skip-dependency-update react-native,react
+          else
+            echo "✅ Using existing Android project"
+          fi
+
+      # Cache Gradle dependencies to speed up builds
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # Grant execute permissions to gradlew
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      # Build debug APK for validation using standard Gradle
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --stacktrace --no-daemon
+
+      # Verify APK was created
+      - name: Verify debug APK
+        run: |
+          APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
+          if [ ! -f "$APK_PATH" ]; then
+            echo "❌ Debug APK not found at $APK_PATH"
+            exit 1
+          fi
+          
+          # Check APK size
+          SIZE=$(stat -c%s "$APK_PATH")
+          SIZE_MB=$((SIZE / 1024 / 1024))
+          echo "✅ Debug APK created successfully"
+          echo "📦 APK size: ${SIZE_MB}MB"
+          
+          # List APK contents to verify structure
+          echo "APK contents:"
+          unzip -l "$APK_PATH" | head -20
+
+      - name: Get version info
+        id: version
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq
+          VERSION=$(jq -r '.version' package.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "timestamp=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
+          echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      # Rename APK to include version from pre-deployment checks
+      - name: Rename debug APK
+        # NOTE: This assumes you have a job named 'pre-deployment-checks' 
+        # that outputs a variable named 'version'. 
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          OLD_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
+          NEW_NAME="deenAI-mobile-${VERSION}-debug.apk"
+          NEW_PATH="android/app/build/outputs/apk/debug/$NEW_NAME"
+          
+          echo "Renaming $OLD_PATH to $NEW_PATH"
+          mv "$OLD_PATH" "$NEW_PATH"
+          echo "RENAMED_APK_PATH=$NEW_PATH" >> $GITHUB_ENV # Set environment variable for the next step
+
+      # Upload debug APK as artifact for review
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: deenAI-mobile-debug-${{ steps.version.outputs.version }}
+          path: ./path/to/deenAI-mobile-*.apk
+          retention-days: 14
+
+      # Upload build reports for debugging if build fails
+      - name: Upload build reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-reports-${{ github.sha }}
+          path: |
+            android/app/build/reports/
+            android/app/build/outputs/logs/
+          retention-days: 7
+
+  # =============================================================================
+  # E2E TESTING WITH MAESTRO
+  # Automated end-to-end testing on actual app flows
+  # Uncomment when ready to implement E2E tests
+  # =============================================================================
+  # e2e-tests:
+  #   name: E2E Tests (Maestro)
+  #   runs-on: ubuntu-latest
+  #   needs: [build-validation]
+  #   
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '20.x'
+  #         cache: 'npm'
+  #
+  #     # Setup Java for Android
+  #     - name: Setup Java 17
+  #       uses: actions/setup-java@v4
+  #       with:
+  #         distribution: 'temurin'
+  #         java-version: '17'
+  #
+  #     # Install Maestro CLI for E2E testing
+  #     - name: Install Maestro
+  #       run: |
+  #         curl -Ls "https://get.maestro.mobile.dev" | bash
+  #         echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
+  #
+  #     # Download the debug APK from previous job
+  #     - name: Download debug APK
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: app-debug-${{ github.sha }}
+  #         path: ./app
+  #
+  #     # Setup Android emulator
+  #     - name: Enable KVM group perms
+  #       run: |
+  #         echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+  #         sudo udevadm control --reload-rules
+  #         sudo udevadm trigger --name-match=kvm
+  #
+  #     # Run E2E tests with Maestro
+  #     - name: Run Maestro E2E tests
+  #       uses: mobile-dev-inc/action-maestro-cloud@v1
+  #       with:
+  #         api-key: ${{ secrets.MAESTRO_CLOUD_API_KEY }}
+  #         app-file: ./app/app-debug.apk
+  #         flows: .maestro/
+  #
+  #     # Upload Maestro test results
+  #     - name: Upload Maestro results
+  #       if: always()
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: maestro-results
+  #         path: |
+  #           ~/.maestro/tests/
+  #           maestro-report.xml
+  #         retention-days: 14
+
+  # =============================================================================
+  # SECURITY SCANNING
+  # Checks for vulnerabilities in dependencies
+  # =============================================================================
+  security-scan:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for accurate secret scanning
+          ref: ${{ github.head_ref }} 
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      # Run npm audit to check for vulnerable dependencies
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      # Scan for secrets accidentally committed to repo
+      - name: Run secret scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+      # Check for Android-specific security issues
+      - name: Android security checks
+        run: |
+          echo "Checking for sensitive Android files..."
+          
+          # Check for committed keystore files
+          if find . -name "*.keystore" -o -name "*.jks" | grep -q .; then
+            echo "⚠️ Warning: Found keystore files in repository"
+            echo "These should be stored in secrets, not committed to git"
+          fi
+          
+          # Check for keystore.properties
+          if [ -f "android/keystore.properties" ]; then
+            echo "⚠️ Warning: keystore.properties found in repository"
+            echo "This file should be gitignored"
+          fi
+          
+          # Check for google-services.json with actual keys
+          if [ -f "android/app/google-services.json" ]; then
+            echo "⚠️ Warning: google-services.json found"
+            echo "Ensure this doesn't contain production keys"
+          fi
+          
+          echo "✅ Security checks completed"
+
+  # =============================================================================
+  # CI STATUS CHECK
+  # Final job that depends on all others for branch protection rules
+  # =============================================================================
+  ci-success:
+    name: CI Pipeline Success
+    runs-on: ubuntu-latest
+    needs: [lint, test, android-setup-check, build-validation, security-scan]
+    if: always()
+    
+    steps:
+      - name: Check CI status
+        run: |
+          if [[ "${{ needs.lint.result }}" == "failure" ]] || \
+             [[ "${{ needs.test.result }}" == "failure" ]] || \
+             [[ "${{ needs.android-setup-check.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-validation.result }}" == "failure" ]] || \
+             [[ "${{ needs.security-scan.result }}" == "failure" ]]; then
+            echo "❌ CI pipeline failed"
+            exit 1
+          fi
+          echo "✅ CI pipeline passed successfully"

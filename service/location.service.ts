@@ -57,7 +57,6 @@ class LocationService {
      */
     async requestPermission(): Promise<LocationPermissionResult> {
         try {
-            // First check if location services are enabled
             const servicesEnabled = await this.checkServicesEnabled();
 
             if (!servicesEnabled) {
@@ -72,7 +71,6 @@ class LocationService {
             const { status } = await Location.requestForegroundPermissionsAsync();
 
             if (status === 'granted') {
-                // Try to get current location
                 try {
                     const location = await this.getCurrentLocation();
                     return {
@@ -80,7 +78,6 @@ class LocationService {
                         location,
                     };
                 } catch (locationError) {
-                    // Permission granted but couldn't get location
                     console.log('Permission granted but could not get location:', locationError);
                     return {
                         granted: true,
@@ -107,14 +104,12 @@ class LocationService {
      */
     async getCurrentLocation(): Promise<LocationCoordinates> {
         try {
-            // Check if services are enabled
             const servicesEnabled = await this.checkServicesEnabled();
 
             if (!servicesEnabled) {
                 throw new Error('Location services are disabled. Please enable them in your device settings.');
             }
 
-            // Check if permission is granted
             const { status } = await Location.getForegroundPermissionsAsync();
 
             if (status !== 'granted') {
@@ -184,7 +179,6 @@ class LocationService {
         callback: (location: LocationCoordinates) => void
     ): Promise<Location.LocationSubscription | null> {
         try {
-            // Check services first
             const servicesEnabled = await this.checkServicesEnabled();
 
             if (!servicesEnabled) {
@@ -200,8 +194,8 @@ class LocationService {
             return await Location.watchPositionAsync(
                 {
                     accuracy: Location.Accuracy.Balanced,
-                    timeInterval: 10000, // Update every 10 seconds
-                    distanceInterval: 100, // Update every 100 meters
+                    timeInterval: 10000,
+                    distanceInterval: 100,
                 },
                 (position) => {
                     callback({

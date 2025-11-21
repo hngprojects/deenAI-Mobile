@@ -1,49 +1,210 @@
 import { theme } from '@/styles/theme';
-import { Share2, Trash2 } from 'lucide-react-native';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Edit2, Trash2 } from 'lucide-react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { ActivityIndicator, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { reflectService } from '@/service/reflect.service';
+import { quranService } from '@/service/quran.service';
+import { Reflection } from '@/types/reflect.types';
+import { useFocusEffect } from '@react-navigation/native';
 
-export default function TodaysReflection() {
+interface ReflectionWithData extends Reflection {
+    verseText?: string;
+    surahName?: string;
+    reference?: string;
+}
+
+interface ReflectionProps {
+    title?: string;
+    style?: object;
+    showSeeAll?: boolean;
+    onSeeAll?: () => void;
+}
+
+export default function TodaysReflection({
+    title = 'My Saved Reflections',
+    style,
+    showSeeAll = false,
+    onSeeAll
+}: ReflectionProps) {
+    const router = useRouter();
+    const [modalVisible, setModalVisible] = useState(false);
+    const [reflection, setReflection] = useState<ReflectionWithData | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    // Refresh when screen comes into focus (catches edits from other screens)
+    useFocusEffect(
+        useCallback(() => {
+            console.log('🎯 TodaysReflection focused, refreshing...');
+            loadLatestReflection();
+        }, [])
+    );
+
+    const loadLatestReflection = async () => {
+        try {
+            setLoading(true);
+            console.log('🔄 Loading latest reflection...');
+
+            // Get user reflections (only 1)
+            const userReflections = await reflectService.getUserReflections(1, 1, 'DESC');
+
+            if (userReflections.length > 0) {
+                const latestReflection = userReflections[0];
+
+                // Enhance with verse data
+                let verseText = '';
+                let surahName = '';
+                let reference = '';
+
+                if (latestReflection.surah && latestReflection.startAyah) {
+                    try {
+                        // Get verse translation
+                        const verse = await quranService.getVerse(
+                            latestReflection.surah,
+                            latestReflection.startAyah
+                        );
+                        if (verse) {
+                            verseText = verse.translation;
+                        }
+
+                        // Get surah name
+                        const surah = await quranService.getSurah(latestReflection.surah);
+                        if (surah) {
+                            surahName = surah.englishName;
+                            reference = `Surah ${surah.englishName} (${surah.number}:${latestReflection.startAyah})`;
+                        }
+                    } catch (error) {
+                        console.error('Error loading verse data:', error);
+                    }
+                }
+
+                setReflection({
+                    ...latestReflection,
+                    verseText: verseText || "Reflection on Quranic verse",
+                    surahName,
+                    reference: reference || `Surah ${latestReflection.surah}:${latestReflection.startAyah || ''}`,
+                });
+            } else {
+                setReflection(null);
+            }
+        } catch (error) {
+            console.error('Error loading reflection:', error);
+            setReflection(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleDelete = () => {
-        // TODO: Delete reflection
-        console.log('Delete pressed');
+        setModalVisible(true);
     };
 
-    const handleShare = () => {
-        // TODO: Share reflection
-        console.log('Share pressed');
+    const confirmDelete = async () => {
+        if (!reflection) return;
+
+        try {
+            console.log('🗑️ Deleting reflection:', reflection.id);
+
+            // Delete the reflection
+            await reflectService.deleteReflection(reflection.id);
+            setModalVisible(false);
+
+            console.log('✅ Reflection deleted, checking for more reflections...');
+
+            // After delete, check if user has any other reflections
+            await loadLatestReflection();
+
+        } catch (error) {
+            console.error('❌ Error deleting reflection:', error);
+            setModalVisible(false);
+        }
     };
 
-    const handleAiAssistant = () => {
-        // TODO: Open AI assistant
-        console.log('AI assistant pressed');
+    const cancelDelete = () => {
+        setModalVisible(false);
     };
+
+    const handleEdit = () => {
+        if (!reflection) return;
+
+        router.push({
+            pathname: '/(tabs)/(reflect)/reflect-verse',
+            params: {
+                reflectionId: reflection.id,
+                content: reflection.content,
+                surahNumber: reflection.surah?.toString(),
+                startAyah: reflection.startAyah?.toString() || '1',
+                verseText: reflection.verseText || '',
+                surahName: reflection.surahName || '',
+                editMode: 'true'
+            }
+        });
+    };
+
+    if (loading) {
+        return (
+            <View style={[styles.container, style]}>
+                <View style={styles.header}>
+                    <Text style={styles.title}>{title}</Text>
+                </View>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="small" color={theme.color.brand} />
+                </View>
+            </View>
+        );
+    }
+
+    // No reflections - show empty state
+    if (!reflection) {
+        return (
+            <View style={[styles.container, style]}>
+                <View style={styles.header}>
+                    <Text style={styles.title}>{title}</Text>
+                </View>
+                <View style={styles.emptyState}>
+                    <Text style={styles.emptyStateText}>No reflections yet</Text>
+                    <Text style={styles.emptyStateSubtext}>
+                        Start reflecting on verses to see them here
+                    </Text>
+                </View>
+            </View>
+        );
+    }
+
+    // Format date
+    const formattedDate = new Date(reflection.createdAt).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    });
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Today's Reflection</Text>
+        <View style={[styles.container, style]}>
+            <View style={styles.header}>
+                <Text style={styles.title}>{title}</Text>
+                {showSeeAll && (
+                    <TouchableOpacity onPress={onSeeAll}>
+                        <Text style={styles.seeAllText}>See all</Text>
+                    </TouchableOpacity>
+                )}
+            </View>
 
             <View style={styles.card}>
-                {/* Quote Section */}
                 <View style={styles.quoteSection}>
                     <Text style={styles.quote}>
-                        "Indeed, with hardship comes ease."
+                        &ldquo;{reflection.verseText}&rdquo;
                     </Text>
-                    <Text style={styles.reference}>— Surah Ash-Sharh (94:6)</Text>
+                    <Text style={styles.reference}>— {reflection.reference}</Text>
                 </View>
 
-                {/* Reflection Section */}
                 <View style={styles.reflectionSection}>
                     <Text style={styles.reflectionText}>
-                        This verse reminds me that Allah's mercy always follows struggle.
-                        Even in my quietest moments of doubt, I know ease is already
-                        written, I just need patience to see it unfold...
+                        {reflection.content}
                     </Text>
                 </View>
 
-                {/* Footer */}
                 <View style={styles.footer}>
-                    <Text style={styles.savedDate}>Saved on Nov 2, 2025</Text>
+                    <Text style={styles.savedDate}>Saved on {formattedDate}</Text>
                     <View style={styles.actions}>
                         <TouchableOpacity
                             style={styles.actionButton}
@@ -53,43 +214,102 @@ export default function TodaysReflection() {
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.actionButton}
-                            onPress={handleShare}
+                            onPress={handleEdit}
                         >
-                            <Share2 size={20} color="#999" strokeWidth={2} />
+                            <Edit2 size={20} color="#999" strokeWidth={2} />
                         </TouchableOpacity>
                     </View>
                 </View>
             </View>
 
-            {/* <TouchableOpacity
-                style={styles.aiButton}
-                onPress={handleAiAssistant}
-                activeOpacity={0.9}
+            {/* Delete Confirmation Modal */}
+            <Modal
+                transparent
+                animationType="fade"
+                visible={modalVisible}
+                onRequestClose={cancelDelete}
+                statusBarTranslucent
             >
-                <View style={styles.aiIconContainer}>
-                    <Text style={styles.aiIcon}>🤖</Text>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Confirm Delete</Text>
+                        <Text style={styles.modalText}>
+                            Are you sure you want to delete your reflection?
+                        </Text>
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.cancelButton]}
+                                onPress={cancelDelete}
+                                activeOpacity={0.7}
+                            >
+                                <Text style={styles.cancelButtonText}>Keep My Reflection</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.deleteButton]}
+                                onPress={confirmDelete}
+                                activeOpacity={0.8}
+                            >
+                                <Text style={styles.deleteButtonText}>Yes! Delete Reflection</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </View>
-            </TouchableOpacity> */}
+            </Modal>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        paddingHorizontal: 20,
+        // paddingHorizontal: 20,
         gap: 16,
     },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
     title: {
-        fontSize: 16,
+        fontSize: 18,
         fontFamily: theme.font.bold,
         color: theme.color.secondary,
+    },
+    seeAllText: {
+        fontSize: 14,
+        fontFamily: theme.font.semiBold,
+        color: theme.color.brand,
+    },
+    loadingContainer: {
+        padding: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    emptyState: {
+        paddingVertical: 40,
+        paddingHorizontal: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: theme.color.white,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#E3E3E3',
+        borderStyle: 'dashed',
+    },
+    emptyStateText: {
+        fontSize: 16,
+        fontFamily: theme.font.semiBold,
+        color: theme.color.secondary,
+        marginBottom: 8,
+    },
+    emptyStateSubtext: {
+        fontSize: 14,
+        fontFamily: theme.font.regular,
+        color: '#999',
+        textAlign: 'center',
     },
     card: {
         backgroundColor: theme.color.white,
         borderRadius: 20,
-        // padding: 20,
-
-        // gap: 16,
     },
     quoteSection: {
         backgroundColor: '#F3EAD8',
@@ -101,14 +321,14 @@ const styles = StyleSheet.create({
     quote: {
         fontSize: 16,
         fontFamily: theme.font.semiBold,
-        color: theme.color.secondary,
+        color: '#4E3B18',
         lineHeight: 24,
         textAlign: 'center',
     },
     reference: {
         fontSize: 14,
         fontFamily: theme.font.regular,
-        color: '#666',
+        color: '#4E3B18',
         textAlign: 'center',
     },
     reflectionSection: {
@@ -125,6 +345,7 @@ const styles = StyleSheet.create({
         fontFamily: theme.font.semiBold,
         color: '#555',
         lineHeight: 24,
+        paddingVertical: 10,
         textAlign: 'center',
     },
     footer: {
@@ -145,7 +366,7 @@ const styles = StyleSheet.create({
     savedDate: {
         fontSize: 13,
         fontFamily: theme.font.regular,
-        color: '#999',
+        color: '#575757ff',
     },
     actions: {
         flexDirection: 'row',
@@ -155,35 +376,69 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 18,
-        // backgroundColor: '#F8F8F8',
         justifyContent: 'center',
         alignItems: 'center',
     },
-    aiButton: {
-        position: 'absolute',
-        right: 20,
-        bottom: -20,
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: '#8B5A2B',
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 5,
+        paddingHorizontal: 24,
     },
-    aiIconContainer: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        justifyContent: 'center',
+    modalContent: {
+        width: '100%',
+        maxWidth: 400,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 24,
+        paddingTop: 28,
+        paddingBottom: 28,
+        paddingHorizontal: 28,
         alignItems: 'center',
     },
-    aiIcon: {
-        fontSize: 28,
+    modalTitle: {
+        fontSize: 22,
+        fontFamily: theme.font.bold,
+        color: "#1A1A1A",
+        textAlign: "center",
+        marginBottom: 12,
+    },
+    modalText: {
+        fontSize: 15,
+        fontFamily: theme.font.regular,
+        color: '#1A1A1A',
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: 24,
+    },
+    modalButtons: {
+        width: '100%',
+        gap: 14,
+    },
+    modalButton: {
+        width: '100%',
+        paddingVertical: 16,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    cancelButton: {
+        backgroundColor: 'transparent',
+        borderWidth: 1.5,
+        borderColor: '#1A1A1A',
+    },
+    cancelButtonText: {
+        fontSize: 17,
+        fontFamily: theme.font.semiBold,
+        color: '#1A1A1A',
+    },
+    deleteButton: {
+        backgroundColor: '#E55153',
+    },
+    deleteButtonText: {
+        color: '#FFFFFF',
+        fontSize: 17,
+        fontFamily: theme.font.semiBold,
     },
 });
