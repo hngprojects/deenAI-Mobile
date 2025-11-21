@@ -2,16 +2,9 @@ import StarterPrompts from "@/components/deen-ai/StarterPrompts";
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
 import { theme } from "@/styles/theme";
-import { Mic, Send } from "lucide-react-native";
+import { Book, Mic, Send } from "lucide-react-native";
 import React from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 
 // const messages = [
 //   {
@@ -37,11 +30,7 @@ import {
 
 export default function index() {
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-    >
+    <>
       <ScreenContainer
         backgroundColor={theme.color.background2}
         scrollable={true}
@@ -49,7 +38,17 @@ export default function index() {
         paddingHorizontal={0}
         contentContainerStyle={styles.contentContainer}
       >
-        <ScreenHeader title="DEEN AI" titleAlign="center" />
+        <ScreenHeader
+          title="DEEN AI"
+          titleAlign="center"
+          rightComponent={
+            <TouchableOpacity>
+              <View style={styles.historyButton}>
+                <Book color={theme.color.black} size={24} />
+              </View>
+            </TouchableOpacity>
+          }
+        />
         {/* Starter prompts */}
         <StarterPrompts />
         {/* Messages - will go here */}
@@ -74,7 +73,7 @@ export default function index() {
           </TouchableOpacity>
         </View>
       </View>
-    </KeyboardAvoidingView>
+    </>
   );
 }
 
@@ -122,5 +121,10 @@ const styles = StyleSheet.create({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+  },
+  historyButton: {
+    padding: 8,
+    borderRadius: "100%",
+    backgroundColor: theme.color.gray,
   },
 });

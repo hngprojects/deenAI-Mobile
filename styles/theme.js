@@ -1,20 +1,20 @@
-import { Dimensions } from 'react-native';
+import { Dimensions } from "react-native";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 export const lightTheme = {
   color: {
-    primary: '#ffffffff',
-    secondary: '#000000ff',
-    background: '#ffffff',
-    background2: '#f4f4f4ff',
-    brand: '#964B00',
-    brandLight: '#CFA963',
-    white: '#ffffff',
-    black: '#000000ff',
-    border: '#e6e6e6',
-    paragraph: '#3C3A3599',
-    gray: '#e3e3e3',
+    primary: "#ffffffff",
+    secondary: "#000000ff",
+    background: "#ffffff",
+    background2: "#F9F9F9",
+    brand: "#964B00",
+    brandLight: "#CFA963",
+    white: "#ffffff",
+    black: "#000000ff",
+    border: "#e6e6e6",
+    paragraph: "#3C3A3599",
+    gray: "#e3e3e3",
   },
   // fontSize: {
   //     small: width * 0.03,
@@ -25,26 +25,26 @@ export const lightTheme = {
   //     xxlarge: width * 0.12,
   // },
   font: {
-    light: 'NunitoSans-Light',
-    regular: 'NunitoSans-Regular',
-    bold: 'NunitoSans-Bold',
-    semiBold: 'NunitoSans-SemiBold',
-    extraBold: 'NunitoSans-ExtraBold',
-    black: 'NunitoSans-Black',
+    light: "NunitoSans-Light",
+    regular: "NunitoSans-Regular",
+    bold: "NunitoSans-Bold",
+    semiBold: "NunitoSans-SemiBold",
+    extraBold: "NunitoSans-ExtraBold",
+    black: "NunitoSans-Black",
   },
 };
 
 export const darkTheme = {
   color: {
-    primary: '#ffffffff',
-    secondary: '#000000ff',
-    background: '#ffffff',
-    background2: '#f4f4f4ff',
-    brand: '#964B00',
-    brandLight: '#CFA963',
-    border: '#e6e6e6',
-    paragraph: '#3c3a35dd',
-    gray: '#e3e3e3',
+    primary: "#ffffffff",
+    secondary: "#000000ff",
+    background: "#ffffff",
+    background2: "#f4f4f4ff",
+    brand: "#964B00",
+    brandLight: "#CFA963",
+    border: "#e6e6e6",
+    paragraph: "#3c3a35dd",
+    gray: "#e3e3e3",
   },
   // fontSize: {
   //     small: width * 0.03,
@@ -56,12 +56,12 @@ export const darkTheme = {
 
   // },
   font: {
-    light: 'NunitoSans-Light',
-    regular: 'NunitoSans-Regular',
-    bold: 'NunitoSans-Bold',
-    semiBold: 'NunitoSans-SemiBold',
-    extraBold: 'NunitoSans-ExtraBold',
-    black: 'NunitoSans-Black',
+    light: "NunitoSans-Light",
+    regular: "NunitoSans-Regular",
+    bold: "NunitoSans-Bold",
+    semiBold: "NunitoSans-SemiBold",
+    extraBold: "NunitoSans-ExtraBold",
+    black: "NunitoSans-Black",
   },
 };
 
