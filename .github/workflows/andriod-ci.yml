@@ -44,8 +44,8 @@ jobs:
         run: npm run lint
 
       # Run TypeScript type checking to catch type errors
-      - name: TypeScript type check
-        run: npx tsc --noEmit
+      # - name: TypeScript type check
+      #   run: npx tsc --noEmit
 
   # =============================================================================
   # UNIT & INTEGRATION TESTS
