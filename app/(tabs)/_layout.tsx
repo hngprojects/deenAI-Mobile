@@ -75,6 +75,12 @@ export default function TabLayout() {
                         href: null,
                     }}
                 />
+                <Tabs.Screen
+                    name="(tasbih)"
+                    options={{
+                        href: null,
+                    }}
+                />
             </Tabs>
         </ProtectedRoute>
     );

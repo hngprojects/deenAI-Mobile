@@ -50,6 +50,12 @@ project_structure.text
 
 tsconfig.json
 
+project_structure.text.env
+.env
+.env
 pnpm-lock.yaml
+deenai-release.keystore
+keystore.txt
+project_structure.text
 deenai-release.keystore
 keystore.txt
