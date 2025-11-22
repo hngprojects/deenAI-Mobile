@@ -20,7 +20,6 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -164,6 +163,8 @@ export default function ReflectVerseScreen() {
     };
 
     loadVerseData();
+    
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editMode, surahNumberFromParams, startAyahFromParams, draft.surahNumber]);
 
   useEffect(() => {

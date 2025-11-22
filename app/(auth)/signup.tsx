@@ -23,7 +23,7 @@ export default function SignupScreen() {
 
     const { mutate: signup, isPending: loading } = useSignup();
     const { showToast } = useToast();
-    const { signInWithGoogle, isLoading: googleLoading } = useGoogleOAuth();
+    const { signInWithGoogle } = useGoogleOAuth();
 
     const { isConnected, showToast: showNetworkToast, toastType, showNoConnectionToast } = useNetworkStatus();
 

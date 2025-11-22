@@ -4,10 +4,11 @@ import { reflectService } from '@/service/reflect.service';
 import { quranService } from '@/service/quran.service';
 import { theme } from '@/styles/theme';
 import { Reflection } from '@/types/reflect.types';
-import { useNavigation } from '@react-navigation/native';
+
+import { useNavigation , useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Edit2, Plus, Trash2 } from 'lucide-react-native';
-import React, { useEffect, useState, useCallback } from 'react';
+import { Edit2, Trash2 } from 'lucide-react-native';
+import React, { useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -18,7 +19,6 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 
 interface ReflectionWithData extends Reflection {
   verseText?: string;
@@ -123,6 +123,7 @@ export default function SavedReflectionsPage() {
       Alert.alert('Success', 'Reflection deleted successfully');
     } catch (error) {
       Alert.alert('Error', 'Failed to delete reflection');
+      console.error('Error deleting reflection:', error);
     }
   };
 

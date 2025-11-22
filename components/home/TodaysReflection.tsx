@@ -1,7 +1,7 @@
 import { theme } from '@/styles/theme';
 import { useRouter } from 'expo-router';
 import { Edit2, Trash2 } from 'lucide-react-native';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { ActivityIndicator, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { reflectService } from '@/service/reflect.service';
 import { quranService } from '@/service/quran.service';

@@ -8,7 +8,6 @@ import { useRouter } from 'expo-router';
 import { Formik } from 'formik';
 import React, { useState } from 'react';
 import {
-    Alert,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -31,7 +30,7 @@ export default function LoginScreen() {
     const { isConnected, showToast: showNetworkToast, toastType, showNoConnectionToast } = useNetworkStatus();
 
     const { mutate: login, isPending: loading } = useLogin();
-    const { signInWithGoogle, isLoading: googleLoading } = useGoogleOAuth();
+    const { signInWithGoogle } = useGoogleOAuth();
 
     const initialValues: LoginFormValues = {
         email: '',

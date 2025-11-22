@@ -25,6 +25,7 @@ export default function SurahDetail() {
     loadBookmarks();
     saveLastRead();
     console.log('SurahDetail', surah.number);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [surah.number]);
 
   const loadSurahData = async () => {
@@ -102,7 +103,7 @@ export default function SurahDetail() {
   const SurahInfoCard = () => (
     <View style={styles.surahInfoCard}>
       <Text style={styles.surahNumberAndName}>
-        {surah.number}. {surah.englishName} ("{surah.englishNameTranslation}")
+        {surah.number}. {surah.englishName} (&quot;{surah.englishNameTranslation}&quot;)
       </Text>
       <Text style={styles.verseCount}>0/{surah.numberOfAyahs}</Text>
     </View>

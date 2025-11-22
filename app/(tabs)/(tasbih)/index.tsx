@@ -11,7 +11,7 @@ export default function TasbihScreen() {
   const [showResetModal, setShowResetModal] = useState(false);
   const router = useRouter();
 
-  
+
   const STORAGE_KEY = "@tasbih_count";
 
   // Load saved count from AsyncStorage on mount
@@ -106,7 +106,7 @@ export default function TasbihScreen() {
 
             <Text style={styles.modalTitle}>Are you sure to Reset?</Text>
             <Text style={styles.modalDesc}>
-              You've clicked {count} times today. Resetting will clear your dhikr count.
+              You&apos;ve clicked {count} times today. Resetting will clear your dhikr count.
             </Text>
 
             <View style={styles.modalButtons}>
@@ -149,12 +149,12 @@ const styles = StyleSheet.create({
   },
   deviceImage: {
     width: 350,
-    height: 450, 
+    height: 450,
     resizeMode: "contain",
   },
   iconImage: {
     width: 56,
-    height: 56, 
+    height: 56,
     resizeMode: "contain",
   },
   headerTitle: {
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   modalButtons: {
     marginTop: 20,
     width: "100%",              // make buttons span full width if needed
-    alignItems: "center", 
+    alignItems: "center",
   },
   confirmBtn: {
     backgroundColor: theme.color.brand,
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   cancelBtn: {
     marginTop: 10,
     paddingVertical: 13,
-    width: "100%", 
+    width: "100%",
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#c4bcbcff",

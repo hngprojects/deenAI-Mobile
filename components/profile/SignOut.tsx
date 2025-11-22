@@ -1,8 +1,8 @@
-// components/profile/ProfileSignOutOverlay.tsx
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import ProfileScreen from './ProfileScreen';
 import { useRouter } from 'expo-router';
+// eslint-disable-next-line import/no-unresolved
 import { BlurView } from 'expo-blur';
 
 const ProfileSignOutOverlay: React.FC = () => {

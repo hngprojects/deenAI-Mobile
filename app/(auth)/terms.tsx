@@ -34,7 +34,7 @@ export default function TermsAndConditions() {
                 <Text style={styles.date}>Last Updated: 22nd November, 2025</Text>
 
                 <Text style={styles.paragraph}>
-                    Welcome to DeenAI. These Terms and Conditions ("Terms") govern your access to and use of the DeenAI mobile application and related services (collectively, the "Service"). By using DeenAI, you agree to comply with these Terms.
+                    Welcome to DeenAI. These Terms and Conditions (&quot;Terms&quot;) govern your access to and use of the DeenAI mobile application and related services (collectively, the &quot;Service&quot;). By using DeenAI, you agree to comply with these Terms.
                 </Text>
 
                 <Text style={styles.paragraph}>
@@ -89,7 +89,7 @@ export default function TermsAndConditions() {
                 </Text>
 
                 <Text style={styles.bulletPoint}>• Fees may vary based on your selected plan</Text>
-                <Text style={styles.bulletPoint}>• Payments are processed through your device's app store</Text>
+                <Text style={styles.bulletPoint}>• Payments are processed through your device&apos;s app store</Text>
                 <Text style={styles.bulletPoint}>• Subscriptions renew automatically unless disabled before the renewal date</Text>
 
                 <Text style={styles.paragraph}>
@@ -160,7 +160,7 @@ export default function TermsAndConditions() {
                 <Text style={styles.sectionTitle}>12. Changes to Terms</Text>
 
                 <Text style={styles.paragraph}>
-                    We may update these Terms when necessary. Changes will be posted in the app with an updated "Last Updated" date. Continued use after changes means you accept the updated Terms.
+                    We may update these Terms when necessary. Changes will be posted in the app with an updated &quot;Last Updated&quot; date. Continued use after changes means you accept the updated Terms.
                 </Text>
 
                 <Text style={styles.sectionTitle}>13. Contact Us</Text>

@@ -12,13 +12,13 @@ import {
 } from 'react-native';
 
 import ScreenContainer from '../ScreenContainer';
-import { Feather as Icon } from '@expo/vector-icons';
+// import { Feather as Icon } from '@expo/vector-icons';
 import { theme } from '@/styles/theme';
 import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
-type FeatherIconName = keyof typeof Icon.glyphMap;
+// type FeatherIconName = keyof typeof Icon.glyphMap;
 
 interface Option {
   id: string;
@@ -113,7 +113,7 @@ const ProfileScreen: React.FC = () => {
         <Image
         source={require("../../assets/images/NOOR NAV.png")}
         style={styles.navbarImage}
-        resizeMode="cover"  
+        resizeMode="cover"
         />
 
       </ScrollView>
@@ -186,11 +186,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   navbarImage: {
-  position: "absolute",  
-  bottom: -32,              
-  width: "100%",          
-  height: 110,                       
-  zIndex: 1,   
-  pointerEvents: "none",         
+  position: "absolute",
+  bottom: -32,
+  width: "100%",
+  height: 110,
+  zIndex: 1,
+  pointerEvents: "none",
 },
-});   
+});
