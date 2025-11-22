@@ -1,113 +1,310 @@
-import { useState } from 'react';
-import { AuthError, LoginFormValues, SignupFormValues, SocialProvider, User } from '../types';
-import authService from '@/service/auth.service';
+import { useToast } from '@/hooks/useToast';
+import { authService } from '@/service/auth.service';
+import { useAuthStore } from '@/store/auth-store';
+import { LoginFormValues, SignupFormValues } from '@/types/auth.types';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import * as Location from 'expo-location';
+import * as Notifications from 'expo-notifications';
+import { router } from 'expo-router';
+import { Alert } from 'react-native';
+
+// Helper function to check permissions
+const checkPermissionsAndRoute = async () => {
+    try {
+        const hasCompletedOnboarding = useAuthStore.getState().hasCompletedOnboarding;
+
+        // If user already completed onboarding, go straight to tabs
+        if (hasCompletedOnboarding) {
+            router.replace('/(tabs)');
+            return;
+        }
+
+        // Check location permission
+        const locationStatus = await Location.getForegroundPermissionsAsync();
+
+        if (!locationStatus.granted) {
+            router.replace('/(onboarding)/location-access');
+            return;
+        }
+
+        // Check notification permission
+        const notificationStatus = await Notifications.getPermissionsAsync();
+
+        if (!notificationStatus.granted) {
+            router.replace('/(onboarding)/notification-access');
+            return;
+        }
+
+        // Both permissions granted, mark onboarding complete and go to tabs
+        useAuthStore.getState().setOnboardingComplete(true);
+        router.replace('/(tabs)');
+    } catch (error) {
+        console.error('Permission check error:', error);
+        // If there's an error, just go to tabs
+        router.replace('/(tabs)');
+    }
+};
+
+export const useSignup = () => {
+    const queryClient = useQueryClient();
+    const { showToast } = useToast();
+
+    return useMutation({
+        mutationFn: (userData: SignupFormValues) => {
+            const { confirmPassword, ...apiData } = userData;
+            return authService.signup(apiData);
+        },
+        onMutate: () => useAuthStore.getState().setLoading(true),
+        onSuccess: (data, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['user'] });
+            showToast('Account created! Please verify your email.', 'success');
+
+            // Route to verify-email after successful signup
+            router.push({
+                pathname: '/(auth)/verify-email',
+                params: { email: variables.email }
+            });
+        },
+        onError: (error: any, variables) => {
+            useAuthStore.getState().setLoading(false);
+
+            // Check if email already exists
+            const errorMessage = error.message?.toLowerCase() || '';
+            if (
+                errorMessage.includes('already exists') ||
+                errorMessage.includes('already registered') ||
+                errorMessage.includes('email is taken')
+            ) {
+                showToast('Account already exists. Please login.', 'warning');
+                router.push('/(auth)/login')
+                // Route to login screen if account already exists
+                // setTimeout(() => {
+                //     Alert.alert(
+                //         'Account Exists',
+                //         'An account with this email already exists. Please login.',
+                //         [
+                //             {
+                //                 text: 'Go to Login',
+                //                 onPress: () => router.push('/(auth)/login')
+                //             }
+                //         ]
+                //     );
+                // }, 500);
+            } else {
+                showToast(error.message || 'Signup failed. Please try again.', 'error');
+            }
+        },
+        onSettled: () => useAuthStore.getState().setLoading(false),
+    });
+};
+
+export const useLogin = () => {
+    const { login: setAuth } = useAuthStore();
+    const queryClient = useQueryClient();
+    const { showToast } = useToast();
+
+    return useMutation({
+        mutationFn: (credentials: LoginFormValues) => authService.login(credentials),
+        onMutate: () => {
+            useAuthStore.getState().setLoading(true);
+        },
+        onSuccess: async (data) => {
+            if (data.success) {
+                setAuth(
+                    data.data.user,
+                    data.data.tokens.accessToken,
+                    data.data.tokens.refreshToken
+                );
+                queryClient.invalidateQueries({ queryKey: ['user'] });
+
+                showToast(`Welcome back, ${data.data.user.name}!`, 'success');
+
+                // Check permissions and route accordingly
+                await checkPermissionsAndRoute();
+            } else {
+                throw new Error(data.message || 'Login failed');
+            }
+        },
+        onError: (error: any, variables) => {
+            useAuthStore.getState().setLoading(false);
+
+            // Check if account is not verified
+            const errorMessage = error.message?.toLowerCase() || '';
+            if (
+                errorMessage.includes('not verified') ||
+                errorMessage.includes('verify your email') ||
+                errorMessage.includes('email verification') ||
+                errorMessage.includes('please verify')
+            ) {
+                showToast('Please verify your email first.', 'warning');
+
+                // Route to verify-email with the user's email
+                setTimeout(() => {
+                    router.push({
+                        pathname: '/(auth)/verify-email',
+                        params: { email: variables.email }
+                    });
+                }, 1000);
+            } else {
+                showToast(error.message || 'Invalid email or password.', 'error');
+            }
+
+            console.error('Login error:', error);
+            throw error;
+        },
+        onSettled: () => {
+            useAuthStore.getState().setLoading(false);
+        },
+    });
+};
+
+export const useGuestLogin = () => {
+    const { setGuest } = useAuthStore();
+    const queryClient = useQueryClient();
+    const { showToast } = useToast();
+
+    return useMutation({
+        mutationFn: async () => Promise.resolve(),
+        onSuccess: () => {
+            setGuest(true);
+            queryClient.invalidateQueries({ queryKey: ['user'] });
+            showToast('Continuing as guest', 'info');
+            router.replace('/(tabs)');
+        },
+    });
+};
+
+export const useLogout = () => {
+    const { token, clearAuth } = useAuthStore();
+    const queryClient = useQueryClient();
+    const { showToast } = useToast();
+
+    return useMutation({
+        mutationFn: async () => {
+            if (token) {
+                await authService.logout(token);
+            }
+        },
+        onMutate: () => {
+            clearAuth();
+            queryClient.clear();
+        },
+        onSuccess: () => {
+            console.log('✅ Logged out successfully');
+            showToast('Logged out successfully', 'success');
+            router.replace('/(auth)/login');
+        },
+        onError: (error) => {
+            console.error('❌ Logout error:', error);
+            showToast('Logout failed', 'error');
+            router.replace('/(auth)/login');
+        },
+    });
+};
+
+export const useVerifyEmail = () => {
+    const { showToast } = useToast();
+
+    return useMutation({
+        mutationFn: ({ email, otp }: { email: string; otp: string }) =>
+            authService.verifyEmail({ email, otp }),
+        onSuccess: () => {
+            console.log('✅ Email verified successfully');
+            showToast('Email verified successfully!', 'success', 4000);
+        },
+        onError: (error: any) => {
+            console.error('❌ Verify email error:', error);
+            showToast(error.message || 'Invalid verification code', 'error');
+        },
+    });
+};
+
+export const useResendVerification = () => {
+    const { showToast } = useToast();
+
+    return useMutation({
+        mutationFn: (email: string) =>
+            authService.resendVerification({ email }),
+        onSuccess: () => {
+            console.log('✅ Verification OTP resent successfully');
+            showToast('Verification code sent! Check your inbox.', 'success');
+        },
+        onError: (error: any) => {
+            console.error('❌ Resend verification error:', error);
+            showToast(error.message || 'Failed to resend code', 'error');
+        },
+    });
+};
+
+export const useRequestOtp = () => {
+    const { showToast } = useToast();
+
+    return useMutation({
+        mutationFn: (email: string) => authService.requestOtp({ email }),
+        onSuccess: (data, email) => {
+            console.log('✅ OTP requested successfully');
+            showToast('Password reset email sent! Check inbox.', 'info');
+
+            router.push({
+                pathname: '/(auth)/reset-password',
+                params: { email },
+            });
+        },
+        onError: (error: any) => {
+            console.error('❌ Request OTP error:', error);
+            showToast(error.message || 'Failed to send reset email', 'error');
+        },
+    });
+};
+
+export const useVerifyOtp = () => {
+    const { showToast } = useToast();
+
+    return useMutation({
+        mutationFn: ({ email, otp }: { email: string; otp: string }) =>
+            authService.verifyOtp({ email, otp }),
+        onSuccess: () => {
+            console.log('✅ OTP verified successfully');
+            showToast('OTP verified successfully!', 'success');
+        },
+        onError: (error: any) => {
+            console.error('❌ Verify OTP error:', error);
+            showToast(error.message || 'Invalid OTP code', 'error');
+        },
+    });
+};
+
+export const useResetPassword = () => {
+    const { showToast } = useToast();
+
+    return useMutation({
+        mutationFn: ({ email, otp, newPassword }: { email: string; otp: string; newPassword: string }) =>
+            authService.resetPassword({ email, otp, newPassword }),
+        onSuccess: () => {
+            console.log('✅ Password reset successfully');
+            showToast('Password reset successfully!', 'success', 4000);
+
+            setTimeout(() => {
+                router.replace('/(auth)/login');
+            }, 1000);
+        },
+        onError: (error: any) => {
+            console.error('❌ Reset password error:', error);
+            showToast(error.message || 'Failed to reset password', 'error');
+        },
+    });
+};
 
 export const useAuth = () => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<AuthError | null>(null);
-
-    const signup = async (data: SignupFormValues) => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const response = await authService.signup(data);
-            setUser(response.user);
-
-            return response;
-        } catch (err: any) {
-            const authError: AuthError = {
-                message: err.message || 'Signup failed. Please try again.',
-            };
-            setError(authError);
-            throw authError;
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const login = async (data: LoginFormValues) => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const response = await authService.login(data);
-            setUser(response.user);
-
-            return response;
-        } catch (err: any) {
-            const authError: AuthError = {
-                message: err.message || 'Login failed. Please try again.',
-            };
-            setError(authError);
-            throw authError;
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const socialLogin = async (provider: SocialProvider) => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            // Here you would integrate with expo-apple-authentication or expo-google-sign-in
-            // For now, we'll simulate it
-            console.log(`Initiating ${provider} login...`);
-
-            // Example: Get token from Apple/Google
-            // const token = await getTokenFromProvider(provider);
-            // const response = await authService.socialLogin(provider, token);
-
-            // Simulated response
-            const response = {
-                user: {
-                    id: '123',
-                    name: 'Social User',
-                    email: 'user@example.com',
-                    createdAt: new Date(),
-                },
-                token: 'fake-token',
-            };
-
-            setUser(response.user);
-            return response;
-        } catch (err: any) {
-            const authError: AuthError = {
-                message: err.message || 'Social login failed. Please try again.',
-            };
-            setError(authError);
-            throw authError;
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const logout = async () => {
-        try {
-            setLoading(true);
-            await authService.logout();
-            setUser(null);
-        } catch (err: any) {
-            console.error('Logout error:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const clearError = () => {
-        setError(null);
-    };
+    const { user, token, isAuthenticated, isLoading, isGuest } = useAuthStore();
 
     return {
         user,
-        loading,
-        error,
-        signup,
-        login,
-        socialLogin,
-        logout,
-        clearError,
+        token,
+        isAuthenticated,
+        isLoading,
+        isGuest,
+        canAccessPremium: isAuthenticated,
+        shouldShowAuthPrompts: isGuest,
     };
 };

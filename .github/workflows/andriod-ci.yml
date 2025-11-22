@@ -1,0 +1,281 @@
+name: Android CI
+
+# =============================================================================
+# Trigger CI on pull requests and pushes to main/staging branches
+# This ensures code quality before merging
+# =============================================================================
+on:
+  pull_request:
+    branches: [dev, main, staging]
+  push:
+    branches: [main, staging]
+  workflow_dispatch:
+
+# Cancel in-progress runs when a new commit is pushed
+# Saves CI minutes and provides faster feedback
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # =============================================================================
+  # LINTING & CODE QUALITY
+  # Catches syntax errors, style violations, and potential bugs early
+  # =============================================================================
+  lint:
+    name: ESLint & Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      # Optional TypeScript type checking
+      # - name: TypeScript type check
+      #   run: npx tsc --noEmit
+
+  # =============================================================================
+  # UNIT & INTEGRATION TESTS
+  # Validates business logic and component behavior
+  # =============================================================================
+  test:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test -- --coverage --maxWorkers=2
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+        continue-on-error: true
+
+  # =============================================================================
+  # ANDROID NATIVE SETUP VALIDATION
+  # Ensures Android project structure is valid
+  # =============================================================================
+  android-setup-check:
+    name: Android Project Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Android project if needed
+        run: |
+          if [ ! -d "android" ]; then
+            echo "📦 Android directory not found, generating native project..."
+            npx expo prebuild --platform android --clean --skip-dependency-update react-native,react
+          else
+            echo "✅ Android directory already exists"
+          fi
+
+      - name: Validate Android project structure
+        run: |
+          echo "Checking Android project structure..."
+          required_files=(
+            "android/build.gradle"
+            "android/settings.gradle"
+            "android/app/build.gradle"
+            "android/gradle.properties"
+            "android/gradlew"
+          )
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Missing required file: $file"
+              exit 1
+            fi
+            echo "✅ Found: $file"
+          done
+          echo "✅ Android project structure is valid"
+
+  # =============================================================================
+  # ANDROID BUILD (Release APK)
+  # Builds signed APK using keystore credentials
+  # =============================================================================
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    needs: [lint, test, android-setup-check]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create .env file with keystore credentials
+        run: |
+          echo "KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> .env
+          echo "KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> .env
+          echo "KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> .env
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Run Expo prebuild
+        run: npx expo prebuild --clean --platform android
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build Android Release APK with Gradle Cache
+        uses: burrunan/gradle-cache-action@v3
+        with:
+          job-id: build-android-release
+          gradle-version: wrapper
+          execution-only-caches: true
+          arguments: assembleRelease
+          build-root-directory: android
+          gradle-distribution-sha-256-sum-warning: false
+
+      - name: Verify APK exists
+        run: ls -lah android/app/build/outputs/apk/release/
+
+      - name: Get version info
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' < package.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "timestamp=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
+          echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Rename APK
+        run: |
+          cd android/app/build/outputs/apk/release
+          mv app-release.apk MumMentor-v${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}.apk
+
+      - name: Upload APK to GitHub Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MumMentor-v${{ steps.version.outputs.version }}-${{ steps.version.outputs.timestamp }}
+          path: android/app/build/outputs/apk/release/MumMentor-v${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: |
+          rm -f .env
+          rm -f keystore.jks
+
+  # =============================================================================
+  # SECURITY SCANNING
+  # Checks for vulnerabilities and secrets
+  # =============================================================================
+  security-scan:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Run secret scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+      - name: Android security checks
+        run: |
+          echo "Checking for sensitive Android files..."
+          if find . -name "*.keystore" -o -name "*.jks" | grep -q .; then
+            echo "⚠️ Warning: Found keystore files in repository"
+          fi
+          if [ -f "android/keystore.properties" ]; then
+            echo "⚠️ Warning: keystore.properties found in repository"
+          fi
+          if [ -f "android/app/google-services.json" ]; then
+            echo "⚠️ Warning: google-services.json found"
+          fi
+          echo "✅ Security checks completed"
+
+  # =============================================================================
+  # CI STATUS CHECK
+  # Ensures all prior jobs passed before branch protection
+  # =============================================================================
+  ci-success:
+    name: CI Pipeline Success
+    runs-on: ubuntu-latest
+    needs: [lint, test, android-setup-check, build, security-scan]
+    if: always()
+    steps:
+      - name: Check CI status
+        run: |
+          if [[ "${{ needs.lint.result }}" == "failure" ]] || \
+             [[ "${{ needs.test.result }}" == "failure" ]] || \
+             [[ "${{ needs.android-setup-check.result }}" == "failure" ]] || \
+             [[ "${{ needs.build.result }}" == "failure" ]] || \
+             [[ "${{ needs.security-scan.result }}" == "failure" ]]; then
+            echo "❌ CI pipeline failed"
+            exit 1
+          fi
+          echo "✅ CI pipeline passed successfully"

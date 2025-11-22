@@ -31,7 +31,6 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
     paddingHorizontal = 20,
     keyboardAvoiding = true,
 }) => {
-    // Calculate status bar height
     const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 44;
 
     const content = scrollable ? children : (
@@ -46,7 +45,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
             contentContainerStyle={[
                 styles.scrollContent,
                 {
-                    paddingTop: statusBarHeight,
+                    paddingTop: statusBarHeight + 10,
                     paddingHorizontal: paddingHorizontal,
                 },
                 contentContainerStyle,

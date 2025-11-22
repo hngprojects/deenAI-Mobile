@@ -1,5 +1,3 @@
-// hooks/useLocation.ts
-
 import { useState } from 'react';
 import locationService, {
     LocationCoordinates,

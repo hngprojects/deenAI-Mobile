@@ -1,6 +1,6 @@
 import { theme } from '@/styles/theme';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { ArrowRight, ChevronRight, MapPin } from 'lucide-react-native';
+import { ArrowRight} from 'lucide-react-native';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -17,7 +17,6 @@ export default function UpcomingSolat() {
 
     return (
         <View style={styles.container}>
-            {/* Header */}
             <View style={styles.header}>
                 <View>
                     <Text style={styles.todayText}>Today</Text>
@@ -28,7 +27,6 @@ export default function UpcomingSolat() {
                 </TouchableOpacity>
             </View>
 
-            {/* Prayer Card */}
             <TouchableOpacity
                 style={styles.prayerCard}
                 onPress={handlePrayerPress}
@@ -38,7 +36,7 @@ export default function UpcomingSolat() {
                     <View style={styles.iconContainer}>
                         <Image
                             source={require('../../assets/images/pTime.png')}
-                            style={styles.cardIcon}
+                            // style={styles.cardIcon}
                             resizeMode="contain"
                         />
                     </View>

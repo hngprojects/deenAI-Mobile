@@ -14,17 +14,54 @@ export interface User {
     id: string;
     name: string;
     email: string;
-    createdAt: Date;
+    authProvider: string;
+    isEmailVerified: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface AuthTokens {
+    accessToken: string;
+    refreshToken: string;
 }
 
 export interface AuthResponse {
-    user: User;
-    token: string;
-}
-
-export interface AuthError {
+    success: boolean;
     message: string;
-    field?: string;
+    data: {
+        tokens: AuthTokens;
+        user: User;
+    };
 }
 
-export type SocialProvider = 'apple' | 'google';
+export interface AuthState {
+    user: User | null;
+    token: string | null;
+    isAuthenticated: boolean;
+    isLoading: boolean;
+}
+
+export interface RequestOtpPayload {
+    email: string;
+}
+
+export interface VerifyOtpPayload {
+    email: string;
+    otp: string;
+}
+
+export interface ResetPasswordPayload {
+    email: string;
+    otp: string;
+    newPassword: string;
+}
+
+export interface OtpResponse {
+    success: boolean;
+    message: string;
+}
+
+export interface VerifyEmailPayload {
+    email: string;
+    otp: string;
+}

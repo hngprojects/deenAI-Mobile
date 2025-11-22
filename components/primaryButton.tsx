@@ -6,7 +6,7 @@ interface Props {
   onPress: () => void;
   disabled?: boolean;
   loading?: boolean;
-  style?: ViewStyle | ViewStyle[]; // Add style prop
+  style?: ViewStyle | ViewStyle[]; 
 }
 
 export default function PrimaryButton({
