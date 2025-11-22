@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import SignOutConfirmationModal from "./delete/SignOut";
 
-
 const { width } = Dimensions.get("window");
 
 const icons = {
@@ -27,7 +26,6 @@ const icons = {
   },
   right: require("@/assets/images/arrow-right.png"),
 };
->>>>>>> 61c9f02 (feat: Update Profile):app/(tabs)/(profile)/ProfileScreen.tsx
 
 interface Option {
   id: string;
@@ -36,19 +34,54 @@ interface Option {
   iconKey: keyof typeof icons.left;
 }
 
-const profile: { options: Option[]; avatar: any; name: string; greeting: string; nameGreeting: string} = {
+const profile: {
+  options: Option[];
+  avatar: any;
+  name: string;
+  greeting: string;
+  nameGreeting: string;
+} = {
   avatar: require("@/assets/images/woman-in-hijab.png"),
-  name: 'Aisha',
-  nameGreeting: 'Asalam Alaykum Aisha,\n',
-  greeting: 'May all your days be filled with Light.',
+  name: "Aisha",
+  nameGreeting: "Asalam Alaykum Aisha,\n",
+  greeting: "May all your days be filled with Light.",
   options: [
-    { id: '1', title: 'Edit Profile', route: '/(tabs)/(profile)/EditProfileScreen', iconKey: 'edit' },
-    { id: '2', title: 'Notifications', route: '/(tabs)/(profile)/NotificationScreen', iconKey: 'notifications' },
-    { id: '3', title: 'Language', route: '/(tabs)/(profile)/AppLanguageScreen', iconKey: 'language' },
-    { id: '4', title: 'Support', route: '/(tabs)/(profile)/SupportScreen', iconKey: 'support' },
-    { id: '5', title: 'Log Out', route: '/(tabs)/(profile)/delete/SignOut', iconKey: 'signout' },
-    { id: '6', title: 'Delete Account', route: '/(tabs)/(profile)/DeleteAccountScreen', iconKey: 'delete' },
->>>>>>> 61c9f02 (feat: Update Profile):app/(tabs)/(profile)/ProfileScreen.tsx
+    {
+      id: "1",
+      title: "Edit Profile",
+      route: "/(tabs)/(profile)/EditProfileScreen",
+      iconKey: "edit",
+    },
+    {
+      id: "2",
+      title: "Notifications",
+      route: "/(tabs)/(profile)/NotificationScreen",
+      iconKey: "notifications",
+    },
+    {
+      id: "3",
+      title: "Language",
+      route: "/(tabs)/(profile)/AppLanguageScreen",
+      iconKey: "language",
+    },
+    {
+      id: "4",
+      title: "Support",
+      route: "/(tabs)/(profile)/SupportScreen",
+      iconKey: "support",
+    },
+    {
+      id: "5",
+      title: "Log Out",
+      route: "/(tabs)/(profile)/delete/SignOut",
+      iconKey: "signout",
+    },
+    {
+      id: "6",
+      title: "Delete Account",
+      route: "/(tabs)/(profile)/DeleteAccountScreen",
+      iconKey: "delete",
+    },
   ],
 };
 
@@ -56,33 +89,31 @@ const ProfileScreen: React.FC = () => {
   const router = useRouter();
   const [signOutModalVisible, setSignOutModalVisible] = useState(false);
 
+  const renderOption = ({ item }: { item: Option }) => (
+    <TouchableOpacity
+      key={item.id}
+      style={styles.optionContainer}
+      onPress={() => {
+        if (item.id === "5") {
+          setSignOutModalVisible(true);
+        } else if (item.route) {
+          router.push(item?.route);
+        }
+      }}
+    >
+      <Image source={icons.left[item.iconKey]} style={styles.leftIconImage} />
 
-const renderOption = ({ item }: { item: Option }) => (
-  <TouchableOpacity
-    key={item.id}
-    style={styles.optionContainer}
-    onPress={() => {
-      if (item.id === "5") {
-        setSignOutModalVisible(true);
-      } else if (item.route) {
-        router.push(item?.route);
-      }
-    }}
-  >
-    <Image source={icons.left[item.iconKey]} style={styles.leftIconImage} />
+      <Text style={[styles.optionText, { color: theme.color.secondary }]}>
+        {item.title}
+      </Text>
 
-    <Text style={[styles.optionText, { color: theme.color.secondary }]}>
-      {item.title}
-    </Text>
-
-    <Image
-      source={icons.right}
-      style={styles.arrowIconImage}
-      resizeMode="contain"
-    />
-  </TouchableOpacity>
-);
-
+      <Image
+        source={icons.right}
+        style={styles.arrowIconImage}
+        resizeMode="contain"
+      />
+    </TouchableOpacity>
+  );
 
   return (
     <View>
@@ -106,19 +137,17 @@ const renderOption = ({ item }: { item: Option }) => (
         contentContainerStyle={{ paddingHorizontal: 8, marginTop: 30 }}
       />
 
-
       <SignOutConfirmationModal
         visible={signOutModalVisible}
         setVisible={setSignOutModalVisible}
       />
     </View>
->>>>>>> 61c9f02 (feat: Update Profile):app/(tabs)/(profile)/ProfileScreen.tsx
   );
 };
 
 const styles = StyleSheet.create({
-    header: {
-    alignItems: 'center',
+  header: {
+    alignItems: "center",
     marginTop: 36,
   },
   avatar: {
@@ -129,34 +158,25 @@ const styles = StyleSheet.create({
   nameGreeting: {
     fontSize: 20,
     marginTop: 8,
-    textAlign: 'center',
-    fontWeight: '600',
-    fontFamily: theme.font.semiBold
+    textAlign: "center",
+    fontWeight: "600",
+    fontFamily: theme.font.semiBold,
   },
   greeting: {
     fontSize: 20,
     marginBottom: 22,
-    textAlign: 'center',
-    fontFamily: theme.font.regular
->>>>>>> 61c9f02 (feat: Update Profile):app/(tabs)/(profile)/ProfileScreen.tsx
+    textAlign: "center",
+    fontFamily: theme.font.regular,
   },
 
   optionContainer: {
-<<<<<<< HEAD:components/profile/ProfileScreen.tsx
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 18,
-    borderBottomWidth: 0.6,
-    borderColor: "#FFFFFF",
-=======
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingVertical: 14,
     paddingHorizontal: 11,
     marginBottom: 16,
     borderRadius: 24,
-    backgroundColor: theme.color.background
->>>>>>> 61c9f02 (feat: Update Profile):app/(tabs)/(profile)/ProfileScreen.tsx
+    backgroundColor: theme.color.background,
   },
 
   leftIconImage: {
@@ -165,26 +185,26 @@ const styles = StyleSheet.create({
   },
 
   arrowIconImage: {
-    marginLeft: 'auto',
+    marginLeft: "auto",
     width: 20,
     height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   optionText: {
     fontSize: 18,
-    fontWeight: '500',
+    fontWeight: "500",
     fontFamily: theme.font.regular,
-    marginLeft: 5
+    marginLeft: 5,
   },
   navbarImage: {
-  position: "absolute",  
-  bottom: -32,              
-  width: "100%",          
-  height: 110,                       
-  zIndex: 1,   
-  pointerEvents: "none",         
-},
+    position: "absolute",
+    bottom: -32,
+    width: "100%",
+    height: 110,
+    zIndex: 1,
+    pointerEvents: "none",
+  },
 
   // Modal styles
   modalOverlay: {
