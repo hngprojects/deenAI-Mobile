@@ -1,5 +1,4 @@
 import { theme } from "@/styles/theme";
-import { router } from "expo-router";
 import React from "react";
 import {
   Image,
@@ -16,7 +15,7 @@ export default function QuickActions() {
   };
 
   const handleHadithPress = () => {
-    router.push("/(tabs)/hadiths");
+    console.log("Hadith pressed");
   };
 
   return (

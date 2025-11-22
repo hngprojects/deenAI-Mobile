@@ -162,6 +162,7 @@ export default function VerifyEmail() {
             // Error toast already shown in useVerifyEmail hook
             setCode(["", "", "", "", "", ""]);
             inputRefs.current[0]?.focus();
+            console.error("Verification error:", error);
         }
     };
 
@@ -187,6 +188,7 @@ export default function VerifyEmail() {
             inputRefs.current[0]?.focus();
         } catch (error: any) {
             // Error toast already shown in useResendVerification hook
+            console.error("Resend code error:", error);
         }
     };
 

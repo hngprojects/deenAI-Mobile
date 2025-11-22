@@ -1,18 +1,24 @@
-"use client"
-
 import ScreenContainer from '@/components/ScreenContainer';
 import { theme } from '@/styles/theme';
-import { useRouter } from 'expo-router';
-import { StyleSheet, Text, View, } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { StyleSheet, Text, View, Image } from 'react-native';
 import PrimaryButton from '../../../components/primaryButton';
-import { Image } from 'react-native';
+
+type ReflectStackParamList = {
+  'reflect-success': undefined;
+  'index': undefined;
+  'saved-reflection': undefined;
+};
+
+type ReflectSuccessProp = NativeStackNavigationProp<ReflectStackParamList, 'reflect-success'>;
 
 export default function ReflectSuccess() {
-  const router = useRouter();
+  const navigation = useNavigation<ReflectSuccessProp>();
+
   return (
     <ScreenContainer>
-      <View style={styles.container} >
-
+      <View style={styles.container}>
         <Image
           source={require("../../../assets/images/refl.png")}
           style={styles.icon}
@@ -21,20 +27,23 @@ export default function ReflectSuccess() {
 
         <Text style={styles.textHeader}>Your Reflection has been saved</Text>
 
-        <Text style={styles.containerText}>Your reflection has been added to your journal, a space you can return to anytime for peace and remembrance.</Text>
+        <Text style={styles.containerText}>
+          Your reflection has been added to your journal, a space you can return to anytime for peace and remembrance.
+        </Text>
+
         <PrimaryButton
-          title="Open reflection journal "
-          onPress={() => router.push('/(tabs)/reflect')}
+          title="Open reflection journal"
+          onPress={() => navigation.replace('saved-reflection')}
           style={styles.button}
         />
+
         <Text
           style={styles.backText}
-          onPress={() => router.push('/reflect')}
+          onPress={() => navigation.navigate('index')}
         >
-          Back to Home
+          Back to Reflection
         </Text>
       </View>
-
     </ScreenContainer>
   );
 }
@@ -74,10 +83,9 @@ const styles = StyleSheet.create({
     color: "#5E5B54",
     fontSize: 12,
     marginTop: 10,
-    cursor: "pointer",
   },
-  icon:{
+  icon: {
     width: 110,
     height: 110,
   }
-})
+});

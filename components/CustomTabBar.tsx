@@ -4,6 +4,9 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+// Define which routes should be hidden from the tab bar
+const HIDDEN_ROUTES = ['(hadith)', 'hadiths'];
+
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const insets = useSafeAreaInsets();
 
@@ -12,8 +15,8 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
             <View style={styles.tabBar}>
                 {state.routes
                     .filter((route) => {
-                        const { options } = descriptors[route.key];
-                        return (options as any).href !== null && !route.name.startsWith('(');
+                        // Filter out hidden routes explicitly
+                        return !HIDDEN_ROUTES.includes(route.name);
                     })
                     .map((route, index) => {
                         const { options } = descriptors[route.key];
@@ -27,7 +30,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
                             });
 
                             if (!isFocused && !event.defaultPrevented) {
-                                navigation.navigate(route.name);
+                                navigation.navigate(route.name, { merge: true });
                             }
                         };
 
@@ -58,7 +61,6 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
                                 accessibilityRole="button"
                                 accessibilityState={isFocused ? { selected: true } : {}}
                                 accessibilityLabel={options.tabBarAccessibilityLabel}
-                                // testID={options.tabBarTestID}
                                 onPress={onPress}
                                 onLongPress={onLongPress}
                                 style={[

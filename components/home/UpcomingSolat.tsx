@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
         color: theme.color.brand,
     },
     prayerCard: {
-        backgroundColor: '#8B5A2B',
+        backgroundColor: theme.color.brand,
         borderRadius: 20,
         padding: 16,
         flexDirection: 'row',

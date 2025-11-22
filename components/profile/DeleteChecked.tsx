@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+// eslint-disable-next-line import/no-unresolved
 import Checkbox from "expo-checkbox";
 import ScreenHeader from "../screenHeader";
 import { theme } from "@/styles/theme";
@@ -30,8 +31,8 @@ export default function DeletecheckScreen() {
         <Text style={styles.boldText}>We’re sorry to see you go</Text>
 
         <Text style={styles.normalText}>
-          Every journey has its pauses. If you're thinking of leaving, please tell us why, your feedback 
-          will help us serve others better, in shā' Allāh. Remember, you can always return whenever your heart
+          Every journey has its pauses. If you&apos;re thinking of leaving, please tell us why, your feedback
+          will help us serve others better, in shā&apos; Allāh. Remember, you can always return whenever your heart
           wishes to reflect again.
         </Text>
       </View>
@@ -71,7 +72,7 @@ export default function DeletecheckScreen() {
 
         <TouchableOpacity
           style={[styles.button, styles.deleteButton]}
-          onPress={() => router.push("/profile/delete/pausedelete")} 
+          onPress={() => router.push("/profile/delete/pausedelete")}
         >
           <Text style={styles.deleteButtonText}>Yes, Delete My Account</Text>
         </TouchableOpacity>

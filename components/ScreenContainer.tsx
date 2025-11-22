@@ -10,6 +10,7 @@ import {
     ViewStyle,
 } from 'react-native';
 
+
 interface ScreenContainerProps {
     children: ReactNode;
     backgroundColor?: string;
@@ -19,10 +20,13 @@ interface ScreenContainerProps {
     contentContainerStyle?: ViewStyle;
     paddingHorizontal?: number;
     keyboardAvoiding?: boolean;
+    fixedHeader?: ReactNode;
+    useFixedHeaderLayout?: boolean;
 }
 
 const ScreenContainer: React.FC<ScreenContainerProps> = ({
     children,
+    fixedHeader,
     backgroundColor = '#ffffff98',
     statusBarStyle = 'dark',
     scrollable = true,
@@ -30,8 +34,26 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
     contentContainerStyle,
     paddingHorizontal = 20,
     keyboardAvoiding = true,
+    useFixedHeaderLayout = true,
 }) => {
-    const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 44;
+
+    const statusBarHeight =
+        Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 44;
+
+    // You can tweak this for your layout
+    const FIXED_HEADER_TOP = statusBarHeight + 10;
+    const FIXED_HEADER_HEIGHT = 70;
+
+    // Determine padding based on whether we're using fixed header layout
+    const getTopPadding = () => {
+        if (!scrollable) {
+            return FIXED_HEADER_TOP;
+        }
+        if (useFixedHeaderLayout && fixedHeader) {
+            return FIXED_HEADER_TOP + FIXED_HEADER_HEIGHT;
+        }
+        return FIXED_HEADER_TOP;
+    };
 
     const content = scrollable ? children : (
         <View style={styles.contentWrapper}>
@@ -45,7 +67,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
             contentContainerStyle={[
                 styles.scrollContent,
                 {
-                    paddingTop: statusBarHeight + 10,
+                    paddingTop: getTopPadding(),
                     paddingHorizontal: paddingHorizontal,
                 },
                 contentContainerStyle,
@@ -74,6 +96,22 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
                 style={statusBarStyle}
                 backgroundColor={backgroundColor}
             />
+
+            {/* FIXED HEADER - Only render if useFixedHeaderLayout is true */}
+            {useFixedHeaderLayout && fixedHeader && (
+                <View
+                    style={[
+                        styles.fixedHeader,
+                        {
+                            paddingTop: FIXED_HEADER_TOP,
+                            height: FIXED_HEADER_TOP + FIXED_HEADER_HEIGHT,
+                        },
+                    ]}
+                >
+                    {fixedHeader}
+                </View>
+            )}
+
             {keyboardAvoidingContent}
         </View>
     );
@@ -89,6 +127,15 @@ const styles = StyleSheet.create({
     scrollContent: {
         flexGrow: 1,
         paddingBottom: 20,
+    },
+    fixedHeader: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        zIndex: 1000,
+        backgroundColor: '#fff',
+        justifyContent: 'center',
     },
 });
 
