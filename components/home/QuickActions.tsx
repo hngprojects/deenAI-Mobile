@@ -16,7 +16,7 @@ export default function QuickActions() {
   };
 
   const handleHadithPress = () => {
-    router.push("/(tabs)/hadiths");
+    console.log("Hadith pressed");
   };
 
   return (

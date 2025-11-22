@@ -65,7 +65,8 @@
           "locationAlwaysAndWhenInUsePermission": "Allow DeenAi to use your location to provide accurate prayer times."
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

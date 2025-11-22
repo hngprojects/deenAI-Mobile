@@ -79,7 +79,7 @@ export default function Toast({
                 return '#FF9800';
             case 'info':
             default:
-                return '#A67C52'; // Brown color from your design
+                return theme.color.brand;
         }
     };
 

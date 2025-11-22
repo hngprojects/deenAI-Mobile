@@ -1,6 +1,5 @@
-// app/(tabs)/(quran)/surahDetail.tsx
-
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
+import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Platform, StatusBar, StyleSheet, Text, View } from 'react-native';
 
@@ -10,10 +9,9 @@ import ScreenHeader from '@/components/screenHeader';
 import { quranService } from '@/service/quran.service';
 import { theme } from '@/styles/theme';
 import { Surah, Verse } from '@/types/quran.types';
-// import { styles } from '../../../app-example/styles/styles';
 
 export default function SurahDetail() {
-  const router = useRouter();
+  const navigation = useNavigation();
   const params = useLocalSearchParams();
   const surah: Surah = JSON.parse(params.surah as string);
 
@@ -83,6 +81,12 @@ export default function SurahDetail() {
     }
   };
 
+  const handleBackPress = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  };
+
   const renderItem = ({ item }: { item: Verse }) => (
     <VerseItem
       verseNumber={item.number}
@@ -98,7 +102,7 @@ export default function SurahDetail() {
   const SurahInfoCard = () => (
     <View style={styles.surahInfoCard}>
       <Text style={styles.surahNumberAndName}>
-       {surah.number}. {surah.englishName} ("{surah.englishNameTranslation}")
+        {surah.number}. {surah.englishName} ("{surah.englishNameTranslation}")
       </Text>
       <Text style={styles.verseCount}>0/{surah.numberOfAyahs}</Text>
     </View>
@@ -110,9 +114,10 @@ export default function SurahDetail() {
         <ScreenHeader
           title={surah.englishName}
           showBackButton={true}
+          onBackPress={handleBackPress}
         />
       </View>
-        <SurahInfoCard />
+      <SurahInfoCard />
     </>
   );
 
@@ -131,6 +136,7 @@ export default function SurahDetail() {
       </ScreenContainer>
     );
   }
+
   if (error) {
     return (
       <ScreenContainer
@@ -142,7 +148,7 @@ export default function SurahDetail() {
         <ScreenHeader
           title={surah.englishName}
           showBackButton={true}
-        // onBackPress={() => router.back()}
+          onBackPress={handleBackPress}
         />
         <View style={styles.centerContainer}>
           <Text style={styles.errorText}>{error}</Text>
@@ -165,7 +171,7 @@ export default function SurahDetail() {
         ListHeaderComponent={ListHeader}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        style={styles.flatList} c
+        style={styles.flatList}
       />
     </ScreenContainer>
   );

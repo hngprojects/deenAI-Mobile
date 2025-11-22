@@ -20,55 +20,55 @@ import SocialLoginButton from '../../components/socialLoginButton';
 import { useLogin } from '../../hooks/useAuth';
 import { LoginFormValues, SocialProvider } from '../../types';
 import { LoginSchema } from '../../utils/validation';
+import { useToast } from '@/hooks/useToast';
+import { useGoogleOAuth } from '@/hooks/useGoogleOAuth';
 
 export default function LoginScreen() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
-
-    const { isConnected, showToast, toastType, showNoConnectionToast } = useNetworkStatus();
+    const { showToast } = useToast();
+    const { isConnected, showToast: showNetworkToast, toastType, showNoConnectionToast } = useNetworkStatus();
 
     const { mutate: login, isPending: loading } = useLogin();
+    const { signInWithGoogle, isLoading: googleLoading } = useGoogleOAuth();
 
     const initialValues: LoginFormValues = {
         email: '',
         password: '',
     };
 
-const handleLogin = async (values: LoginFormValues) => {
-    if (!isConnected) {
-        showNoConnectionToast();
-        return;
-    }
-
-    try {
-        login(values, {
-            onError: (error: any) => {
-                // Check if error is about unverified account
-            }
-        });
-
-    } catch (err: any) {
-        console.error('Login error:', err);
-    }
-};
-
-    const handleSocialLogin = async (provider: SocialProvider) => {
+    const handleLogin = async (values: LoginFormValues) => {
         if (!isConnected) {
             showNoConnectionToast();
             return;
         }
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            console.log(`${provider} login initiated`);
-
-            router.push('/(tabs)');
+            login(values, {
+                onError: (error: any) => {
+                    // Check if error is about unverified account
+                }
+            });
 
         } catch (err: any) {
-            Alert.alert('Error', err.message || 'Social login failed. Please try again.');
+            console.error('Login error:', err);
         }
     };
+
+     const handleSocialLogin = async (provider: SocialProvider) => {
+            if (!isConnected) {
+                showNoConnectionToast();
+                return;
+            }
+
+            if (provider === 'google') {
+                await signInWithGoogle();
+            } else if (provider === 'apple') {
+                showToast('Apple login coming soon!', 'info');
+            }
+        };
+
 
     const handleForgotPassword = () => {
         router.push('/(auth)/forgot-password');
@@ -76,7 +76,7 @@ const handleLogin = async (values: LoginFormValues) => {
 
     return (
         <>
-            <NetworkToast type={toastType} visible={showToast} />
+            <NetworkToast type={toastType} visible={showNetworkToast} />
 
             <ScreenContainer>
                 <ScreenHeader title="Log into account" backRoute="/" />
@@ -169,20 +169,27 @@ const handleLogin = async (values: LoginFormValues) => {
                 <SocialLoginButton
                     provider="apple"
                     onPress={() => handleSocialLogin('apple')}
-                    // disabled={loading}
                 />
                 <SocialLoginButton
                     provider="google"
                     onPress={() => handleSocialLogin('google')}
-                    // disabled={loading}
                 />
 
-                <Text style={styles.termsText}>
-                    By using Deen Ai, you agree to the{' '}
-                    <TouchableOpacity onPress={() => router.push("/(auth)/terms-privacy")}>
-                        <Text style={styles.termsLink}>Terms of service and Privacy Policy</Text>
-                    </TouchableOpacity>
-                </Text>
+                <View style={styles.bottomContainer}>
+                    <Text style={styles.termsText}>
+                        By using Deen Ai, you agree to the
+                    </Text>
+
+                    <View style={styles.termsContainer}>
+                        <TouchableOpacity onPress={() => router.push("/(auth)/terms")}>
+                            <Text style={styles.termsLink}>Terms of service</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.termsContainerText}> and </Text>
+                        <TouchableOpacity onPress={() => router.push("/(auth)/privacy")}>
+                            <Text style={styles.termsLink}>Privacy Policy</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
             </ScreenContainer>
         </>
     );
@@ -232,13 +239,30 @@ const styles = StyleSheet.create({
         fontFamily: theme.font.regular,
         color: '#666',
         marginTop: 20,
-        marginBottom: 40,
+        // marginBottom: 40,
         lineHeight: 20,
         paddingHorizontal: 20,
+    },
+    termsContainerText: {
+        fontSize: 14,
+        fontFamily: theme.font.regular,
+        color: '#666',
     },
     termsLink: {
         color: theme.color.brand,
         fontWeight: '600',
         fontFamily: theme.font.semiBold,
     },
+    termsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        // marginTop: -30,
+    },
+    bottomContainer: {
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+    }
 });

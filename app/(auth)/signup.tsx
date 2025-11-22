@@ -1,6 +1,7 @@
 import NetworkToast from '@/components/NetworkToast';
 import ScreenContainer from '@/components/ScreenContainer';
 import ScreenHeader from '@/components/screenHeader';
+import { useGoogleOAuth } from '@/hooks/useGoogleOAuth';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useToast } from '@/hooks/useToast';
 import { theme } from '@/styles/theme';
@@ -22,6 +23,7 @@ export default function SignupScreen() {
 
     const { mutate: signup, isPending: loading } = useSignup();
     const { showToast } = useToast();
+    const { signInWithGoogle, isLoading: googleLoading } = useGoogleOAuth();
 
     const { isConnected, showToast: showNetworkToast, toastType, showNoConnectionToast } = useNetworkStatus();
 
@@ -46,14 +48,17 @@ export default function SignupScreen() {
         });
     };
 
-    const handleSocialLogin = (provider: SocialProvider) => {
+    const handleSocialLogin = async (provider: SocialProvider) => {
         if (!isConnected) {
             showNoConnectionToast();
             return;
         }
 
-        showToast(`${provider} login coming soon!`, 'info');
-        // router.push('/(onboarding)/location-access');
+        if (provider === 'google') {
+            await signInWithGoogle();
+        } else if (provider === 'apple') {
+            showToast('Apple login coming soon!', 'info');
+        }
     };
 
     return (
@@ -165,12 +170,21 @@ export default function SignupScreen() {
                     onPress={() => handleSocialLogin('google')}
                 />
 
-                <Text style={styles.termsText}>
-                    By using Deen AI, you agree to the{' '}
-                    <TouchableOpacity onPress={() => router.push("/(auth)/terms-privacy")}>
-                        <Text style={styles.termsLink}>Terms and Privacy Policy.</Text>
-                    </TouchableOpacity>
-                </Text>
+                <View style={styles.bottomContainer}>
+                    <Text style={styles.termsText}>
+                        By using Deen Ai, you agree to the
+                    </Text>
+
+                    <View style={styles.termsContainer}>
+                        <TouchableOpacity onPress={() => router.push("/(auth)/terms")}>
+                            <Text style={styles.termsLink}>Terms of service</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.termsContainerText}> and </Text>
+                        <TouchableOpacity onPress={() => router.push("/(auth)/privacy")}>
+                            <Text style={styles.termsLink}>Privacy Policy</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
             </ScreenContainer>
         </>
     );
@@ -201,12 +215,29 @@ const styles = StyleSheet.create({
         fontFamily: theme.font.regular,
         color: '#666',
         marginTop: 20,
-        marginBottom: 40,
         lineHeight: 20,
         paddingHorizontal: 20,
     },
     termsLink: {
         color: theme.color.brand,
         fontFamily: theme.font.semiBold,
+    },
+    termsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        // marginTop: -30,
+    },
+    bottomContainer: {
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+        marginBottom: 60,
+    },
+    termsContainerText: {
+        fontSize: 14,
+        fontFamily: theme.font.regular,
+        color: '#666',
     },
 });

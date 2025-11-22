@@ -1,6 +1,7 @@
 import { useReflectStore } from '@/store/reflect-store';
 import { theme } from '@/styles/theme';
-import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Bookmark, Edit } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -18,6 +19,23 @@ interface VerseItemProps {
   surahName?: string;
 }
 
+// Type definition for bottom tab navigator
+type BottomTabNavigatorParamList = {
+  index: undefined;
+  quran: undefined;
+  reflect: undefined;
+  profile: undefined;
+  '(tabs)': {
+    screen: '(reflect)' | '(quran)' | '(hadith)';
+    params?: {
+      screen: string;
+      params?: Record<string, any>;
+    };
+  };
+};
+
+type VerseItemNavigationProp = NativeStackNavigationProp<BottomTabNavigatorParamList>;
+
 const VerseItem: React.FC<VerseItemProps> = ({
   verseNumber,
   arabicText,
@@ -30,12 +48,11 @@ const VerseItem: React.FC<VerseItemProps> = ({
   surahNumber,
   surahName,
 }) => {
-  const router = useRouter();
-
-
-    const { setDraft } = useReflectStore();
+  const navigation = useNavigation<VerseItemNavigationProp>();
+  const { setDraft } = useReflectStore();
 
   const handleReflectPress = () => {
+    // 1. Set the draft with verse data
     setDraft({
       surahNumber,
       verseNumber,
@@ -44,16 +61,28 @@ const VerseItem: React.FC<VerseItemProps> = ({
       surahName,
     });
 
-    console.log('selected surah', surahNumber, verseNumber, arabicText, translation, surahName);
-
-    router.push({
-      pathname: '/(tabs)/(reflect)/reflect-verse',
+    console.log('📝 Reflect on verse:', {
+      surahNumber,
+      verseNumber,
+      surahName,
+      translation: translation.substring(0, 50) + '...',
     });
+
+    // 2. Navigate to reflect tab and open reflect-verse screen
+    // This uses the tab navigator to switch to reflect tab
+    navigation.navigate('(reflect)', {
+      screen: 'reflect-verse',
+      params: {
+        surahNumber: surahNumber?.toString(),
+        startAyah: verseNumber?.toString(),
+        verseText: translation,
+        surahName: surahName,
+      },
+    } as any);
   };
 
   return (
     <View style={styles.container}>
-
       <Text style={styles.arabicText}>{arabicText}</Text>
 
       {showTransliteration && transliteration && (
@@ -67,8 +96,6 @@ const VerseItem: React.FC<VerseItemProps> = ({
           <Text style={styles.verseNumberText}>{verseNumber}</Text>
         </View>
 
-
-
         <View style={styles.saurahActions}>
           <TouchableOpacity
             onPress={handleReflectPress}
@@ -79,7 +106,6 @@ const VerseItem: React.FC<VerseItemProps> = ({
             <Edit
               size={16}
               color={theme.color.secondary}
-            // style={styles.editIcon}
             />
           </TouchableOpacity>
 
@@ -97,7 +123,6 @@ const VerseItem: React.FC<VerseItemProps> = ({
             </TouchableOpacity>
           )}
         </View>
-
       </View>
     </View>
   );
@@ -110,8 +135,6 @@ const styles = StyleSheet.create({
     backgroundColor: theme.color.white,
     marginBottom: 12,
     borderRadius: 12,
-    // borderWidth: 1,
-    // borderColor: theme.color.brandLight,
   },
   verseHeader: {
     flexDirection: 'row',
@@ -123,14 +146,12 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    // backgroundColor: theme.color.brandLight,
     justifyContent: 'center',
     alignItems: 'center',
   },
   verseNumberText: {
     fontSize: 14,
     fontFamily: theme.font.semiBold,
-    // color: theme.color.brand,
   },
   bookmarkButton: {
     padding: 8,

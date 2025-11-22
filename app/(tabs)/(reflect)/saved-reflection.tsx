@@ -4,7 +4,8 @@ import { reflectService } from '@/service/reflect.service';
 import { quranService } from '@/service/quran.service';
 import { theme } from '@/styles/theme';
 import { Reflection } from '@/types/reflect.types';
-import { router } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Edit2, Plus, Trash2 } from 'lucide-react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
@@ -25,7 +26,24 @@ interface ReflectionWithData extends Reflection {
   reference?: string;
 }
 
+type ReflectStackParamList = {
+  'saved-reflection': undefined;
+  'reflect-verse': {
+    reflectionId?: string;
+    editMode?: string;
+    content?: string;
+    surahNumber?: string;
+    startAyah?: string;
+    verseText?: string;
+    surahName?: string;
+  };
+  'index': undefined;
+};
+
+type SavedReflectionProp = NativeStackNavigationProp<ReflectStackParamList, 'saved-reflection'>;
+
 export default function SavedReflectionsPage() {
+  const navigation = useNavigation<SavedReflectionProp>();
   const [reflections, setReflections] = useState<ReflectionWithData[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -119,18 +137,15 @@ export default function SavedReflectionsPage() {
   };
 
   const handleEditReflection = (reflection: ReflectionWithData) => {
-    // FIXED: Pass all necessary data including startAyah
-    router.push({
-      pathname: '/(tabs)/(reflect)/reflect-verse',
-      params: {
-        reflectionId: reflection.id,
-        content: reflection.content,
-        surahNumber: reflection.surah?.toString(),
-        startAyah: reflection.startAyah?.toString() || '1',
-        verseText: reflection.verseText || '',
-        surahName: reflection.surahName || '',
-        editMode: 'true'
-      }
+    // Navigate using navigation.navigate instead of router.push
+    navigation.navigate('reflect-verse', {
+      reflectionId: reflection.id,
+      content: reflection.content,
+      surahNumber: reflection.surah?.toString(),
+      startAyah: reflection.startAyah?.toString() || '1',
+      verseText: reflection.verseText || '',
+      surahName: reflection.surahName || '',
+      editMode: 'true'
     });
   };
 
@@ -197,15 +212,15 @@ export default function SavedReflectionsPage() {
     <ScreenContainer backgroundColor={theme.color.white}>
       <ScreenHeader
         title="Reflections"
-        showBackButton={false}
-        rightComponent={
-          <TouchableOpacity
-            onPress={() => router.push('/(tabs)/quran')}
-            style={styles.addButton}
-          >
-            <Plus size={24} color={theme.color.white} />
-          </TouchableOpacity>
-        }
+        showBackButton={true}
+        // rightComponent={
+        //   <TouchableOpacity
+        //     onPress={() => navigation.navigate('index')}
+        //     style={styles.addButton}
+        //   >
+        //     <Plus size={24} color={theme.color.white} />
+        //   </TouchableOpacity>
+        // }
       />
 
       {reflections.length === 0 ? (
@@ -216,9 +231,9 @@ export default function SavedReflectionsPage() {
           </Text>
           <TouchableOpacity
             style={styles.emptyStateButton}
-            onPress={() => router.push('/(tabs)/quran')}
+            onPress={() => navigation.navigate('index')}
           >
-            <Text style={styles.emptyStateButtonText}>Browse Quran</Text>
+            <Text style={styles.emptyStateButtonText}>Start Reflecting</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -410,13 +425,10 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   modalContent: {
-    // width: 380,
-    // height: 408,
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 30,
     gap: 16,
-    // marginHorizontal: 20,
   },
   modalTitle: {
     fontWeight: '700',
@@ -439,12 +451,10 @@ const styles = StyleSheet.create({
     gap: 12
   },
   modalButton: {
-    // flex: 1,
     padding: 16,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    // minHeight: 50,
   },
   cancelButton: {
     borderColor: "#1a1a1a",

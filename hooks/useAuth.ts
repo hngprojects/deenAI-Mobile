@@ -191,7 +191,7 @@ export const useLogout = () => {
         },
         onSuccess: () => {
             console.log('✅ Logged out successfully');
-            showToast('Logged out successfully', 'success');
+            // showToast('Logged out successfully', 'success');
             router.replace('/(auth)/login');
         },
         onError: (error) => {

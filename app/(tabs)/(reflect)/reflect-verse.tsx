@@ -1,31 +1,58 @@
+import GuestWarningModal from '@/components/GuestModal';
 import PrimaryButton from '@/components/primaryButton';
-import ScreenContainer from '@/components/ScreenContainer';
 import ScreenHeader from '@/components/screenHeader';
 import SecondaryButton from '@/components/secondaryButton';
+import { useLogout } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 import { quranService } from '@/service/quran.service';
 import { reflectService } from '@/service/reflect.service';
+import { useAuthStore } from '@/store/auth-store';
 import { useReflectStore } from '@/store/reflect-store';
 import { theme } from '@/styles/theme';
 import { Surah } from '@/types/quran.types';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
 
+type ReflectStackParamList = {
+  'reflect-verse': {
+    reflectionId?: string;
+    editMode?: string;
+    content?: string;
+    surahNumber?: string;
+    startAyah?: string;
+    verseText?: string;
+    surahName?: string;
+  };
+  'reflect-success': undefined;
+  index: undefined;
+};
+
+type ReflectScreenProp = NativeStackNavigationProp<ReflectStackParamList, 'reflect-verse'>;
+
 export default function ReflectVerseScreen() {
-  const router = useRouter();
+  const navigation = useNavigation<ReflectScreenProp>();
   const params = useLocalSearchParams();
   const textInputRef = useRef<TextInput>(null);
   const { showToast } = useToast();
+
+  // Get auth state to check if user is guest
+  const { isGuest } = useAuthStore();
 
   const { draft, setDraft, clearDraft, getDraftForSubmission } = useReflectStore();
 
@@ -45,6 +72,11 @@ export default function ReflectVerseScreen() {
   const [verseData, setVerseData] = useState<{ translation?: string; verseNumber?: number } | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [showGuestModal, setShowGuestModal] = useState(false);
+  const logoutMutation = useLogout();
+
+  // Get status bar height
+  const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
   const debounceRef = useRef<NodeJS.Timeout>();
 
@@ -65,7 +97,7 @@ export default function ReflectVerseScreen() {
       setContent('');
       console.log('✅ Set empty content');
     }
-  }, [editMode, existingContent]);
+  }, [editMode, existingContent, draft.content]);
 
   useEffect(() => {
     const loadVerseData = async () => {
@@ -132,7 +164,7 @@ export default function ReflectVerseScreen() {
     };
 
     loadVerseData();
-  }, [editMode, surahNumberFromParams, startAyahFromParams]);
+  }, [editMode, surahNumberFromParams, startAyahFromParams, draft.surahNumber]);
 
   useEffect(() => {
     if (editMode) return;
@@ -150,7 +182,7 @@ export default function ReflectVerseScreen() {
         clearTimeout(debounceRef.current);
       }
     };
-  }, [content, editMode]);
+  }, [content, editMode, setDraft]);
 
   useEffect(() => {
     if (validationError && content.trim()) {
@@ -158,8 +190,31 @@ export default function ReflectVerseScreen() {
     }
   }, [content, validationError]);
 
+  const handleGuestSignUp = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+    setShowGuestModal(false);
+    // Navigate to signup at root level (outside of reflect)
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  };
+
+  const handleGuestContinueReading = () => {
+    setShowGuestModal(false);
+  };
+
   const handleSaveReflection = async () => {
     Keyboard.dismiss();
+
+    // Check if user is guest
+    if (isGuest) {
+      setShowGuestModal(true);
+      return;
+    }
 
     if (!content.trim()) {
       setValidationError('Reflection content cannot be empty');
@@ -183,7 +238,8 @@ export default function ReflectVerseScreen() {
         clearDraft();
         showToast('Reflection updated successfully!', 'success');
         setTimeout(() => {
-          router.push('/(tabs)/reflect');
+          // Navigate back to index within reflect tab
+          navigation.navigate('index');
         }, 1000);
       } else {
         const submissionData = getDraftForSubmission();
@@ -195,9 +251,10 @@ export default function ReflectVerseScreen() {
 
         await reflectService.createReflection(submissionData);
         clearDraft();
-        showToast('Reflection saved successfully!', 'success');
+        // showToast('Reflection saved successfully!', 'success');
         setTimeout(() => {
-          router.push('/(tabs)/(reflect)/reflect-success');
+          // Navigate to reflect-success within the same reflect tab
+          navigation.navigate('reflect-success');
         }, 1000);
       }
     } catch (error: any) {
@@ -237,7 +294,8 @@ export default function ReflectVerseScreen() {
                 clearDraft();
               }
               showToast('Changes discarded', 'info');
-              router.push('/(tabs)/reflect');
+              // Go back to Quran tab (where user came from)
+              navigation.navigate('(quran)' as any);
             }
           }
         ]
@@ -246,7 +304,8 @@ export default function ReflectVerseScreen() {
       if (!editMode) {
         clearDraft();
       }
-      router.back();
+      // Go back to Quran tab (where user came from)
+      navigation.navigate('(quran)' as any);
     }
   };
 
@@ -267,11 +326,12 @@ export default function ReflectVerseScreen() {
 
   if (!showVerseDetails && !editMode) {
     return (
-      <ScreenContainer backgroundColor={theme.color.white}>
+      <View style={styles.container}>
         <ScreenHeader
           title="Reflect on Verse"
           showBackButton={true}
           onBackPress={handleCancel}
+          paddingTop={statusBarHeight + 10}
         />
         <View style={styles.centerContainer}>
           <Text style={styles.errorText}>
@@ -279,132 +339,165 @@ export default function ReflectVerseScreen() {
             Please go back and select a verse to reflect on.
           </Text>
         </View>
-      </ScreenContainer>
+      </View>
     );
   }
 
   if (loading) {
     return (
-      <ScreenContainer backgroundColor={theme.color.white}>
+      <View style={styles.container}>
+        <ScreenHeader
+          title="Reflect on Verse"
+          showBackButton={true}
+          onBackPress={handleCancel}
+          paddingTop={statusBarHeight + 10}
+        />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={theme.color.brand} />
           <Text style={styles.loadingText}>Loading verse...</Text>
         </View>
-      </ScreenContainer>
+      </View>
     );
   }
 
   return (
-    <ScreenContainer
-      backgroundColor={'#F9F9F9'}
-      keyboardAvoiding={true}
-    >
+    <View style={styles.container}>
       <ScreenHeader
         title={editMode ? "Edit Reflection" : "Reflect on Verse"}
         showBackButton={true}
         onBackPress={handleCancel}
+        paddingTop={statusBarHeight + 10}
       />
 
-      <ScrollView
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
-        {showVerseDetails && (
-          <View style={styles.quoteCard}>
-            {(verseData?.translation || draft.translation || verseTextFromParams) && (
-              <Text style={styles.quoteTranslation}>
-                {verseData?.translation || draft.translation || verseTextFromParams}
-              </Text>
-            )}
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {showVerseDetails && (
+            <View style={styles.quoteCard}>
+              {(verseData?.translation || draft.translation || verseTextFromParams) && (
+                <Text style={styles.quoteTranslation}>
+                  {verseData?.translation || draft.translation || verseTextFromParams}
+                </Text>
+              )}
 
-            <Text style={styles.quoteVerse}>
-              {surah ? (
-                <Text>
-                  {surah.englishName} ({surah.name})
-                  {(verseData?.verseNumber || draft.verseNumber || startAyahFromParams) &&
-                    `, Verse ${verseData?.verseNumber || draft.verseNumber || startAyahFromParams}`}
+              <Text style={styles.quoteVerse}>
+                {surah ? (
+                  <Text>
+                    {surah.englishName} ({surah.name})
+                    {(verseData?.verseNumber || draft.verseNumber || startAyahFromParams) &&
+                      `, Verse ${verseData?.verseNumber || draft.verseNumber || startAyahFromParams}`}
+                  </Text>
+                ) : draft.surahName ? (
+                  <Text>
+                    {draft.surahName}
+                    {draft.verseNumber && `, Verse ${draft.verseNumber}`}
+                  </Text>
+                ) : surahNameFromParams ? (
+                  <Text>
+                    {surahNameFromParams}
+                    {startAyahFromParams && `, Verse ${startAyahFromParams}`}
+                  </Text>
+                ) : surahNumberFromParams ? (
+                  <Text>
+                    Surah {surahNumberFromParams}
+                    {(verseData?.verseNumber || startAyahFromParams) &&
+                      `, Verse ${verseData?.verseNumber || startAyahFromParams}`}
+                  </Text>
+                ) : null}
+              </Text>
+
+              {editMode && (
+                <Text style={styles.editModeIndicator}>
+                  Editing your reflection
                 </Text>
-              ) : draft.surahName ? (
-                <Text>
-                  {draft.surahName}
-                  {draft.verseNumber && `, Verse ${draft.verseNumber}`}
-                </Text>
-              ) : surahNameFromParams ? (
-                <Text>
-                  {surahNameFromParams}
-                  {startAyahFromParams && `, Verse ${startAyahFromParams}`}
-                </Text>
-              ) : surahNumberFromParams ? (
-                <Text>
-                  Surah {surahNumberFromParams}
-                  {(verseData?.verseNumber || startAyahFromParams) &&
-                    `, Verse ${verseData?.verseNumber || startAyahFromParams}`}
-                </Text>
-              ) : null}
+              )}
+            </View>
+          )}
+
+          <View style={styles.reflectionSection}>
+            <View style={styles.headerWithCounter}>
+              <Text style={styles.reflectionHeader}>Your Reflection</Text>
+
+            </View>
+            <Text style={styles.reflectionSubtitle}>
+              {editMode ? "Update your thoughts on this verse..." : "Write what this verse means to you..."}
             </Text>
 
-            {editMode && (
-              <Text style={styles.editModeIndicator}>
-                Editing your reflection
+            <View style={styles.textareaContainer}>
+              <TextInput
+                ref={textInputRef}
+                style={[
+                  styles.textarea,
+                  validationError && styles.textareaError,
+                  isFocused && styles.textareaFocused
+                ]}
+                placeholder={editMode ? "Update your reflection..." : "Share your thoughts, insights, or personal reflections on this verse..."}
+                placeholderTextColor={theme.color.black}
+                value={content}
+                onChangeText={setContent}
+                multiline={true}
+                textAlignVertical="top"
+                autoFocus={!editMode}
+                maxLength={2000}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+                editable={!saving}
+                selectTextOnFocus={true}
+                keyboardType="default"
+                returnKeyType="default"
+                blurOnSubmit={false}
+              />
+              <Text style={[
+                styles.textareaCharCounter,
+                !isFocused && content.trim().length < 5 && content.trim().length > 0 && styles.charCounterWarning,
+              ]}>
+                {content.length}/2000
+              </Text>
+            </View>
+
+            {validationError && (
+              <Text style={styles.errorText}>{validationError}</Text>
+            )}
+
+            {!isFocused && content.trim().length < 5 && content.trim().length > 0 && (
+              <Text style={styles.minCharWarning}>
+                Minimum 5 characters required.
               </Text>
             )}
           </View>
-        )}
 
-        <View style={styles.reflectionSection}>
-          <Text style={styles.reflectionHeader}>Your Reflection</Text>
-          <Text style={styles.reflectionSubtitle}>
-            {editMode ? "Update your thoughts on this verse..." : "Write what this verse means to you..."}
-          </Text>
+          <View style={styles.buttonContainer}>
+            <PrimaryButton
+              title={saving ? "Saving..." : editMode ? "Update Reflection" : "Save Reflection"}
+              onPress={handleSaveReflection}
+              disabled={saving || content.trim().length < 5}
+              loading={saving}
+              style={styles.button}
+            />
+            <SecondaryButton
+              title="Share reflection"
+              onPress={handleShare}
+              style={styles.button}
+              disabled={saving}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
-          <TextInput
-            ref={textInputRef}
-            style={[
-              styles.textarea,
-              validationError && styles.textareaError,
-              isFocused && styles.textareaFocused
-            ]}
-            placeholder={editMode ? "Update your reflection..." : "Share your thoughts, insights, or personal reflections on this verse..."}
-            placeholderTextColor={theme.color.black}
-            value={content}
-            onChangeText={setContent}
-            multiline={true}
-            textAlignVertical="top"
-            autoFocus={!editMode}
-            maxLength={2000}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            editable={!saving}
-            selectTextOnFocus={true}
-            keyboardType="default"
-            returnKeyType="default"
-            blurOnSubmit={false}
-          />
-
-          {validationError && (
-            <Text style={styles.errorText}>{validationError}</Text>
-          )}
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <PrimaryButton
-            title={saving ? "Saving..." : editMode ? "Update Reflection" : "Save Reflection"}
-            onPress={handleSaveReflection}
-            disabled={saving || !content.trim()}
-            loading={saving}
-            style={styles.button}
-          />
-          <SecondaryButton
-            title="Share reflection"
-            onPress={handleShare}
-            style={styles.button}
-            disabled={saving}
-          />
-        </View>
-      </ScrollView>
-    </ScreenContainer>
+      <GuestWarningModal
+        visible={showGuestModal}
+        onSignIn={handleGuestSignUp}
+        onContinueReading={handleGuestContinueReading}
+        verseText={verseData?.translation || draft.translation || verseTextFromParams}
+      />
+    </View>
   );
 }
 
@@ -413,15 +506,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9F9F9',
   },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F9F9F9',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#F9F9F9',
+    paddingHorizontal: 20,
+  },
   scrollContent: {
-    // padding: 20,
-    paddingBottom: 40,
+    paddingHorizontal: 20,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    // paddingHorizontal: 20,
+    paddingHorizontal: 20,
   },
   loadingText: {
     marginTop: 10,
@@ -431,7 +535,7 @@ const styles = StyleSheet.create({
   },
   quoteCard: {
     paddingVertical: 24,
-    // paddingHorizontal: 20,
+    paddingHorizontal: 20,
     borderWidth: 1,
     backgroundColor: theme.color.white,
     borderColor: '#edededff',
@@ -446,7 +550,6 @@ const styles = StyleSheet.create({
     color: theme.color.black,
     textAlign: 'center',
     lineHeight: 20,
-    fontStyle: 'italic',
     marginBottom: 12,
   },
   quoteVerse: {
@@ -466,12 +569,28 @@ const styles = StyleSheet.create({
   reflectionSection: {
     gap: 8,
   },
+  headerWithCounter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 24,
+  },
   reflectionHeader: {
     fontSize: 18,
     fontFamily: theme.font.extraBold,
     color: '#3C3A35',
     lineHeight: 24,
-    marginTop: 24,
+  },
+  charCounter: {
+    fontSize: 12,
+    fontFamily: theme.font.semiBold,
+    color: theme.color.black,
+  },
+  charCounterWarning: {
+    color: '#ff5555',
+  },
+  charCounterValid: {
+    color: theme.color.brand,
   },
   reflectionSubtitle: {
     fontSize: 14,
@@ -484,6 +603,7 @@ const styles = StyleSheet.create({
     borderColor: '#C7C5CC',
     borderRadius: 8,
     padding: 16,
+    paddingBottom: 40,
     fontSize: 16,
     fontFamily: theme.font.regular,
     textAlignVertical: 'top',
@@ -492,19 +612,24 @@ const styles = StyleSheet.create({
     color: theme.color.secondary,
     backgroundColor: theme.color.white,
   },
+  textareaContainer: {
+    position: 'relative',
+    marginTop: 12,
+  },
+  textareaCharCounter: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    fontSize: 11,
+    fontFamily: theme.font.semiBold,
+    color: theme.color.black,
+  },
   textareaError: {
     backgroundColor: '#FFF5F5',
     borderColor: '#ff5555',
   },
   textareaFocused: {
     borderColor: theme.color.brand,
-  },
-  charCount: {
-    fontSize: 12,
-    fontFamily: theme.font.regular,
-    color: theme.color.black,
-    textAlign: 'right',
-    marginTop: 8,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -517,6 +642,13 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 14,
+    fontFamily: theme.font.regular,
+    marginTop: 8,
+    color: '#ff5555',
+    textAlign: 'center',
+  },
+  minCharWarning: {
+    fontSize: 12,
     fontFamily: theme.font.regular,
     marginTop: 8,
     color: '#ff5555',
