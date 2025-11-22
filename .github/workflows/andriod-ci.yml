@@ -4,7 +4,7 @@ name: Android CI
 # This ensures code quality before merging
 on:
   pull_request:
-    branches: [main, staging]
+    branches: [dev, main, staging]
   push:
     branches: [main, staging]
 
