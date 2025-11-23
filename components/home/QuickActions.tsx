@@ -1,17 +1,11 @@
 import { theme } from "@/styles/theme";
 import React from "react";
-import {
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function QuickActions() {
   const handleDeenAiPress = () => {
     // TODO: Navigate to Deen AI chat
-    console.log("Deen AI pressed");
+    router.push("/(deenai)");
   };
 
   const handleHadithPress = () => {
@@ -55,8 +49,8 @@ export default function QuickActions() {
         <View style={styles.cardContent}>
           <Text style={styles.hadithTitle}>Learn about Hadiths</Text>
           <Text style={styles.hadithDescription}>
-            Find light and guidance for how you feel, see, through the Quran
-            or Hadith.
+            Find light and guidance for how you feel, see, through the Quran or
+            Hadith.
           </Text>
         </View>
       </TouchableOpacity>

@@ -1,13 +1,13 @@
 import AnimatedSplash from "@/components/AnimatedSplash";
 import ToastProvider from "@/components/ToastProvider";
-import { ThemeProvider } from '@/context/ThemeContext';
-import { useAuth } from '@/hooks/useAuth';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useFonts } from 'expo-font';
-import { Stack, useRouter, useSegments } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { ThemeProvider } from "@/context/ThemeContext";
+import { useAuth } from "@/hooks/useAuth";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useFonts } from "expo-font";
+import { Stack, useRouter, useSegments } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -36,7 +36,7 @@ function RootLayoutNav() {
     const inProfileGroup = segments[0] === 'profile';
     const inRoot = segments.length === 0;
 
-    console.log('🧭 Navigation check:', {
+    console.log("🧭 Navigation check:", {
       isAuthenticated,
       isGuest,
       segments,
