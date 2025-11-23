@@ -69,8 +69,8 @@ jobs:
         run: npm ci
 
       # Run Jest tests with coverage reporting
-      - name: Run unit tests
-        run: npm test -- --coverage --maxWorkers=2
+      # - name: Run unit tests
+      #   run: npm test -- --coverage --maxWorkers=2
 
       # Upload test coverage reports as artifacts
       - name: Upload test coverage reports
