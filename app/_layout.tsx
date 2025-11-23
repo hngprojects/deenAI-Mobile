@@ -71,12 +71,13 @@ export default function RootLayout() {
   const [showCustomSplash, setShowCustomSplash] = useState(true);
 
   const [fontsLoaded] = useFonts({
-    "NunitoSans-SemiBold": require("../assets/fonts/NunitoSans-SemiBold.ttf"),
-    "NunitoSans-Bold": require("../assets/fonts/NunitoSans-Bold.ttf"),
-    "NunitoSans-Regular": require("../assets/fonts/NunitoSans-Regular.ttf"),
-    "NunitoSans-Light": require("../assets/fonts/NunitoSans-Light.ttf"),
-    "NunitoSans-ExtraBold": require("../assets/fonts/NunitoSans-ExtraBold.ttf"),
-    "NunitoSans-Black": require("../assets/fonts/NunitoSans-Black.ttf"),
+    'NunitoSans-SemiBold': require('../assets/fonts/NunitoSans-SemiBold.ttf'),
+    'NunitoSans-Bold': require('../assets/fonts/NunitoSans-Bold.ttf'),
+    'NunitoSans-Regular': require('../assets/fonts/NunitoSans-Regular.ttf'),
+    'NunitoSans-Light': require('../assets/fonts/NunitoSans-Light.ttf'),
+    'NunitoSans-ExtraBold': require('../assets/fonts/NunitoSans-ExtraBold.ttf'),
+    'NunitoSans-Black': require('../assets/fonts/NunitoSans-Black.ttf'),
+    'DigitalNumbers-Regular': require('../assets/fonts/DigitalNumbers-Regular.ttf'),
   });
 
   useEffect(() => {

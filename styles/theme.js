@@ -26,12 +26,13 @@ export const lightTheme = {
   //     xxlarge: width * 0.12,
   // },
   font: {
-    light: "NunitoSans-Light",
-    regular: "NunitoSans-Regular",
-    bold: "NunitoSans-Bold",
-    semiBold: "NunitoSans-SemiBold",
-    extraBold: "NunitoSans-ExtraBold",
-    black: "NunitoSans-Black",
+    light: 'NunitoSans-Light',
+    regular: 'NunitoSans-Regular',
+    bold: 'NunitoSans-Bold',
+    semiBold: 'NunitoSans-SemiBold',
+    extraBold: 'NunitoSans-ExtraBold',
+    black: 'NunitoSans-Black',
+    digital: 'DigitalNumbers-Regular'
   },
 };
 
@@ -57,12 +58,13 @@ export const darkTheme = {
 
   // },
   font: {
-    light: "NunitoSans-Light",
-    regular: "NunitoSans-Regular",
-    bold: "NunitoSans-Bold",
-    semiBold: "NunitoSans-SemiBold",
-    extraBold: "NunitoSans-ExtraBold",
-    black: "NunitoSans-Black",
+    light: 'NunitoSans-Light',
+    regular: 'NunitoSans-Regular',
+    bold: 'NunitoSans-Bold',
+    semiBold: 'NunitoSans-SemiBold',
+    extraBold: 'NunitoSans-ExtraBold',
+    black: 'NunitoSans-Black',
+    digital: 'DigitalNumbers-Regular'
   },
 };
 
