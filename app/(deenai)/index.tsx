@@ -7,13 +7,7 @@ import { useChatStore } from "@/store/chat.store";
 import { theme } from "@/styles/theme";
 import { Book, Loader, Mic, Send } from "lucide-react-native";
 import React, { useState } from "react";
-import {
-  KeyboardAvoidingView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function index() {
   const [prompt, setPrompt] = useState("");
@@ -87,29 +81,29 @@ export default function index() {
         paddingHorizontal={0}
         contentContainerStyle={styles.contentContainer}
       >
-        <KeyboardAvoidingView behavior="padding">
-          <ScreenHeader
-            title="DEEN AI"
-            titleAlign="center"
-            rightComponent={
-              <TouchableOpacity>
-                <View style={styles.historyButton}>
-                  <Book color={theme.color.black} size={24} />
-                </View>
-              </TouchableOpacity>
-            }
-          />
-          {/* Starter prompts */}
-          {messages.length === 0 ? (
-            <StarterPrompts setMessage={setPrompt} />
-          ) : (
-            <View style={styles.messagesContainer}>
-              {messages.map((msg) => (
-                <MessageBubble key={msg.id} message={msg} />
-              ))}
-            </View>
-          )}
-        </KeyboardAvoidingView>
+        {/* <KeyboardAvoidingView behavior="padding"> */}
+        <ScreenHeader
+          title="DEEN AI"
+          titleAlign="center"
+          rightComponent={
+            <TouchableOpacity>
+              <View style={styles.historyButton}>
+                <Book color={theme.color.black} size={24} />
+              </View>
+            </TouchableOpacity>
+          }
+        />
+        {/* Starter prompts */}
+        {messages.length === 0 ? (
+          <StarterPrompts setMessage={setPrompt} />
+        ) : (
+          <View style={styles.messagesContainer}>
+            {messages.map((msg) => (
+              <MessageBubble key={msg.id} message={msg} />
+            ))}
+          </View>
+        )}
+        {/* </KeyboardAvoidingView> */}
       </ScreenContainer>
 
       {/* Input form */}
