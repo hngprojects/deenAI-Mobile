@@ -15,3 +15,16 @@ export interface IMessage {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ChatResponseData {
+  userMessage: IMessage;
+  aiMessage: IMessage;
+}
+
+export interface ChatResponse<T> {
+  success: boolean;
+  status: string;
+  message: string;
+  data: T;
+  status_code: number;
+}
