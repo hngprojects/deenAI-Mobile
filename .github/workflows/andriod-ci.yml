@@ -185,14 +185,14 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "📦 Version: $VERSION"
 
-      # Rename debug APK with version before upload
-      - name: Rename debug APK with version
+      # Rename release APK with version before upload
+      - name: Rename release APK with version
         id: rename
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          OLD_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
-          NEW_DIR="android/app/build/outputs/apk/debug/renamed"
-          NEW_PATH="$NEW_DIR/deenai-mobile-v${VERSION}-debug.apk"
+          OLD_PATH="android/app/build/outputs/apk/release/app-release.apk"
+          NEW_DIR="android/app/build/outputs/apk/release/renamed"
+          NEW_PATH="$NEW_DIR/deenai-mobile-v${VERSION}-release.apk"
           
           # Create directory for renamed APK
           mkdir -p "$NEW_DIR"
@@ -200,13 +200,13 @@ jobs:
           # Copy APK with new name
           cp "$OLD_PATH" "$NEW_PATH"
           
-          echo "✅ Renamed APK to: deenai-mobile-v${VERSION}-debug.apk"
+          echo "✅ Renamed APK to: deenai-mobile-v${VERSION}-release.apk"
           echo "apk_path=$NEW_PATH" >> $GITHUB_OUTPUT
 
-      - name: Upload debug APK
+      - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
-          name: deenai-mobile-v${{ steps.version.outputs.version }}-debug-apk
+          name: deenai-mobile-v${{ steps.version.outputs.version }}-release-apk
           path: ${{ steps.rename.outputs.apk_path }}
           retention-days: 14
 
