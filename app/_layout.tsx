@@ -31,6 +31,9 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === '(auth)';
     const inTabsGroup = segments[0] === '(tabs)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
+    const inTasbihGroup = segments[0] === '(tasbih)';
+    const inDeenAIGroup = segments[0] === '(deenai)';
+    const inProfileGroup = segments[0] === 'profile';
     const inRoot = segments.length === 0;
 
     console.log('🧭 Navigation check:', {
@@ -39,17 +42,20 @@ function RootLayoutNav() {
       segments,
       inAuthGroup,
       inTabsGroup,
+      inTasbihGroup,
       inRoot,
     });
 
     if (isAuthenticated || isGuest) {
-      if (!inTabsGroup && !inOnboardingGroup) {
+      // Allow navigation to protected routes: tabs, onboarding, tasbih, deenai, profile
+      if (!inTabsGroup && !inOnboardingGroup && !inTasbihGroup && !inDeenAIGroup && !inProfileGroup) {
         console.log('➡️ Redirecting to tabs');
         router.replace('/(tabs)');
       }
     }
     else {
-      if (inTabsGroup) {
+      // Not authenticated - only allow auth routes
+      if (inTabsGroup || inTasbihGroup || inDeenAIGroup || inProfileGroup) {
         console.log('➡️ Redirecting to login');
         router.replace('/(auth)/login');
       }
@@ -62,6 +68,9 @@ function RootLayoutNav() {
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(onboarding)" />
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="(tasbih)" />
+      <Stack.Screen name="(deenai)" />
+      <Stack.Screen name="profile" />
     </Stack>
   );
 }
