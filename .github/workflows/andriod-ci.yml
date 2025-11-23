@@ -162,10 +162,20 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
+      - name: Build Android Release APK with Gradle Cache
+        uses: burrunan/gradle-cache-action@v3
+        with:
+          job-id: build-android-release
+          gradle-version: wrapper
+          execution-only-caches: true
+          arguments: assembleRelease
+          build-root-directory: android
+          gradle-distribution-sha-256-sum-warning: false
+
       # Build debug APK for validation
-      - name: Build debug APK
-        working-directory: android
-        run: ./gradlew assembleDebug
+      # - name: Build debug APK
+      #   working-directory: android
+      #   run: ./gradlew assembleDebug
 
       # Extract version from package.json for artifact naming
       - name: Extract version for artifact naming
