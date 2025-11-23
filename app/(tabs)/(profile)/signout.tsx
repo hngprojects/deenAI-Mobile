@@ -1,4 +1,4 @@
-import ProfileSignOutOverlay from '@/components/profile/SignOut';
+import ProfileSignOutOverlay from '@/app/(tabs)/(profile)/delete/SignOut';
 
 export default function SignOutPage() {
   return < ProfileSignOutOverlay/>;

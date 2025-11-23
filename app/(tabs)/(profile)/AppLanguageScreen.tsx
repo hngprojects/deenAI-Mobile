@@ -1,19 +1,20 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import ScreenHeader from '../screenHeader';
 import { theme } from '@/styles/theme';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import ScreenHeader from '../../../components/screenHeader';
+import ScreenContainer from '@/components/ScreenContainer';
 
 export default function AppLanguageScreen() {
   const router = useRouter();
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer backgroundColor={theme.color.background3}>
       <ScreenHeader title="App Language" />
 
       <TouchableOpacity 
         style={styles.languageContainer} 
-        onPress={() => router.push('/profile/selectlanguage')} 
+        onPress={() => router.push('/(tabs)/(profile)/SelectLanguageScreen')} 
       >
         <View style={styles.languageTextWrapper}>
           <Text style={styles.languageHeading}>App Language</Text>
@@ -21,11 +22,11 @@ export default function AppLanguageScreen() {
         </View>
 
         <Image 
-          source={require('../../assets/images/arrow-right.png')} 
+          source={require('@/assets/images/arrow-right.png')} 
           style={styles.arrowImage} 
         />
       </TouchableOpacity>
-    </View>
+    </ScreenContainer>
   );
 }
 
@@ -45,6 +46,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4F4F4',
     borderRadius: 12,
     marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#C7C5CC'
   },
   languageTextWrapper: {
     flexDirection: 'column',

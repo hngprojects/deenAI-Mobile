@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
 import { theme } from '@/styles/theme';
-import ScreenContainer from '../ScreenContainer';
-import ScreenHeader from '../screenHeader'; 
+import ScreenContainer from '@/components/ScreenContainer';
+import ScreenHeader from '@/components/screenHeader';
+import { useToast } from '@/hooks/useToast';
 
 const { width } = Dimensions.get('window');
 
@@ -10,6 +11,7 @@ const EditProfileScreen = () => {
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const { showToast } = useToast();
 
   return (
     <ScreenContainer>
@@ -19,12 +21,12 @@ const EditProfileScreen = () => {
       <View style={styles.avatarWrapper}>
         <View style={styles.avatarContainer}>
           <Image 
-            source={require('../../assets/images/woman-in-hijab.png')} 
+            source={require("@/assets/images/woman-in-hijab.png")}
             style={styles.avatar} 
           />
           <View style={styles.cameraIconWrapper}>
             <Image 
-              source={require('../../assets/images/camera.png')} 
+              source={require("@/assets/images/camera.png")} 
               style={styles.cameraIconImage} 
             />
           </View>
@@ -63,7 +65,7 @@ const EditProfileScreen = () => {
 
       <TouchableOpacity 
         style={[styles.saveBtn, { backgroundColor: theme.color.brand }]} 
-        onPress={() => alert('Changes Saved!')}
+        onPress={() => showToast('Edit profile successful')}
       >
         <Text style={[styles.saveBtnText, { color: theme.color.white }]}>Save Changes</Text>
       </TouchableOpacity>

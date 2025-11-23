@@ -80,6 +80,7 @@ export default function HomeHeader() {
           />
         </TouchableOpacity>
 
+<<<<<<< HEAD
         <TouchableOpacity
           style={styles.notificationButton}
           onPress={handleNotificationPress}
@@ -87,6 +88,16 @@ export default function HomeHeader() {
           <Bell size={24} color={theme.color.secondary} strokeWidth={2} />
           {!isGuest && <View style={styles.notificationBadge} />}
         </TouchableOpacity>
+=======
+      <TouchableOpacity
+        style={styles.notificationButton}
+        onPress={handleNotificationPress}
+      >
+        <Bell size={24} color={theme.color.secondary} strokeWidth={2} />
+        {!isGuest && <View style={styles.notificationBadge} />}git checkout -b restore-my-work-2 HEAD@{5}
+
+      </TouchableOpacity>
+>>>>>>> 61c9f02 (feat: Update Profile)
       </View>
     </View>
   );

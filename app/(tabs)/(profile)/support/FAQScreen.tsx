@@ -1,16 +1,22 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { router } from 'expo-router';
-import ScreenHeader from '../screenHeader';
+import ScreenHeader from '../../../../components/screenHeader';
 
 export default function FAQScreen() {
-  const faqList = [
-    { title: "How secure is my data?", route: "/profile/support/privacy" },
-    { title: "How do i set prayer reminder", route: "" },
-    { title: "Is NoorAI free to use?", route: "" },
-    { title: "What is NoorAI?", route: "" },
-    { title: "How do i contact the team?", route: "/profile/support/contact" }
-  ];
+
+interface FAQItem {
+  title: string;
+  route?: any;
+}
+
+const faqList: FAQItem[] = [
+  { title: "How secure is my data?", route: '/(tabs)/(profile)/support/FAQPrivacyScreen'},
+  { title: "How do i set prayer reminder", route: '/(tabs)/(profile)/support/FAQPrivacyScreen'},
+  { title: "Is NoorAI free to use?", route: '/(tabs)/(profile)/support/FAQPrivacyScreen'},
+  { title: "What is NoorAI?", route: '/(tabs)/(profile)/support/FAQPrivacyScreen'},
+  { title: "How do i contact the team?", route: '/(tabs)/(profile)/support/FAQPrivacyScreen' }
+];
 
   return (
     <View style={styles.container}>
@@ -20,7 +26,7 @@ export default function FAQScreen() {
         <TouchableOpacity 
           key={index} 
           style={styles.faqItem}
-          onPress={() => item.route && router.push(item.route)}
+          onPress={() => item.route && router.push(item?.route)}
         >
           <Text style={styles.faqText}>{item.title}</Text>
           <Image 

@@ -1,15 +1,17 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import ScreenHeader from "../screenHeader";
 import { useRouter } from "expo-router";
 import { theme } from "@/styles/theme";
+import ScreenContainer from "@/components/ScreenContainer";
+import ScreenHeader from "@/components/screenHeader";
 
 export default function DeleteWarningAccount() {
   const router = useRouter();
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer backgroundColor={theme.color.background3}>
       <ScreenHeader title="Delete Account" />
+
       <View style={styles.textWrapper}>
         <Text style={styles.text}>
           Clearing your activities will permanently remove {"\n"}
@@ -19,12 +21,11 @@ export default function DeleteWarningAccount() {
       </View>
 
       <TouchableOpacity
-        style={styles.deleteButton}
-        onPress={() => router.push("/profile/delete/deletesuccess")}
-      >
+        style={styles.deleteButton}>
         <Text style={styles.deleteButtonText}>Clear Activities</Text>
       </TouchableOpacity>
-    </View>
+
+    </ScreenContainer>
   );
 }
 

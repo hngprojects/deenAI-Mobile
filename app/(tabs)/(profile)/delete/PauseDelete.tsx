@@ -1,9 +1,9 @@
 // components/profile/ProfilePauseCardOverlay.tsx
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import ProfileScreen from './ProfileScreen';
 import { theme } from '@/styles/theme';
 import { useRouter } from 'expo-router';
+import ProfileScreen from '../ProfileScreen';
 
 const PauseDeleteOverlay: React.FC = () => {
   const router = useRouter();
@@ -30,14 +30,13 @@ const PauseDeleteOverlay: React.FC = () => {
           <View style={styles.cardButtonWrapper}>
             <TouchableOpacity
               style={[styles.button, styles.pauseButton]}
-              onPress={() => router.push('/profile')}
+              onPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}
             >
               <Text style={styles.pauseButtonText}>Pause My Account</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.button, styles.deleteButtonCard]}
-              onPress={() => router.push('/profile/delete/confirmdelete')}
             >
               <Text style={styles.deleteButtonTextCard}>Yes, Delete My Account</Text>
             </TouchableOpacity>

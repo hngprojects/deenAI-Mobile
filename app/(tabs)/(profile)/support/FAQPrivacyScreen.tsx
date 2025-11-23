@@ -1,6 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import ScreenHeader from "../screenHeader";
+import { StyleSheet, Text, View } from "react-native";
+import ScreenHeader from "../../../../components/screenHeader";
 
 export default function PrivacyScreen() {
   return (

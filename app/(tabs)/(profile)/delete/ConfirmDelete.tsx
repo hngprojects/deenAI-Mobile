@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { View, Text, StyleSheet, TextInput, TouchableOpacity } from "react-native";
-import ScreenHeader from "../screenHeader";
+import ScreenHeader from "../../../../components/screenHeader";
 import { useRouter } from "expo-router";
 
 export default function ConfirmDeleteAccount() {
@@ -53,8 +53,7 @@ export default function ConfirmDeleteAccount() {
       {/* Delete Button */}
       <TouchableOpacity
         style={styles.deleteButton}
-        onPress={() => router.push("/profile/delete/deletewarning")}
-      >
+        onPress={() => router.push("/(tabs)")}>
         <Text style={styles.deleteText}>Delete Account</Text>
       </TouchableOpacity>
     </View>
