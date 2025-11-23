@@ -39,13 +39,11 @@ class ChatService {
     if (!chatRoomId) throw new Error("ChatRoom ID is required!");
 
     const response = await apiService.post<ChatResponse<ChatResponseData>>(
-      `/chats/${{ chatRoomId }}`,
+      `/chats/${chatRoomId}`,
       {
         message,
       }
     );
-
-    console.log("Send message Response", response);
 
     if (response.success && response.data) {
       return response.data;
@@ -55,4 +53,4 @@ class ChatService {
   }
 }
 
-export default new ChatService();
+export const chatService = new ChatService();

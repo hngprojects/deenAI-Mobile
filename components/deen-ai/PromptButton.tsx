@@ -5,11 +5,13 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface PromptButtonProps {
   prompt: string;
+
+  setMessage: (message: string) => void;
 }
 
-const PromptButton: React.FC<PromptButtonProps> = ({ prompt }) => {
+const PromptButton: React.FC<PromptButtonProps> = ({ prompt, setMessage }) => {
   return (
-    <TouchableOpacity>
+    <TouchableOpacity onPress={() => setMessage(prompt)}>
       <View style={styles.promptButton}>
         <Plus size={16} color={theme.color.black} />
         <Text>{prompt}</Text>

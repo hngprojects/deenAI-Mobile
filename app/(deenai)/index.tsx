@@ -1,34 +1,83 @@
+import MessageBubble from "@/components/deen-ai/MessageBubble";
 import StarterPrompts from "@/components/deen-ai/StarterPrompts";
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
+import { chatService } from "@/service/deenai.service";
+import { useChatStore } from "@/store/chat.store";
 import { theme } from "@/styles/theme";
-import { Book, Mic, Send } from "lucide-react-native";
-import React from "react";
-import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
-
-// const messages = [
-//   {
-//     id: '1',
-//     message:
-//       'Hi NoorAi, i have been feeling alot of anxiety lately due to some challenges, i am stucked fr.',
-//     role: 'user',
-//     timestamp: '2023-10-01T10:00:00Z',
-//   },
-//   {
-//     id: '2',
-//     message: `Allah told us that life comes with tests, not to break us, but to strengthen our hearts. Sometimes what you face is part of His plan to draw you closer.
-
-// Be patient, stay calm, and trust in His mercy, for He has promised ease not once, but twice:
-
-// "Indeed, with hardship comes ease. Indeed, with hardship comes ease." — Surah Ash-Sharh (94:5-6)
-
-// Start Here: Surah Ash-Sharh (94:5-6)`,
-//     timestamp: '2023-10-01T10:00:05Z',
-//     role: 'deenai',
-//   },
-// ];
+import { Book, Loader, Mic, Send } from "lucide-react-native";
+import React, { useState } from "react";
+import {
+  KeyboardAvoidingView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function index() {
+  const [prompt, setPrompt] = useState("");
+  const [loading, setLoading] = useState(false);
+  const {
+    currentChatId,
+    addMessage,
+    clearMessages,
+    createNewChat,
+    messages,
+    setCurrentChatId,
+  } = useChatStore();
+
+  const handleSend = async () => {
+    if (loading) return;
+    if (!prompt.trim()) return;
+    try {
+      setLoading(true);
+      if (!currentChatId) {
+        const newChatId = await createNewChat(prompt);
+        setCurrentChatId(newChatId);
+
+        console.log("newChatId", newChatId);
+
+        addMessage({
+          chatId: newChatId,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          role: "user",
+          id: "",
+          content: prompt,
+        });
+
+        const messageRes = await chatService.sendMessageToChatRoom(
+          prompt,
+          newChatId
+        );
+
+        addMessage(messageRes?.aiMessage!);
+      } else {
+        console.log("CurrentchatID", currentChatId);
+        addMessage({
+          chatId: currentChatId,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          role: "user",
+          id: "",
+          content: prompt,
+        });
+        const messageRes = await chatService.sendMessageToChatRoom(
+          prompt,
+          currentChatId
+        );
+        addMessage(messageRes?.aiMessage!);
+      }
+
+      setPrompt("");
+    } catch (error) {
+      console.error("Failed to send message", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <ScreenContainer
@@ -38,29 +87,40 @@ export default function index() {
         paddingHorizontal={0}
         contentContainerStyle={styles.contentContainer}
       >
-        <ScreenHeader
-          title="DEEN AI"
-          titleAlign="center"
-          rightComponent={
-            <TouchableOpacity>
-              <View style={styles.historyButton}>
-                <Book color={theme.color.black} size={24} />
-              </View>
-            </TouchableOpacity>
-          }
-        />
-        {/* Starter prompts */}
-        <StarterPrompts />
-        {/* Messages - will go here */}
+        <KeyboardAvoidingView behavior="padding">
+          <ScreenHeader
+            title="DEEN AI"
+            titleAlign="center"
+            rightComponent={
+              <TouchableOpacity>
+                <View style={styles.historyButton}>
+                  <Book color={theme.color.black} size={24} />
+                </View>
+              </TouchableOpacity>
+            }
+          />
+          {/* Starter prompts */}
+          {messages.length === 0 ? (
+            <StarterPrompts setMessage={setPrompt} />
+          ) : (
+            <View style={styles.messagesContainer}>
+              {messages.map((msg) => (
+                <MessageBubble key={msg.id} message={msg} />
+              ))}
+            </View>
+          )}
+        </KeyboardAvoidingView>
       </ScreenContainer>
 
-      {/* Input form - outside ScrollView for fixed position */}
+      {/* Input form */}
       <View style={styles.inputWrapper}>
         <View style={styles.inputContainer}>
           <View style={styles.inputFieldContainer}>
             <TextInput
               style={{ flex: 1, height: "100%" }}
               placeholder="Ask Deen AI"
+              value={prompt}
+              onChangeText={setPrompt}
             />
 
             <TouchableOpacity>
@@ -68,8 +128,15 @@ export default function index() {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.sendButtonContainer}>
-            <Send fill={theme.color.primary} color={theme.color.background} />
+          <TouchableOpacity
+            style={styles.sendButtonContainer}
+            onPress={handleSend}
+          >
+            {loading ? (
+              <Loader fill={theme.color.primary} color={theme.color.gray} />
+            ) : (
+              <Send fill={theme.color.primary} color={theme.color.background} />
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -87,7 +154,10 @@ const styles = StyleSheet.create({
   },
   messagesContainer: {
     flex: 1,
+    display: "flex",
+    flexDirection: "column",
     paddingVertical: 20,
+    gap: 30,
   },
   inputWrapper: {
     paddingHorizontal: 20,
