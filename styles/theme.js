@@ -15,6 +15,7 @@ export const lightTheme = {
     border: "#e6e6e6",
     paragraph: "#3C3A3599",
     gray: "#e3e3e3",
+    actionIcon: "#B1A7BE",
   },
   // fontSize: {
   //     small: width * 0.03,
