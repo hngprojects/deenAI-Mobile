@@ -270,6 +270,7 @@ const styles = StyleSheet.create({
   forbiddenTextContainer: {
     flex: 1,
     marginLeft: 12,
+    
   },
   forbiddenPeriod: {
     fontSize: 16,
