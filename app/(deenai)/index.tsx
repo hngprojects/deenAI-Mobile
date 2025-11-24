@@ -18,13 +18,12 @@ import {
   View,
 } from "react-native";
 
-export default function index() {
+export default function DEENAI() {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const {
     currentChatId,
     addMessage,
-    clearMessages,
     createNewChat,
     messages,
     setCurrentChatId,

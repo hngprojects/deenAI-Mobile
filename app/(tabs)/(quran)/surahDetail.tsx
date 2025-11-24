@@ -1,14 +1,24 @@
-import { useNavigation } from '@react-navigation/native';
-import { useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Platform, StatusBar, StyleSheet, Text, View } from 'react-native';
+// app/(tabs)/(quran)/surahDetail.tsx
 
-import VerseItem from '@/components/quran/verseItem';
-import ScreenContainer from '@/components/ScreenContainer';
-import ScreenHeader from '@/components/screenHeader';
-import { quranService } from '@/service/quran.service';
-import { theme } from '@/styles/theme';
-import { Surah, Verse } from '@/types/quran.types';
+import { useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+
+import VerseItem from "@/components/quran/verseItem";
+import ScreenContainer from "@/components/ScreenContainer";
+import ScreenHeader from "@/components/screenHeader";
+import { quranService } from "@/service/quran.service";
+import { theme } from "@/styles/theme";
+import { Surah, Verse } from "@/types/quran.types";
+// import { styles } from '../../../app-example/styles/styles';
 
 export default function SurahDetail() {
   const navigation = useNavigation();
@@ -24,8 +34,7 @@ export default function SurahDetail() {
     loadSurahData();
     loadBookmarks();
     saveLastRead();
-    console.log('SurahDetail', surah.number);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    console.log("SurahDetail", surah.number);
   }, [surah.number]);
 
   const loadSurahData = async () => {
@@ -35,8 +44,8 @@ export default function SurahDetail() {
       const surahVerses = await quranService.getSurahVerses(surah.number);
       setVerses(surahVerses);
     } catch (err) {
-      console.error('Error loading surah verses:', err);
-      setError('Failed to load verses');
+      console.error("Error loading surah verses:", err);
+      setError("Failed to load verses");
     } finally {
       setLoading(false);
     }
@@ -46,11 +55,11 @@ export default function SurahDetail() {
     try {
       const allBookmarks = await quranService.getBookmarks();
       const surahBookmarks = allBookmarks
-        .filter(b => b.surahNumber === surah.number)
-        .map(b => b.verseNumber);
+        .filter((b) => b.surahNumber === surah.number)
+        .map((b) => b.verseNumber);
       setBookmarks(new Set(surahBookmarks));
     } catch (err) {
-      console.error('Error loading bookmarks:', err);
+      console.error("Error loading bookmarks:", err);
     }
   };
 
@@ -58,7 +67,7 @@ export default function SurahDetail() {
     try {
       await quranService.setLastRead(surah.number, 1, surah.englishName);
     } catch (err) {
-      console.error('Error saving last read:', err);
+      console.error("Error saving last read:", err);
     }
   };
 
@@ -68,23 +77,21 @@ export default function SurahDetail() {
 
       if (isBookmarked) {
         await quranService.removeBookmark(surah.number, verseNumber);
-        setBookmarks(prev => {
+        setBookmarks((prev) => {
           const newSet = new Set(prev);
           newSet.delete(verseNumber);
           return newSet;
         });
       } else {
-        await quranService.addBookmark(surah.number, verseNumber, surah.englishName);
-        setBookmarks(prev => new Set(prev).add(verseNumber));
+        await quranService.addBookmark(
+          surah.number,
+          verseNumber,
+          surah.englishName
+        );
+        setBookmarks((prev) => new Set(prev).add(verseNumber));
       }
     } catch (err) {
-      console.error('Error toggling bookmark:', err);
-    }
-  };
-
-  const handleBackPress = () => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
+      console.error("Error toggling bookmark:", err);
     }
   };
 
@@ -103,7 +110,8 @@ export default function SurahDetail() {
   const SurahInfoCard = () => (
     <View style={styles.surahInfoCard}>
       <Text style={styles.surahNumberAndName}>
-        {surah.number}. {surah.englishName} (&quot;{surah.englishNameTranslation}&quot;)
+        {surah.number}. {surah.englishName} (&quot;
+        {surah.englishNameTranslation}&quot;)
       </Text>
       <Text style={styles.verseCount}>0/{surah.numberOfAyahs}</Text>
     </View>
@@ -112,12 +120,9 @@ export default function SurahDetail() {
   const ListHeader = () => (
     <>
       <View style={{ paddingLeft: 20 }}>
-        <ScreenHeader
-          title={surah.englishName}
-          showBackButton={true}
-          onBackPress={handleBackPress}
-        />
+        <ScreenHeader title={surah.englishName} showBackButton={true} />
       </View>
+      <SurahInfoCard />
       <SurahInfoCard />
     </>
   );
@@ -149,7 +154,7 @@ export default function SurahDetail() {
         <ScreenHeader
           title={surah.englishName}
           showBackButton={true}
-          onBackPress={handleBackPress}
+          // onBackPress={() => router.back()}
         />
         <View style={styles.centerContainer}>
           <Text style={styles.errorText}>{error}</Text>
@@ -183,16 +188,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 10 : 54,
+    paddingTop:
+      Platform.OS === "android" ? (StatusBar.currentHeight || 0) + 10 : 54,
     paddingBottom: 40,
   },
   surahInfoCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     backgroundColor: theme.color.white,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: "#E5E5E5",
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
@@ -212,8 +218,8 @@ const styles = StyleSheet.create({
   },
   centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 20,
   },
   loadingText: {
@@ -225,7 +231,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     fontFamily: theme.font.regular,
-    color: '#FF4444',
-    textAlign: 'center',
+    color: "#FF4444",
+    textAlign: "center",
   },
 });

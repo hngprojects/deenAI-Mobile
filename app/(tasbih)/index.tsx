@@ -1,16 +1,22 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, Image, TouchableOpacity, Modal, StyleSheet } from "react-native";
 import ScreenContainer from "@/components/ScreenContainer";
 import { theme } from "@/styles/theme";
-import { useRouter } from 'expo-router';
-import { ArrowLeft } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import { ArrowLeft } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
+import {
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function TasbihScreen() {
   const [count, setCount] = useState(0);
   const [showResetModal, setShowResetModal] = useState(false);
   const router = useRouter();
-
 
   const STORAGE_KEY = "@tasbih_count";
 
@@ -39,7 +45,7 @@ export default function TasbihScreen() {
     saveCount();
   }, [count]);
 
-    const handleIncrement = () => setCount(count + 1);
+  const handleIncrement = () => setCount(count + 1);
 
   const handleReset = async () => {
     setCount(0);
@@ -106,7 +112,8 @@ export default function TasbihScreen() {
 
             <Text style={styles.modalTitle}>Are you sure to Reset?</Text>
             <Text style={styles.modalDesc}>
-              You&apos;ve clicked {count} times today. Resetting will clear your dhikr count.
+              You&quot;ve clicked {count} times today. Resetting will clear your
+              dhikr count.
             </Text>
 
             <View style={styles.modalButtons}>
@@ -150,10 +157,12 @@ const styles = StyleSheet.create({
   deviceImage: {
     width: 350,
     height: 450,
+    height: 450,
     resizeMode: "contain",
   },
   iconImage: {
     width: 56,
+    height: 56,
     height: 56,
     resizeMode: "contain",
   },
@@ -168,7 +177,7 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 24,      // space from top
+    marginTop: 24, // space from top
     marginHorizontal: 16, // optional: left/right padding
   },
   rightPlaceholder: {
@@ -247,7 +256,7 @@ const styles = StyleSheet.create({
 
   modalButtons: {
     marginTop: 20,
-    width: "100%",              // make buttons span full width if needed
+    width: "100%", // make buttons span full width if needed
     alignItems: "center",
   },
   confirmBtn: {
@@ -268,10 +277,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingVertical: 13,
     width: "100%",
+    width: "100%",
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#c4bcbcff",
-    borderRadius: 13
+    borderRadius: 13,
   },
 
   cancelText: {
@@ -279,5 +289,4 @@ const styles = StyleSheet.create({
     color: "#404040",
     fontFamily: theme.font.regular,
   },
-
 });

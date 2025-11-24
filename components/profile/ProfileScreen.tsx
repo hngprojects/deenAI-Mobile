@@ -1,24 +1,21 @@
 // components/profile/ProfileScreen.tsx
-import React from 'react';
+import React from "react";
 import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
   Dimensions,
+  FlatList,
+  Image,
   ScrollView,
-} from 'react-native';
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-import ScreenContainer from '../ScreenContainer';
-// import { Feather as Icon } from '@expo/vector-icons';
-import { theme } from '@/styles/theme';
-import { useRouter } from 'expo-router';
+import { theme } from "@/styles/theme";
+import { useRouter } from "expo-router";
+import ScreenContainer from "../ScreenContainer";
 
-const { width } = Dimensions.get('window');
-
-// type FeatherIconName = keyof typeof Icon.glyphMap;
+const { width } = Dimensions.get("window");
 
 interface Option {
   id: string;
@@ -29,30 +26,55 @@ interface Option {
 
 const icons = {
   left: {
-    edit: require('../../assets/images/edit.png'),
-    notifications: require('../../assets/images/notifications.png'),
-    language: require('../../assets/images/language.png'),
-    support: require('../../assets/images/support.png'),
-    settings: require('../../assets/images/settings.png'),
-    signout: require('../../assets/images/signout.png'),
-    delete: require('../../assets/images/delete.png'),
+    edit: require("../../assets/images/edit.png"),
+    notifications: require("../../assets/images/notifications.png"),
+    language: require("../../assets/images/language.png"),
+    support: require("../../assets/images/support.png"),
+    settings: require("../../assets/images/settings.png"),
+    signout: require("../../assets/images/signout.png"),
+    delete: require("../../assets/images/delete.png"),
   },
-  right: require('../../assets/images/arrow-right.png'),
+  right: require("../../assets/images/arrow-right.png"),
 };
 
 const profile = {
-  avatar: require('../../assets/images/woman-in-hijab.png'),
-  name: 'Aisha',
-  greeting: 'Asalam alaykum Aisha,\nMay your days be filled with light.',
+  avatar: require("../../assets/images/woman-in-hijab.png"),
+  name: "Aisha",
+  greeting: "Asalam alaykum Aisha,\nMay your days be filled with light.",
 
   options: [
-    { id: '1', title: 'Edit Profile', route: '/profile/edit', iconKey: 'edit' },
-    { id: '2', title: 'Notifications', route: '/profile/notification', iconKey: 'notifications' },
-    { id: '3', title: 'Language', route: '/profile/language', iconKey: 'language' },
-    { id: '4', title: 'Support', route: '/profile/support', iconKey: 'support' },
-    { id: '5', title: 'Settings', route: '/settings', iconKey: 'settings' },
-    { id: '6', title: 'Sign Out', route: '/profile/signout', iconKey: 'signout' },
-    { id: '7', title: 'Delete Account', route: '/profile/delete', iconKey: 'delete' },
+    { id: "1", title: "Edit Profile", route: "/profile/edit", iconKey: "edit" },
+    {
+      id: "2",
+      title: "Notifications",
+      route: "/profile/notification",
+      iconKey: "notifications",
+    },
+    {
+      id: "3",
+      title: "Language",
+      route: "/profile/language",
+      iconKey: "language",
+    },
+    {
+      id: "4",
+      title: "Support",
+      route: "/profile/support",
+      iconKey: "support",
+    },
+    { id: "5", title: "Settings", route: "/settings", iconKey: "settings" },
+    {
+      id: "6",
+      title: "Sign Out",
+      route: "/profile/signout",
+      iconKey: "signout",
+    },
+    {
+      id: "7",
+      title: "Delete Account",
+      route: "/profile/delete",
+      iconKey: "delete",
+    },
   ],
 };
 
@@ -74,9 +96,9 @@ const ProfileScreen: React.FC = () => {
 
       <View style={styles.rightArrowWrapper}>
         <Image
-        source={icons.right}
-        style={styles.arrowIconImage}
-        resizeMode="contain"
+          source={icons.right}
+          style={styles.arrowIconImage}
+          resizeMode="contain"
         />
       </View>
     </TouchableOpacity>
@@ -94,7 +116,7 @@ const ProfileScreen: React.FC = () => {
 
           <TouchableOpacity
             style={[styles.editButton, { backgroundColor: theme.color.brand }]}
-            onPress={() => router.push('/profile/edit')}
+            onPress={() => router.push("/profile/edit")}
           >
             <Text style={[styles.editButtonText, { color: theme.color.white }]}>
               Edit Profile
@@ -111,11 +133,10 @@ const ProfileScreen: React.FC = () => {
         />
 
         <Image
-        source={require("../../assets/images/NOOR NAV.png")}
-        style={styles.navbarImage}
-        resizeMode="cover"
+          source={require("../../assets/images/NOOR NAV.png")}
+          style={styles.navbarImage}
+          resizeMode="cover"
         />
-
       </ScrollView>
     </ScreenContainer>
   );
@@ -125,7 +146,7 @@ export default ProfileScreen;
 
 const styles = StyleSheet.create({
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 20,
     paddingHorizontal: 20,
   },
@@ -137,9 +158,9 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 18,
     marginTop: 20,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 26,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   editButton: {
     paddingVertical: 10,
@@ -150,20 +171,20 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   optionContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 18,
     borderBottomWidth: 0.6,
-    borderColor: '#FFFFFF',
+    borderColor: "#FFFFFF",
   },
   leftIconWrapper: {
     width: 30,
     height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 15,
   },
   leftIconImage: {
@@ -171,11 +192,11 @@ const styles = StyleSheet.create({
     height: 24,
   },
   rightArrowWrapper: {
-    marginLeft: 'auto',
+    marginLeft: "auto",
     width: 26,
     height: 26,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   arrowIconImage: {
     width: 22,
@@ -183,14 +204,14 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   navbarImage: {
-  position: "absolute",
-  bottom: -32,
-  width: "100%",
-  height: 110,
-  zIndex: 1,
-  pointerEvents: "none",
-},
+    position: "absolute",
+    bottom: -32,
+    width: "100%",
+    height: 110,
+    zIndex: 1,
+    pointerEvents: "none",
+  },
 });
