@@ -222,4 +222,79 @@ const styles = StyleSheet.create({
   prayerItemContainer: {
     marginBottom: 12,
   },
-  
+  prayerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    
+  },
+  prayerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  prayerName: {
+    fontSize: 16,
+    color: '#000000',
+    fontWeight: '500',
+    marginLeft: 12,
+  },
+  prayerTime: {
+    fontSize: 16,
+    color: '#000000',
+    fontWeight: '500',
+  },
+  speakerIcon: {
+    width: 24,
+    height: 24,
+  },
+  // Individual forbidden item containers
+  forbiddenItemContainer: {
+    marginBottom: 12,
+  },
+  forbiddenItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    
+  },
+  forbiddenIcon: {
+    width: 55,
+    height: 55,
+   
+  },
+  forbiddenTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  forbiddenPeriod: {
+    fontSize: 16,
+    color: '#000000',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  forbiddenTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+     width: '100%',
+  },
+  forbiddenTime: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  timeSeparatorLine: {
+    flex: 1, 
+    height: 1,
+    backgroundColor: '#666666',
+    marginHorizontal: 8, 
+    opacity: 0.5, 
+  },
+  bottomSpace: {
+    height: 20,
+  },
+});
