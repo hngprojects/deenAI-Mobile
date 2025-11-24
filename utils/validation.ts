@@ -80,3 +80,47 @@ export const getPasswordStrength = (password: string): 'weak' | 'medium' | 'stro
     if (strength >= 3 && password.length >= 8) return 'medium';
     return 'weak';
 };
+
+export const EditProfileSchema = Yup.object().shape({
+  fullname: Yup.string()
+    .min(3, 'Name must be at least 3 characters')
+    .max(50, 'Name must be less than 50 characters')
+    .required('Name is required')
+    .matches(/^[a-zA-Z\s]+$/, 'Name can only contain letters and spaces'),
+
+  username: Yup.string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(50, 'Username must be less than 50 characters')
+    .required('Username is required')
+    .matches(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
+
+  email: Yup.string()
+    .email('Invalid email address')
+    .required('Email is required')
+    .lowercase()
+    .trim(),
+});
+
+export const ContactSupportSchema = Yup.object().shape({
+  fullname: Yup.string()
+    .min(3, "Name must be at least 3 characters")
+    .max(50, "Name must be less than 50 characters")
+    .required("Full name is required")
+    .matches(/^[a-zA-Z\s]+$/, "Name can only contain letters and spaces"),
+
+  email: Yup.string()
+    .email("Invalid email address")
+    .required("Email is required")
+    .lowercase()
+    .trim(),
+
+  subject: Yup.string()
+    .min(3, "Subject must be at least 3 characters")
+    .max(100, "Subject must be less than 100 characters")
+    .required("Subject is required"),
+
+  message: Yup.string()
+    .min(10, "Message must be at least 10 characters")
+    .max(500, "Message cannot exceed 500 characters")
+    .required("Message is required"),
+});

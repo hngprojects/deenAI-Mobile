@@ -1,114 +1,195 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
-import { theme } from '@/styles/theme';
+import {
+  View,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions
+} from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { Formik } from 'formik';
+
 import ScreenContainer from '@/components/ScreenContainer';
+import InputField from '@/components/InputField';
+import PrimaryButton from '@/components/primaryButton';
+
+import { EditProfileType } from '@/types/profile.types';
+import { EditProfileSchema } from '@/utils/validation';
+import { useEditProfile } from '@/hooks/useUpdateProfile';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+
 import ScreenHeader from '@/components/screenHeader';
-import { useToast } from '@/hooks/useToast';
 
 const { width } = Dimensions.get('window');
 
-const EditProfileScreen = () => {
-  const [fullName, setFullName] = useState('');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const { showToast } = useToast();
+export default function EditProfileScreen() {
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
+
+  const { mutate: editProfile, isPending } = useEditProfile();
+  const { isConnected, showNoConnectionToast } = useNetworkStatus();
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Permission to access photos is required!');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.7,
+      base64: true
+    });
+
+    if (!result.canceled) {
+      setAvatarUri(result.assets[0].uri);
+      // optionally send base64 later
+    }
+  };
+
+  const initialValues: EditProfileType = {
+    fullname: '',
+    username: '',
+    email: '',
+    language: '',
+    avatar: avatarUri ?? ''
+  };
+
+  const handleSave = (values: EditProfileType) => {
+    if (!isConnected) {
+      showNoConnectionToast();
+      return;
+    }
+
+    editProfile({
+      ...values,
+      avatar: avatarUri ?? ''
+    });
+  };
 
   return (
     <ScreenContainer>
       <ScreenHeader title="Edit Profile" />
 
-      {/* Avatar Section */}
+      {/* Avatar */}
       <View style={styles.avatarWrapper}>
         <View style={styles.avatarContainer}>
-          <Image 
-            source={require("@/assets/images/woman-in-hijab.png")}
-            style={styles.avatar} 
+          <Image
+            source={
+              avatarUri
+                ? { uri: avatarUri }
+                : require('@/assets/images/woman-in-hijab.png')
+            }
+            style={styles.avatar}
           />
-          <View style={styles.cameraIconWrapper}>
-            <Image 
-              source={require("@/assets/images/camera.png")} 
-              style={styles.cameraIconImage} 
+
+          <TouchableOpacity style={styles.cameraIconWrapper} onPress={pickImage}>
+            <Image
+              source={require('@/assets/images/camera.png')}
+              style={styles.cameraIconImage}
             />
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 
-      <View style={styles.form}>
-        <Text style={styles.label}>Full Name</Text>
-        <TextInput 
-          value={fullName} 
-          onChangeText={setFullName} 
-          style={styles.input} 
-          placeholder="Enter full name" 
-          placeholderTextColor="#A1A1A1" 
-        />
-
-        <Text style={styles.label}>Username</Text>
-        <TextInput 
-          value={username} 
-          onChangeText={setUsername} 
-          style={styles.input} 
-          placeholder="Enter username" 
-          placeholderTextColor="#A1A1A1" 
-        />
-
-        <Text style={styles.label}>Email</Text>
-        <TextInput 
-          value={email} 
-          onChangeText={setEmail} 
-          style={styles.input} 
-          placeholder="Enter email" 
-          autoCapitalize="none" 
-          placeholderTextColor="#A1A1A1" 
-        />
-      </View>
-
-      <TouchableOpacity 
-        style={[styles.saveBtn, { backgroundColor: theme.color.brand }]} 
-        onPress={() => showToast('Edit profile successful')}
+      {/* Form */}
+      <Formik
+        initialValues={initialValues}
+        validationSchema={EditProfileSchema}
+        validateOnChange
+        validateOnBlur
+        onSubmit={handleSave}
       >
-        <Text style={[styles.saveBtnText, { color: theme.color.white }]}>Save Changes</Text>
-      </TouchableOpacity>
+        {({
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          values,
+          errors,
+          touched,
+          isValid,
+          dirty
+        }) => (
+          <View style={styles.formContainer}>
+            <InputField
+              label="Full Name"
+              placeholder="Enter full name"
+              value={values.fullname}
+              onChangeText={handleChange('fullname')}
+              onBlur={handleBlur('fullname')}
+              error={touched.fullname ? errors.fullname : undefined}
+              editable={!isPending}
+            />
+
+            <InputField
+              label="Username"
+              placeholder="Username"
+              value={values.username}
+              onChangeText={handleChange('username')}
+              onBlur={handleBlur('username')}
+              error={touched.username ? errors.username : undefined}
+              editable={!isPending}
+            />
+
+            <InputField
+              label="Email Address"
+              placeholder="Email address"
+              value={values.email}
+              onChangeText={handleChange('email')}
+              onBlur={handleBlur('email')}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              error={touched.email ? errors.email : undefined}
+              editable={!isPending}
+            />
+
+            <PrimaryButton
+              title={isPending ? 'Saving...' : 'Save Changes'}
+              onPress={() => handleSubmit()}
+              disabled={!isValid || isPending}
+              loading={isPending}
+              style={{ marginTop: 10 }}
+            />
+          </View>
+        )}
+      </Formik>
     </ScreenContainer>
   );
-};
-
-export default EditProfileScreen;
+}
 
 const styles = StyleSheet.create({
-  avatarWrapper: { alignItems: 'center', marginTop: 10 },
-
-  avatarContainer: {
-    position: 'relative',
+  formContainer: {  
+    marginTop: 21,
+    marginBottom: 20,
+    gap: 6,
   },
 
-  avatar: { 
-    width: width * 0.32, 
-    height: width * 0.32, 
-    borderRadius: (width * 0.32) / 2 
+  avatarWrapper: { alignItems: 'center', marginTop: 10 },
+
+  avatarContainer: { position: 'relative' },
+
+  avatar: {
+    width: width * 0.32,
+    height: width * 0.32,
+    borderRadius: (width * 0.32) / 2
   },
 
   cameraIconWrapper: {
     position: 'absolute',
-    bottom: 2, 
-    right: 5, 
+    bottom: 2,
+    right: 5,
     width: 36,
     height: 36,
     borderRadius: 18,
     backgroundColor: '#F7EEDB',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center'
   },
 
   cameraIconImage: {
-    width: 18,
-    height: 18,
-    resizeMode: 'contain',
-  },
-
-  form: { marginTop: 30, paddingHorizontal: 20 },
-  label: { fontSize: 14, marginBottom: 6, color: '#6B7280', fontWeight: '500' },
-  input: { width: '100%', borderWidth: 1, borderColor: '#E5E7EB', paddingVertical: 12, paddingHorizontal: 15, borderRadius: 10, marginBottom: 20, fontSize: 15 },
-  saveBtn: { marginTop: 10, paddingVertical: 14, borderRadius: 15, alignItems: 'center', marginHorizontal: 20 },
-  saveBtnText: { fontSize: 16, fontWeight: '600' },
+    width: 44,
+    height: 44,
+    resizeMode: 'contain'
+  }
 });

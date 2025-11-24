@@ -22,6 +22,7 @@ export default function SupportScreen() {
           <Image
             source={require('@/assets/images/arrow-right.png')}
             style={styles.arrow}
+            resizeMode ='contain'
           />
         </TouchableOpacity>
 
@@ -46,7 +47,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.color.background },
   list: { marginTop: 20, paddingHorizontal: 16 },
 
-  item: {
+   item: {
     paddingVertical: 16,
     paddingHorizontal: 20,
     backgroundColor: '#F4F4F4',

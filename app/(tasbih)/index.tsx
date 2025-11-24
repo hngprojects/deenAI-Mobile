@@ -1,8 +1,8 @@
 import ScreenContainer from "@/components/ScreenContainer";
+import ScreenTitle from "@/components/ScreenTitle";
 import { theme } from "@/styles/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
   Image,
@@ -59,18 +59,19 @@ export default function TasbihScreen() {
 
   return (
     <ScreenContainer backgroundColor={theme.color.white}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.leftIcon}>
-          <ArrowLeft color={theme.color.secondary} size={24} />
-        </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>Tasbih</Text>
-        <View style={styles.rightPlaceholder} />
-      </View>
+      <ScreenTitle title="Tasbih" />
 
       <Text style={styles.counterText}>{count}</Text>
 
       <TouchableOpacity onPress={handleIncrement}>
+        <View style={styles.deviceWrapper}>
+          <Image
+            source={require("@/assets/images/tasbihone.png")}
+            style={styles.deviceImage}
+            resizeMode="contain"
+          />
+        </View>
+
         <View style={styles.deviceWrapper}>
           <Image
             source={require("@/assets/images/tasbihone.png")}

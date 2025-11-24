@@ -37,7 +37,7 @@ export default function DeleteAccountScreen() {
         {/* Delete button navigates to delete check page */}
         <TouchableOpacity
           style={[styles.button, styles.deleteButton]}
-          onPress={() => router.push("/profile/delete/deletecheck")}
+          onPress={() => router.push("/")}
         >
           <Text style={styles.deleteButtonText}>Delete</Text>
         </TouchableOpacity>

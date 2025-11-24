@@ -4,9 +4,11 @@ import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ScreenHeader from '../../../components/screenHeader';
 import ScreenContainer from '@/components/ScreenContainer';
+import { useLanguageStore } from '@/store/language-store';
 
 export default function AppLanguageScreen() {
   const router = useRouter();
+  const { language } = useLanguageStore();
 
   return (
     <ScreenContainer backgroundColor={theme.color.background3}>
@@ -14,11 +16,11 @@ export default function AppLanguageScreen() {
 
       <TouchableOpacity 
         style={styles.languageContainer} 
-        onPress={() => router.push('/(tabs)/(profile)/SelectLanguageScreen')} 
+        onPress={() => router.push('/(tabs)/(profile)/SelectLanguageScreen')}
       >
         <View style={styles.languageTextWrapper}>
           <Text style={styles.languageHeading}>App Language</Text>
-          <Text style={styles.languageValue}>English</Text>
+          <Text style={styles.languageValue}>{language}</Text>
         </View>
 
         <Image 
@@ -53,15 +55,17 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   languageHeading: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#333', 
+    fontSize: 18,
+    color: theme.color.black, 
+    fontFamily: theme.font.semiBold
+
   },
   languageValue: {
     fontSize: 14,
     fontWeight: '500',
     color: '#555', 
-    marginTop: 4,
+    marginTop: 3,
+    fontFamily: theme.font.regular
   },
   arrowImage: {
     width: 24,

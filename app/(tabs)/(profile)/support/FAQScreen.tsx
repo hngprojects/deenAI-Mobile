@@ -1,9 +1,12 @@
+import { theme } from '@/styles/theme';
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { router } from 'expo-router';
-import ScreenHeader from '../../../../components/screenHeader';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import ScreenContainer from '@/components/ScreenContainer';
+import ScreenHeader from '@/components/screenHeader';
+import { useRouter } from 'expo-router';
 
 export default function FAQScreen() {
+const router = useRouter();
 
 interface FAQItem {
   title: string;
@@ -17,55 +20,57 @@ const faqList: FAQItem[] = [
   { title: "What is NoorAI?", route: '/(tabs)/(profile)/support/FAQPrivacyScreen'},
   { title: "How do i contact the team?", route: '/(tabs)/(profile)/support/FAQPrivacyScreen' }
 ];
-
   return (
-    <View style={styles.container}>
+    <ScreenContainer backgroundColor={theme.color.background3}>
       <ScreenHeader title="Frequently Asked Questions" />
 
+      <View style={styles.list}>
       {faqList.map((item, index) => (
+
         <TouchableOpacity 
           key={index} 
-          style={styles.faqItem}
-          onPress={() => item.route && router.push(item?.route)}
+          style={styles.item}
+          onPress={() => router.push(item?.route)}
         >
-          <Text style={styles.faqText}>{item.title}</Text>
-          <Image 
+          <Text style={styles.title}>{item.title}</Text>
+          <Image
             source={require('@/assets/images/arrow-right.png')}
-            style={styles.arrowIcon}
+            style={styles.arrow}
+            resizeMode ='contain'
           />
         </TouchableOpacity>
       ))}
 
-    </View>
+      </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: 'white'
-  },
+  container: { flex: 1, backgroundColor: theme.color.background },
+  list: { marginTop: 20, paddingHorizontal: 16 },
 
-  faqItem: {
+   item: {
     paddingVertical: 16,
-    paddingHorizontal: 15,
-    borderRadius: 10,
-    backgroundColor: "#F5F5F5",
-    marginBottom: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center"
+    paddingHorizontal: 20,
+    backgroundColor: '#F4F4F4',
+    borderRadius: 12,
+    marginBottom: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#C7C5CC'
   },
 
-  faqText: {
+  title: {
     fontSize: 16,
-    fontWeight: '500'
+    color: theme.color.secondary,
+    fontFamily: theme.font.regular
   },
 
-  arrowIcon: {
-    width: 20,
-    height: 20,
-    tintColor: "#999"
-  }
+  arrow: {
+    width: 24,
+    height: 24,
+  },
 });
