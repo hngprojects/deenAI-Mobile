@@ -343,8 +343,8 @@ const styles = StyleSheet.create({
      marginLeft: 12,
   },
   forbiddenPeriod: {
+    fontSize: 16,
     color: '#000000',
-    fontWeight: '500',
     fontWeight: '500',
     marginBottom: 4,
   },
