@@ -212,3 +212,14 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 24,
   },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 12,
+  },
+  // Individual prayer item containers
+  prayerItemContainer: {
+    marginBottom: 12,
+  },
+  
