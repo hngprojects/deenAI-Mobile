@@ -8,7 +8,15 @@ import { theme } from "@/styles/theme";
 import { router } from "expo-router";
 import { Book, Loader, Mic, Send } from "lucide-react-native";
 import React, { useState } from "react";
-import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  FlatList,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function index() {
   const [prompt, setPrompt] = useState("");
@@ -76,15 +84,9 @@ export default function index() {
   const handleHistoryPress = () => router.push("/(deenai)/chat-history");
 
   return (
-    <>
-      <ScreenContainer
-        backgroundColor={theme.color.background2}
-        scrollable={true}
-        showsVerticalScrollIndicator={false}
-        paddingHorizontal={0}
-        contentContainerStyle={styles.contentContainer}
-      >
-        {/* <KeyboardAvoidingView behavior="padding"> */}
+    <View style={{ flex: 1, backgroundColor: theme.color.background2 }}>
+      {/* Header */}
+      <View style={styles.headerContainer}>
         <ScreenHeader
           title="DEEN AI"
           titleAlign="center"
@@ -96,18 +98,34 @@ export default function index() {
             </TouchableOpacity>
           }
         />
-        {/* Starter prompts */}
+      </View>
+
+      {/* Messages */}
+      <View style={{ flex: 1 }}>
         {messages.length === 0 ? (
-          <StarterPrompts setMessage={setPrompt} />
+          <ScreenContainer
+            backgroundColor={theme.color.background2}
+            scrollable={true}
+            showsVerticalScrollIndicator={false}
+            paddingHorizontal={0}
+          >
+            <StarterPrompts setMessage={setPrompt} />
+          </ScreenContainer>
         ) : (
-          <View style={styles.messagesContainer}>
-            {messages.map((msg) => (
-              <MessageBubble key={msg.id} message={msg} />
-            ))}
-          </View>
+          <FlatList
+            style={{ flex: 1 }}
+            contentContainerStyle={{
+              paddingHorizontal: 20,
+              paddingTop: 20,
+              paddingBottom: 10,
+            }}
+            data={messages}
+            keyExtractor={(msg) => msg.createdAt}
+            renderItem={(msg) => <MessageBubble message={msg.item} />}
+            ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
+          />
         )}
-        {/* </KeyboardAvoidingView> */}
-      </ScreenContainer>
+      </View>
 
       {/* Input form */}
       <View style={styles.inputWrapper}>
@@ -137,13 +155,20 @@ export default function index() {
           </TouchableOpacity>
         </View>
       </View>
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    paddingTop:
+      Platform.OS === "android" ? (StatusBar.currentHeight || 0) + 10 : 54,
+    paddingBottom: 10,
+    backgroundColor: theme.color.background2,
   },
   contentContainer: {
     paddingInline: 20,
@@ -193,5 +218,12 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: "100%",
     backgroundColor: theme.color.gray,
+  },
+  fixedHeader: {
+    paddingTop:
+      Platform.OS === "android" ? (StatusBar.currentHeight || 0) + 10 : 54,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    backgroundColor: theme.color.white,
   },
 });

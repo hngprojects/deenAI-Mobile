@@ -7,9 +7,18 @@ import { theme } from "@/styles/theme";
 import { Surah } from "@/types/quran.types";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { router } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Platform, StatusBar, StyleSheet, Text, View } from "react-native";
-import SearchBar from "../../../components/searchBar";
+import {
+  ActivityIndicator,
+  FlatList,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import SearchBar from "../../components/searchBar";
 
 export type RootStackParamList = {
   Quran: undefined;
@@ -37,8 +46,8 @@ export default function Quran() {
       const allSurahs = await quranService.getAllSurahs();
       setSurahs(allSurahs);
     } catch (err) {
-      console.error('Error loading Quran data:', err);
-      setError('Failed to load Quran data. Please restart the app.');
+      console.error("Error loading Quran data:", err);
+      setError("Failed to load Quran data. Please restart the app.");
     } finally {
       setLoading(false);
     }
@@ -62,31 +71,50 @@ export default function Quran() {
     );
   }, [searchText, surahs]);
 
-  const handleNavigateToSurah = useCallback((surah: Surah) => {
-    navigation.navigate('surahDetail', {
-      surah: JSON.stringify(surah)
-    });
-  }, [navigation]);
+  const handleNavigateToSurah = useCallback(
+    (surah: Surah) => {
+      navigation.navigate("surahDetail", {
+        surah: JSON.stringify(surah),
+      });
+    },
+    [navigation]
+  );
 
-  const renderSurahCard = useCallback(({ item }: { item: Surah }) => (
-    <SurahListItem
-      surah={item}
-      onPress={() => handleNavigateToSurah(item)}
-    />
-  ), [handleNavigateToSurah]);
+  const renderSurahCard = useCallback(
+    ({ item }: { item: Surah }) => (
+      <SurahListItem
+        surah={item}
+        onPress={() =>
+          router.push({
+            pathname: "/(tabs)/(quran)/surahDetail",
+            params: { surah: JSON.stringify(item) },
+          })
+        }
+      />
+    ),
+    []
+  );
 
-  const ListHeader = useCallback(() => (
-    <>
-      {!searchText && alFatihah && (
-        <FeaturedSurahCard
-          surah={alFatihah}
-          onPress={() => handleNavigateToSurah(alFatihah)}
-        />
-      )}
+  const ListHeader = useCallback(
+    () => (
+      <>
+        {!searchText && alFatihah && (
+          <FeaturedSurahCard
+            surah={alFatihah}
+            onPress={() =>
+              router.push({
+                pathname: "/(tabs)/(quran)/surahDetail",
+                params: { surah: JSON.stringify(alFatihah) },
+              })
+            }
+          />
+        )}
 
-      <Text style={styles.surahsSectionHeader}>Surahs</Text>
-    </>
-  ), [searchText, alFatihah, handleNavigateToSurah]);
+        <Text style={styles.surahsSectionHeader}>Surahs</Text>
+      </>
+    ),
+    [searchText, alFatihah]
+  );
 
   if (loading) {
     return (
@@ -160,7 +188,8 @@ export default function Quran() {
 
 const styles = StyleSheet.create({
   fixedHeader: {
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 10 : 54,
+    paddingTop:
+      Platform.OS === "android" ? (StatusBar.currentHeight || 0) + 10 : 54,
     paddingHorizontal: 20,
     paddingBottom: 10,
     backgroundColor: theme.color.white,
@@ -187,8 +216,8 @@ const styles = StyleSheet.create({
   },
   centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 20,
   },
   loadingText: {
@@ -200,7 +229,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     fontFamily: theme.font.regular,
-    color: '#FF4444',
-    textAlign: 'center',
+    color: "#FF4444",
+    textAlign: "center",
   },
 });
