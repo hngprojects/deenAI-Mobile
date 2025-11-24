@@ -146,3 +146,69 @@ export default function PrayerTimesScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fafafa',
+  },
+  // Header matching prayer details screen
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: '#ffffff',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  iconButton: {
+    padding: 8,
+  },
+  backIcon: {
+    width: 24,
+    height: 24,
+  },
+  calendarIcon: {
+    width: 35,
+    height: 35,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 24,
+  },
+  dateNavigation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  dateContainer: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  gregorianDate: {
+    fontSize: 20,
+    color: '#9C7630',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  islamicDate: {
+    fontSize: 14,
+    color: '#3C3A35',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  navIcon: {
+    width: 24,
+    height: 24,
+  },
+  section: {
+    marginBottom: 24,
+  },
