@@ -3,7 +3,7 @@ import { theme } from '@/styles/theme';
 import { useRouter } from 'expo-router';
 import { Bell } from 'lucide-react-native';
 import React from 'react';
-import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function HomeHeader() {
   const { user, isGuest } = useAuth();
@@ -21,28 +21,29 @@ export default function HomeHeader() {
   };
 
   const handleAvatarPress = () => {
-    console.log('🔴 Avatar pressed, showing alert');
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await logoutMutation.mutateAsync();
-            } catch (error) {
-              console.error('Logout failed:', error);
-            }
-          },
-        },
-      ]
-    );
+    router.push('/(tabs)/(profile)/ProfileScreen')
+    // console.log('🔴 Avatar pressed, showing alert');
+    // Alert.alert(
+    //   'Logout',
+    //   'Are you sure you want to logout?',
+    //   [
+    //     {
+    //       text: 'Cancel',
+    //       style: 'cancel',
+    //     },
+    //     {
+    //       text: 'Logout',
+    //       style: 'destructive',
+    //       onPress: async () => {
+    //         try {
+    //           await logoutMutation.mutateAsync();
+    //         } catch (error) {
+    //           console.error('Logout failed:', error);
+    //         }
+    //       },
+    //     },
+    //   ]
+    // );
   };
 
   const handleNotificationPress = () => {

@@ -1,15 +1,15 @@
+import { theme } from "@/styles/theme";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
+  Dimensions,
+  FlatList,
   Image,
   StyleSheet,
-  Dimensions,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { theme } from "@/styles/theme";
-import {FlatList} from 'react-native';
 import SignOutConfirmationModal from "./delete/SignOut";
 
 
@@ -99,8 +99,13 @@ const renderOption = ({ item }: { item: Option }) => (
         keyExtractor={(item) => item.id}
         renderItem={renderOption}
         scrollEnabled={false}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
         contentContainerStyle={{ paddingHorizontal: 8, marginTop: 30 }}
       />
+
 
       <SignOutConfirmationModal
         visible={signOutModalVisible}

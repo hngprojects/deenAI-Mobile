@@ -16,6 +16,8 @@ import {
 export default function TasbihScreen() {
   const [count, setCount] = useState(0);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [speakerOn, setSpeakerOn] = useState(true);
+
   const router = useRouter();
 
   const STORAGE_KEY = "@tasbih_count";
@@ -61,29 +63,31 @@ export default function TasbihScreen() {
     <ScreenContainer backgroundColor={theme.color.white}>
       <ScreenTitle title="Tasbih" />
 
-      <Text style={styles.counterText}>{count}</Text>
+      <View style={styles.wrapper}>
+        <Image
+          source={require("@/assets/images/tasbihthree.png")}
+          style={styles.tasbihbg}
+          resizeMode="contain"
+        />
 
-      <TouchableOpacity onPress={handleIncrement}>
-
-          <View style={styles.digitaltimer , border radious}>
-          00000  <Text style={styles.counterText}>{count}</Text>
+        <View style={styles.digitalCounter}>
+          <Text style={styles.counterText}>
+            {String(count).padStart(5, "0")}
+          </Text>
         </View>
-        <View style={styles.deviceWrapper}>
+
+        <TouchableOpacity
+          onPress={handleIncrement}
+          style={styles.clickAreaWrapper}
+          activeOpacity={0.6}
+        >
           <Image
             source={require("@/assets/images/tasbihtwo.png")}
-            style={styles.deviceImage}
+            style={styles.tasbihClick}
             resizeMode="contain"
           />
-        </View>
-
-        <View style={styles.deviceWrapper}>
-          <Image
-            source={require("@/assets/images/tasbihthree.png")}
-            style={styles.deviceImage}
-            resizeMode="contain"
-          />
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.actionsRow}>
         <TouchableOpacity onPress={() => setShowResetModal(true)}>
@@ -94,9 +98,13 @@ export default function TasbihScreen() {
           />
         </TouchableOpacity>
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => setSpeakerOn(!speakerOn)}>
           <Image
-            source={require("@/assets/images/buttonSjpeaker.png")}
+            source={
+              speakerOn
+                ? require("@/assets/images/no-soundButton.png")
+                : require("@/assets/images/buttonSjpeaker.png")
+            }
             style={styles.iconImage}
             resizeMode="contain"
           />
@@ -117,7 +125,7 @@ export default function TasbihScreen() {
 
             <Text style={styles.modalTitle}>Are you sure to Reset?</Text>
             <Text style={styles.modalDesc}>
-              You&quot;ve clicked {count} times today. Resetting will clear your
+              You've clicked {count} times today. Resetting will clear your
               dhikr count.
             </Text>
 
@@ -141,82 +149,55 @@ export default function TasbihScreen() {
 }
 
 const styles = StyleSheet.create({
-  headerContainer: {
-    marginTop: 30,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 8,
-  },
-  leftIcon: {
-    width: 24,
-    height: 24,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  deviceWrapper: {
+  wrapper: {
+    width: "100%",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 20,
-  },
-  deviceImage: {
-    width: 350,
-    height: 450,
-    resizeMode: "contain",
-  },
-  iconImage: {
-    width: 56,
-    height: 56,
-    resizeMode: "contain",
-  },
-  headerTitle: {
-    fontSize: 29,
-    textAlign: "center",
-    flex: 1,
-    fontFamily: theme.font.regular,
-    color: theme.color.secondary,
+    marginTop: 90,
+    marginBottom: 40,
   },
 
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 24, // space from top
-    marginHorizontal: 16, // optional: left/right padding
+  tasbihbg: {
+    width: 434,
+    height: 434,
   },
-  rightPlaceholder: {
-    width: 24,
-    height: 24,
+
+  digitalCounter: {
+    position: "absolute",
+    top: 95,
+    backgroundColor: theme.color.black,
+    opacity: 0.89,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
+
   counterText: {
-    fontSize: 48,
-    marginTop: 46,
-    fontFamily: theme.font.bold,
+    fontSize: 50,
+    fontFamily: theme.font.digital,
+    color: theme.color.white,
     textAlign: "center",
-    color: "#404040",
+  },
+
+  clickAreaWrapper: {
+    position: "absolute",
+    top: 156,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  tasbihClick: {
+    width: 336,
+    height: 336,
   },
   actionsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 60,
-    paddingHorizontal: 18,
+    marginTop: 32,
   },
-  resetButton: {
-    backgroundColor: "#f0f0f0",
-    padding: 12,
-    borderRadius: 40,
-  },
-
-  tapButton: {
-    backgroundColor: "#e2e2e2",
-    paddingVertical: 18,
-    paddingHorizontal: 35,
-    borderRadius: 30,
-  },
-
-  tapText: {
-    fontSize: 20,
-    fontFamily: theme.font.regular,
-    color: "#404040",
+  iconImage: {
+    width: 60,
+    height: 60,
   },
 
   modalOverlay: {
@@ -247,7 +228,7 @@ const styles = StyleSheet.create({
     color: "#555",
     fontSize: 19,
     fontFamily: theme.font.regular,
-    lineHeight: 24, // increased for readability
+    lineHeight: 24,
   },
 
   modalTitle: {
@@ -262,6 +243,7 @@ const styles = StyleSheet.create({
     width: "100%", // make buttons span full width if needed
     alignItems: "center",
   },
+
   confirmBtn: {
     backgroundColor: theme.color.brand,
     paddingVertical: 14,

@@ -1,4 +1,3 @@
-import PrimaryButton from "@/components/primaryButton";
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenTitle from "@/components/ScreenTitle";
 import { useToast } from "@/hooks/useToast";
@@ -7,7 +6,7 @@ import { theme } from "@/styles/theme";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, TextInput, View, AppState, TouchableOpacity } from "react-native";
+import { AppState, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 const RESEND_COOLDOWN_KEY = '@resend_verification_cooldown';
 const COOLDOWN_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
@@ -130,11 +129,12 @@ export default function ConfirmDeleteAccount() {
         }
     };
 
-    const handleVerify = async () => {
+    const handleVerify = async () => {        
         const verificationCode = code.join("");
 
         if (verificationCode.length !== 6) {
             showToast("Please enter the complete 6-digit verification code", "warning");
+            router.push("/(tabs)/(profile)/delete/DeleteAccountSuccess");
             return;
         }
 
@@ -163,6 +163,7 @@ export default function ConfirmDeleteAccount() {
     };
 
     const handleResendCode = async () => {
+        
         if (!canResend) {
             showToast(
                 `Please wait ${formatTime(timeRemaining)} before resending`,
@@ -219,12 +220,12 @@ export default function ConfirmDeleteAccount() {
                 ))}
             </View>
 
-           <View style={[{ marginTop: 24 }, styles.modalButtons]}>
+           <View style={[{ marginTop: 24 }, styles.screenButtons]}>
              
             <TouchableOpacity
               onPress={handleVerify}
               disabled={verifyEmailMutation.isPending}
-              style={{backgroundColor: '#E55153'}}
+            style={[styles.screenButton, styles.deleteButton]}
             >
               <Text style={styles.verifyButtonText}>{verifyEmailMutation.isPending ? "Verifying..." : "Delete Account"}</Text>
             </TouchableOpacity>
@@ -326,9 +327,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: theme.font.semiBold,
   },
-  modalButtons: {
-  flexDirection: "column",  
-  gap: 12,
-},
 
+  screenButtons: {
+    flexDirection: "column",
+    gap: 12,
+    width: "100%",
+    marginTop: 12,
+  },
+
+  screenButton: {
+    width: "100%",
+    padding: 16,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  deleteButton: {
+    backgroundColor: '#E55153',
+  },
 });
