@@ -8,12 +8,12 @@ interface ModalProps {
   setVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function SignOutConfirmationModal({ visible, setVisible }: ModalProps) {
+export default function DeleteAccountModal({ visible, setVisible }: ModalProps) {
   const router = useRouter();
 
   const handleSignOut = () => {
     setVisible(false);
-    // your sign-out logic here
+    router.push('/(tabs)/(profile)/delete/ConfirmDelete')
   };
 
   return (
@@ -26,25 +26,29 @@ export default function SignOutConfirmationModal({ visible, setVisible }: ModalP
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Do you want to logout?</Text>
+          <Text style={styles.modalTitle}>Did you know?</Text>
 
           <Text style={styles.modalText}>
-            You would need to log your details in to access your account
+            You can pause notifications or sign out temporarily instead of deleting your data.
+            You won&apos;t lose your saved reflections or chats if you choose to come back later.
           </Text>
 
           <View style={styles.modalButtons}>
             <TouchableOpacity
-              style={[styles.modalButton, styles.cancelButton]}
-              onPress={() => setVisible(false)}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => {
+                    setVisible(false);
+                    router.push('/(tabs)/(profile)/ProfileScreen');
+                }}
+                >
+                <Text style={styles.cancelButtonText}>Pause My Account Instead</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.modalButton, styles.logOutButton]}
               onPress={handleSignOut}
             >
-              <Text style={styles.logOutButtonText}>Log Out</Text>
+              <Text style={styles.logOutButtonText}>Yes, Delete My Account</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -69,7 +73,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     textAlign: "center",
-    fontSize: 26,
+    fontSize: 25,
     color: theme.color.black,
     fontFamily: theme.font.semiBold,
   },
@@ -79,25 +83,27 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24
   },
+
   modalButtons: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 12,
-  },
-  modalButton: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  flexDirection: "column",  
+  gap: 12,
+},
+
+modalButton: {
+  width: "100%",  
+  padding: 16,
+  borderRadius: 16,
+  alignItems: "center",
+  justifyContent: "center",
+},
+
   cancelButton: {
     borderColor: theme.color.border,
     borderWidth: 1,
   },
   cancelButtonText: {
     fontSize: 16,
-    fontFamily: theme.font.semiBold,
+    fontFamily: theme.font.regular,
   },
   logOutButton: {
     backgroundColor: '#E55153',

@@ -1,124 +1,334 @@
-import React, { useState, useRef } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from "react-native";
-import ScreenHeader from "../../../../components/screenHeader";
-import { useRouter } from "expo-router";
+import PrimaryButton from "@/components/primaryButton";
+import ScreenContainer from "@/components/ScreenContainer";
+import ScreenTitle from "@/components/ScreenTitle";
+import { useToast } from "@/hooks/useToast";
+import { useResendVerification, useVerifyOtp } from "@/hooks/useUpdateProfile";
+import { theme } from "@/styles/theme";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import { StyleSheet, Text, TextInput, View, AppState, TouchableOpacity } from "react-native";
+
+const RESEND_COOLDOWN_KEY = '@resend_verification_cooldown';
+const COOLDOWN_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 export default function ConfirmDeleteAccount() {
-  const router = useRouter();
+    const { email } = useLocalSearchParams<{ email: string }>();
+    const [code, setCode] = useState(["", "", "", "", "", ""]);
+    const [timeRemaining, setTimeRemaining] = useState(0);
+    const [canResend, setCanResend] = useState(true);
+    const inputRefs = useRef<(TextInput | null)[]>([]);
+    const timerRef = useRef<number | null>(null);
 
-  const [code, setCode] = useState(["", "", "", "", ""]);
-  const inputs = useRef<TextInput[]>([]);
+    const verifyEmailMutation = useVerifyOtp();
+    const resendVerificationMutation = useResendVerification();
+    const { showToast } = useToast();
 
-  const handleChange = (value: string, index: number) => {
-    const newCode = [...code];
-    newCode[index] = value; // store actual value
-    setCode(newCode);
+    // Check cooldown on mount and when app comes to foreground
+    useEffect(() => {
+        checkCooldown();
 
-    // Move to next input
-    if (value && index < 4) {
-      const nextInput = inputs.current[index + 1];
-      if (nextInput) nextInput.focus();
-    }
-  };
+        const subscription = AppState.addEventListener('change', (nextAppState) => {
+            if (nextAppState === 'active') {
+                checkCooldown();
+            }
+        });
 
-  return (
-    <View style={styles.container}>
-      <ScreenHeader title="Delete Account" />
+        return () => {
+            subscription.remove();
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+            }
+        };
+    }, []);
 
-      {/* Centered Text Section */}
-      <View style={styles.centerTextWrapper}>
-        <Text style={styles.boldTitle}>Confirm Delete</Text>
-        <Text style={styles.normalText}>A 5-digit code has been sent to</Text>
-        <Text style={styles.emailText}>ismail123@gmail.com</Text>
-      </View>
+    // Timer countdown effect   
+    useEffect(() => {
+      if (timeRemaining > 0) {
+        timerRef.current = setInterval(() => {
+          setTimeRemaining((prev) => {
+            if (prev <= 1000) {
+              setCanResend(true);
+              if (timerRef.current) clearInterval(timerRef.current);
+              AsyncStorage.removeItem(RESEND_COOLDOWN_KEY);
+              return 0;
+            }
+            return prev - 1000;
+          });
+        }, 1000);
 
-      {/* Code Input Boxes */}
-      <View style={styles.codeContainer}>
-        {code.map((item, index) => (
-          <TextInput
-            key={index}
-            ref={(ref: TextInput | null) => {
-              if (ref) inputs.current[index] = ref;
-            }}
-            style={styles.codeInput}
-            maxLength={1}
-            keyboardType="number-pad"
-            // Show "*" visually but store the real input
-            value={item ? "*" : ""}
-            onChangeText={(value) => handleChange(value, index)}
-          />
-        ))}
-      </View>
+        return () => {
+          if (timerRef.current) clearInterval(timerRef.current);
+        };
+      }
+    }, [timeRemaining]);
 
-      {/* Delete Button */}
-      <TouchableOpacity
-        style={styles.deleteButton}
-        onPress={() => router.push("/(tabs)")}>
-        <Text style={styles.deleteText}>Delete Account</Text>
-      </TouchableOpacity>
-    </View>
-  );
+
+    useEffect(() => {
+        setTimeout(() => inputRefs.current[0]?.focus(), 100);
+    }, []);
+
+    const checkCooldown = async () => {
+        try {
+            const cooldownEndTime = await AsyncStorage.getItem(RESEND_COOLDOWN_KEY);
+
+            if (cooldownEndTime) {
+                const endTime = parseInt(cooldownEndTime, 10);
+                const now = Date.now();
+                const remaining = endTime - now;
+
+                if (remaining > 0) {
+                    setTimeRemaining(remaining);
+                    setCanResend(false);
+                } else {
+                    await AsyncStorage.removeItem(RESEND_COOLDOWN_KEY);
+                    setCanResend(true);
+                    setTimeRemaining(0);
+                }
+            } else {
+                setCanResend(true);
+                setTimeRemaining(0);
+            }
+        } catch (error) {
+            console.error('Error checking cooldown:', error);
+        }
+    };
+
+    const startCooldown = async () => {
+        const endTime = Date.now() + COOLDOWN_DURATION;
+        try {
+            await AsyncStorage.setItem(RESEND_COOLDOWN_KEY, endTime.toString());
+            setTimeRemaining(COOLDOWN_DURATION);
+            setCanResend(false);
+        } catch (error) {
+            console.error('Error starting cooldown:', error);
+        }
+    };
+
+    const formatTime = (milliseconds: number): string => {
+        const totalSeconds = Math.ceil(milliseconds / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    const handleCodeChange = (text: string, index: number) => {
+        if (text && !/^\d+$/.test(text)) return;
+
+        const newCode = [...code];
+        newCode[index] = text;
+        setCode(newCode);
+
+        if (text && index < 5) {
+            inputRefs.current[index + 1]?.focus();
+        }
+    };
+
+    const handleKeyPress = (e: any, index: number) => {
+        if (e.nativeEvent.key === "Backspace" && !code[index] && index > 0) {
+            inputRefs.current[index - 1]?.focus();
+        }
+    };
+
+    const handleVerify = async () => {
+        const verificationCode = code.join("");
+
+        if (verificationCode.length !== 6) {
+            showToast("Please enter the complete 6-digit verification code", "warning");
+            return;
+        }
+
+        if (!email) {
+            showToast("Email not found. Please try again.", "error");
+            router.back();
+            return;
+        }
+
+        try {
+            await verifyEmailMutation.mutateAsync({
+                email: email as string,
+                otp: verificationCode
+            });
+
+            // Clear cooldown on successful verification
+            await AsyncStorage.removeItem(RESEND_COOLDOWN_KEY);
+
+            // Route to login on successful verification
+            router.push("/(auth)/login");
+        } catch (error: any) {
+            // Error toast already shown in useVerifyEmail hook
+            setCode(["", "", "", "", "", ""]);
+            inputRefs.current[0]?.focus();
+        }
+    };
+
+    const handleResendCode = async () => {
+        if (!canResend) {
+            showToast(
+                `Please wait ${formatTime(timeRemaining)} before resending`,
+                "warning"
+            );
+            return;
+        }
+
+        if (!email) {
+            showToast("Email not found. Please try again.", "error");
+            return;
+        }
+
+        try {
+            await resendVerificationMutation.mutateAsync(email as string);
+            await startCooldown();
+
+            setCode(["", "", "", "", "", ""]);
+            inputRefs.current[0]?.focus();
+        } catch (error: any) {
+            // Error toast already shown in useResendVerification hook
+        }
+    };
+
+    return (
+        <ScreenContainer>
+          <ScreenTitle title="Delete Account"  onBackPress={() => router.push('/(tabs)/(profile)/delete/DeleteAccoutReasonScreen')}/>
+          <Text style={styles.title}> Confirm Delete </Text>
+          <Text style={styles.subtitle}>
+            An 5-digit code has been sent to {"\n"}
+            <Text style={styles.emailText}>ismail123@gmail.com  </Text>
+          </Text>
+
+            <View style={styles.codeContainer}>
+                {code.map((digit, index) => (
+              <TextInput
+                key={index}
+                ref={ref => {
+                    inputRefs.current[index] = ref;
+                }}
+                style={[
+                    styles.codeInput,
+                    digit && styles.codeInputFilled,
+                ]}
+                  value={digit}
+                  onChangeText={(text) => handleCodeChange(text, index)}
+                  onKeyPress={(e) => handleKeyPress(e, index)}
+                  keyboardType="number-pad"
+                  maxLength={1}
+                  selectTextOnFocus
+                  editable={!verifyEmailMutation.isPending}
+              />
+
+                ))}
+            </View>
+
+           <View style={[{ marginTop: 24 }, styles.modalButtons]}>
+             
+            <TouchableOpacity
+              onPress={handleVerify}
+              disabled={verifyEmailMutation.isPending}
+              style={{backgroundColor: '#E55153'}}
+            >
+              <Text style={styles.verifyButtonText}>{verifyEmailMutation.isPending ? "Verifying..." : "Delete Account"}</Text>
+            </TouchableOpacity>
+            </View>
+
+            <View style={styles.resendContainer}>
+                <Text style={styles.resendText}>Didn&apos;t receive? </Text>
+                <Text
+                    style={[
+                        styles.resendLink,
+                        (!canResend || resendVerificationMutation.isPending) && styles.resendLinkDisabled
+                    ]}
+                    onPress={
+                        resendVerificationMutation.isPending || !canResend
+                            ? undefined
+                            : handleResendCode
+                    }
+                >
+                    {resendVerificationMutation.isPending
+                        ? "Sending..."
+                        : !canResend
+                        ? `Resend in ${formatTime(timeRemaining)}`
+                        : "Resend Code"
+                    }
+                </Text>
+            </View>
+        </ScreenContainer>
+    );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 20 },
+    subtitle: {
+      fontSize: 20,
+      textAlign: "center",
+      marginTop: 2,
+      marginBottom: 32,
+      lineHeight: 22,
+      fontFamily: theme.font.regular,
+      color: "#333",
+    },
 
-  centerTextWrapper: {
-    marginTop: 40,
-    alignItems: "center",
-  },
-
-  boldTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#000",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-
-  normalText: {
-    fontSize: 14,
-    color: "#444",
-    marginBottom: 6,
-    textAlign: "center",
-  },
-
-  emailText: {
+    title: {
+      fontSize: 24,
+      textAlign: "center",
+      marginTop: 20,
+      marginBottom: 32,
+      lineHeight: 22,
+      fontFamily: theme.font.semiBold,
+      color: "#333",
+    },
+    emailText: {
+        color: theme.color.black,
+        fontSize: 16,
+        fontFamily: theme.font.semiBold,
+    },
+    codeContainer: {
+        flexDirection: "row",
+        justifyContent: "center",
+        gap: 10,
+        marginBottom: 8,
+    },
+    codeInput: {
+        width: 50,
+        height: 56,
+        borderWidth: 1.5,
+        borderColor: "#E0E0E0",
+        borderRadius: 12,
+        fontSize: 24,
+        fontFamily: theme.font.semiBold,
+        textAlign: "center",
+        color: "#222",
+        backgroundColor: "#FAFAFA",
+    },
+    codeInputFilled: {
+        borderColor: '#E55153',
+        backgroundColor: "#FFF",
+    },
+    resendContainer: {
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 20,
+    },
+    resendText: {
+        fontSize: 15,
+        color: "#777",
+        fontFamily: theme.font.regular,
+    },
+    resendLink: {
+        fontSize: 15,
+        color: '#E55153',
+        fontFamily: theme.font.semiBold,
+    },
+    resendLinkDisabled: {
+        color: "#999",
+    },
+  verifyButtonText: {
+    color: '#fff',
     fontSize: 16,
-    fontWeight: "700",
-    color: "#000",
-    textAlign: "center",
+    fontFamily: theme.font.semiBold,
   },
+  modalButtons: {
+  flexDirection: "column",  
+  gap: 12,
+},
 
-  codeContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 40,
-    gap: 10,
-  },
-
-  codeInput: {
-    width: 55,
-    height: 55,
-    borderWidth: 1.5,
-    borderColor: "#999",
-    borderRadius: 10,
-    textAlign: "center",
-    fontSize: 28,
-    fontWeight: "700",
-  },
-
-  deleteButton: {
-    backgroundColor: "#F2393C",
-    padding: 16,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 50,
-  },
-
-  deleteText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
 });

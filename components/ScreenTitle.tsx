@@ -7,17 +7,32 @@ import { useRouter } from "expo-router";
 interface ScreenTitleProps {
   title: string;
   showBack?: boolean;
-  rightComponent?: React.ReactNode; // optional custom icon on the right
+  rightComponent?: React.ReactNode;
+  onBackPress?: () => void;   // <-- Add this
 }
 
-export default function ScreenTitle({ title, showBack = true, rightComponent }: ScreenTitleProps) {
+export default function ScreenTitle({ 
+  title, 
+  showBack = true, 
+  rightComponent,
+  onBackPress
+}: ScreenTitleProps) {
+
   const router = useRouter();
+
+  const handleBack = () => {
+    if (onBackPress) {
+      onBackPress();  // use custom action
+    } else {
+      router.back();  // default behavior
+    }
+  };
 
   return (
     <View style={styles.headerContainer}>
       {/* Left Side */}
       {showBack ? (
-        <TouchableOpacity onPress={() => router.back()} style={styles.leftIcon}>
+        <TouchableOpacity onPress={handleBack} style={styles.leftIcon}>
           <ArrowLeft color={theme.color.secondary} size={24} />
         </TouchableOpacity>
       ) : (
@@ -28,11 +43,7 @@ export default function ScreenTitle({ title, showBack = true, rightComponent }: 
       <Text style={styles.headerTitle}>{title}</Text>
 
       {/* Right Side */}
-      {rightComponent ? (
-        rightComponent
-      ) : (
-        <View style={styles.placeholder} />
-      )}
+      {rightComponent ? rightComponent : <View style={styles.placeholder} />}
     </View>
   );
 }
@@ -56,7 +67,7 @@ const styles = StyleSheet.create({
     height: 32,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 23,
     textAlign: "center",
     flex: 1,
     fontFamily: theme.font.regular,

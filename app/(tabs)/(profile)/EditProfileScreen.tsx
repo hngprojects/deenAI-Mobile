@@ -8,17 +8,16 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Formik } from 'formik';
-
 import ScreenContainer from '@/components/ScreenContainer';
 import InputField from '@/components/InputField';
 import PrimaryButton from '@/components/primaryButton';
-
 import { EditProfileType } from '@/types/profile.types';
 import { EditProfileSchema } from '@/utils/validation';
 import { useEditProfile } from '@/hooks/useUpdateProfile';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 import ScreenHeader from '@/components/screenHeader';
+import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -70,7 +69,7 @@ export default function EditProfileScreen() {
 
   return (
     <ScreenContainer>
-      <ScreenHeader title="Edit Profile" />
+      <ScreenHeader title="Edit Profile"  onBackPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}/>
 
       {/* Avatar */}
       <View style={styles.avatarWrapper}>

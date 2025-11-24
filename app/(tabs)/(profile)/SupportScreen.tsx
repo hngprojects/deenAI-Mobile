@@ -10,7 +10,7 @@ export default function SupportScreen() {
 
   return (
     <ScreenContainer backgroundColor={theme.color.background3}>
-    <ScreenHeader title="Support" />
+    <ScreenHeader title="Support"  onBackPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}/>
 
       <View style={styles.list}>
 

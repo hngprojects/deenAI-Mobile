@@ -12,7 +12,7 @@ export default function AppLanguageScreen() {
 
   return (
     <ScreenContainer backgroundColor={theme.color.background3}>
-      <ScreenHeader title="App Language" />
+      <ScreenHeader title="App Language"  onBackPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}/>
 
       <TouchableOpacity 
         style={styles.languageContainer} 

@@ -1,49 +1,82 @@
-import ScreenHeader from "@/components/screenHeader";
+import ScreenTitle from "@/components/ScreenTitle";
 import { theme } from "@/styles/theme";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import DeleteAccountModal from "./DeleteAccountModal";
 
+interface ReasonItem {
+  id: number;
+  reason: string;
+}
 
 export default function DeleteAccoutReasonScreen() {
   const router = useRouter();
+  const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
+
+  const reasonsData: ReasonItem[] = [
+    { id: 1, reason: "I’m taking a break from apps" },
+    { id: 2, reason: "I have privacy or data concerns" },
+    { id: 3, reason: "I found another Quran app I prefer" },
+    { id: 4, reason: "I faced technical issues or bugs" },
+    { id: 5, reason: "The app didn’t meet my expectations" },
+    { id: 6, reason: "I no longer use the app regularly" },
+    { id: 7, reason: "Other (please specify)" },
+  ];
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title="Delete Account" />
+      <ScreenTitle
+        title="Delete Account"
+        onBackPress={() => router.push("/(tabs)/(profile)/DeleteAccountScreen")}
+      />
 
       <View style={styles.textWrapper}>
-        <Text style={styles.boldText}>
-          We’re sorry to see you go.
+        <Text style={styles.boldText}>We&apos;re sorry to see you go.</Text>
+
+        <Text style={styles.normalText}>
+          Every journey has its pauses. If you&apos;re thinking of leaving, please tell us why, your feedback will help us serve others better, in shā’ Allāh.
+          Remember, you can always return whenever your heart wishes to reflect again.
         </Text>
 
         <Text style={styles.normalText}>
-            Every journey has its pauses.If you’re thinking of leaving, please tell us why, your feedback will help us serve others better, in shā’ Allāh.
-            Remember, you can always return whenever your heart wishes to reflect again.
-        </Text>
-
-        <Text style={styles.normalText}>
-          We’re sad to see you go, but we understand that sometimes it’s necessary. Please take a moment to consider the consequences before proceeding.
+          We&apos;re sad to see you go, but we understand that sometimes it&apos;s necessary. Please take a moment to consider the consequences before proceeding.
         </Text>
       </View>
 
-      <View style={styles.buttonWrapper}>
-        {/* Cancel button goes back */}
+      {/* REASONS LIST */}
+      <View>
+        {reasonsData.map((reason) => (
+          <View key={reason.id} style={styles.featureRow}>
+            <View style={styles.checkboxFilled}>
+              <Text style={styles.checkIcon}>✔</Text>
+            </View>
+
+            <Text style={styles.textTitle}>{reason.reason}</Text>
+          </View>
+        ))}
+      </View>
+   
+      <View style={styles.screenButtons}>
         <TouchableOpacity
-          style={[styles.button, styles.cancelButton]}
-          onPress={() => router.back()}
+          style={[styles.screenButton, styles.cancelButton]}
+            onPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}
         >
-          <Text style={styles.cancelButtonText}>Cancel</Text>
+          <Text style={styles.cancelButtonText}>Keep My Account</Text>
         </TouchableOpacity>
 
-        {/* Delete button navigates to delete check page */}
         <TouchableOpacity
-          style={[styles.button, styles.deleteButton]}
-          onPress={() => router.push("/")}
-        >
-          <Text style={styles.deleteButtonText}>Delete</Text>
+          style={[styles.screenButton, styles.deleteButton]}
+          onPress={() => {setDeleteAccountModalVisible(true)
+          }}>
+          <Text style={styles.deleteButtonText}>Yes, Delete My Account</Text>
         </TouchableOpacity>
       </View>
+
+      <DeleteAccountModal
+          visible={deleteAccountModalVisible}
+          setVisible={setDeleteAccountModalVisible}
+      /> 
     </View>
   );
 }
@@ -51,28 +84,82 @@ export default function DeleteAccoutReasonScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "white" },
 
-  textWrapper: { marginTop: 30, marginBottom: 40 },
-  boldText: { fontSize: 16, fontWeight: "700", color: "#000", marginBottom: 10, fontFamily:theme.font.regular },
-  normalText: { fontSize: 14, fontWeight: "400", color: "#555", marginBottom: 6, fontFamily:theme.font.regular },
+  textWrapper: { marginTop: 20, marginBottom: 10 },
 
-  buttonWrapper: { flexDirection: "column", gap: 12 }, 
+  boldText: { 
+    fontSize: 24, 
+    color: "#000", 
+    marginBottom: 10, 
+    fontFamily: theme.font.semiBold,
+  },
 
-  button: {
+  normalText: { 
+    fontSize: 18,
+    fontWeight: "400",
+    color: "#555",
+    marginBottom: 12, 
+    fontFamily: theme.font.regular,
+  },
+
+  textTitle: {
+    fontSize: 17,
+    fontFamily: theme.font.regular,
+    color: "#404040",
+    lineHeight: 24,
+  },
+
+  featureRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 9,
+  },
+
+  checkboxFilled: {
+    width: 18,
+    height: 18,
+    borderWidth: 1.5,
+    borderColor: "#964B00",
+    borderRadius: 4,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+
+  checkIcon: {
+    fontSize: 12,
+    color: "#964B00",
+    fontWeight: "bold",
+  },
+
+  screenButtons: {
+    flexDirection: "column",
+    gap: 12,
+    width: "100%",
+    marginTop: 12,
+  },
+
+  screenButton: {
     width: "100%",
     padding: 16,
-    borderRadius: 10,
+    borderRadius: 16,
     alignItems: "center",
+    justifyContent: "center",
   },
 
   cancelButton: {
-    backgroundColor: "#F2393C",
-  },
-  cancelButtonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
-
-  deleteButton: {
-    backgroundColor: theme.color.background, 
+    borderColor: theme.color.border,
     borderWidth: 1,
-    borderColor: "#000",
   },
-  deleteButtonText: { color: "#000", fontWeight: "700", fontSize: 16 },
+  cancelButtonText: {
+    fontSize: 16,
+    fontFamily: theme.font.semiBold,
+  },
+  deleteButton: {
+    backgroundColor: '#E55153',
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: theme.font.semiBold,
+  },
 });

@@ -10,6 +10,7 @@ import {
 import { useRouter } from "expo-router";
 import { theme } from "@/styles/theme";
 import {FlatList} from 'react-native';
+import SignOutConfirmationModal from "./delete/SignOut";
 
 
 const { width } = Dimensions.get("window");
@@ -45,7 +46,7 @@ const profile: { options: Option[]; avatar: any; name: string; greeting: string;
     { id: '2', title: 'Notifications', route: '/(tabs)/(profile)/NotificationScreen', iconKey: 'notifications' },
     { id: '3', title: 'Language', route: '/(tabs)/(profile)/AppLanguageScreen', iconKey: 'language' },
     { id: '4', title: 'Support', route: '/(tabs)/(profile)/SupportScreen', iconKey: 'support' },
-    { id: '5', title: 'Sign Out', route: '/(tabs)/(profile)/delete/SignOut', iconKey: 'signout' },
+    { id: '5', title: 'Log Out', route: '/(tabs)/(profile)/delete/SignOut', iconKey: 'signout' },
     { id: '6', title: 'Delete Account', route: '/(tabs)/(profile)/DeleteAccountScreen', iconKey: 'delete' },
 >>>>>>> 61c9f02 (feat: Update Profile):app/(tabs)/(profile)/ProfileScreen.tsx
   ],
@@ -55,11 +56,6 @@ const ProfileScreen: React.FC = () => {
   const router = useRouter();
   const [signOutModalVisible, setSignOutModalVisible] = useState(false);
 
-  const handleSignOut = () => {
-    setSignOutModalVisible(false);
-    // Sign-out logic here: clear tokens, reset store, navigate
-    console.log("Signed out!");
-  };
 
 const renderOption = ({ item }: { item: Option }) => (
   <TouchableOpacity
@@ -90,14 +86,11 @@ const renderOption = ({ item }: { item: Option }) => (
 
   return (
     <View>
-        <View style={styles.header}>
+      <View style={styles.header}>
         <Image source={profile.avatar} style={styles.avatar} />
-
         <Text style={[styles.nameGreeting, { color: theme.color.secondary }]}>
           {profile.nameGreeting}
-          <Text style={[styles.greeting, { color: theme.color.secondary }]}>
-            {profile.greeting}
-          </Text>
+          <Text style={styles.greeting}>{profile.greeting}</Text>
         </Text>
       </View>
 
@@ -106,20 +99,13 @@ const renderOption = ({ item }: { item: Option }) => (
         keyExtractor={(item) => item.id}
         renderItem={renderOption}
         scrollEnabled={false}
-        showsVerticalScrollIndicator={false} // hides vertical scrollbar
-        showsHorizontalScrollIndicator={false} // hides horizontal scrollbar
         contentContainerStyle={{ paddingHorizontal: 8, marginTop: 30 }}
       />
 
-<<<<<<< HEAD:components/profile/ProfileScreen.tsx
-        <Image
-          source={require("../../assets/images/NOOR NAV.png")}
-          style={styles.navbarImage}
-          resizeMode="cover"
-        />
-      </ScrollView>
-    </ScreenContainer>
-=======
+      <SignOutConfirmationModal
+        visible={signOutModalVisible}
+        setVisible={setSignOutModalVisible}
+      />
     </View>
 >>>>>>> 61c9f02 (feat: Update Profile):app/(tabs)/(profile)/ProfileScreen.tsx
   );
@@ -128,7 +114,7 @@ const renderOption = ({ item }: { item: Option }) => (
 const styles = StyleSheet.create({
     header: {
     alignItems: 'center',
-    marginTop: 26,
+    marginTop: 36,
   },
   avatar: {
     width: width * 0.32,

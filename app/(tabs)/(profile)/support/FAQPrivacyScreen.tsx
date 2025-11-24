@@ -3,12 +3,13 @@ import { StyleSheet, Text, View } from "react-native";
 import ScreenHeader from "../../../../components/screenHeader";
 import ScreenContainer from "@/components/ScreenContainer";
 import { theme } from "@/styles/theme";
+import { router } from "expo-router";
 
 export default function PrivacyScreen() {
   return (
  
    <ScreenContainer backgroundColor={theme.color.background3}>
-      <ScreenHeader title="Frequently Asked Questions" />
+      <ScreenHeader title="Frequently Asked Questions"  onBackPress={() => router.push('/(tabs)/(profile)/support/FAQScreen')}/>
 
       <View>  
       <Text style={styles.text}>

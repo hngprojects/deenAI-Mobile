@@ -4,6 +4,8 @@ import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import ScreenContainer from '@/components/ScreenContainer';
 import Toggle from '@/components/ToggleNotifications';
 import ScreenTitle from '@/components/ScreenTitle';
+import ScreenHeader from '@/components/screenHeader';
+import { router } from 'expo-router';
 
 export default function NotificationScreen() {
   const [notifications, setNotifications] = useState([
@@ -22,7 +24,7 @@ export default function NotificationScreen() {
 
   return (
     <ScreenContainer backgroundColor={theme.color.background3}>
-      <ScreenTitle title="Notifications" />
+      <ScreenHeader title="Notifications"  onBackPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}/>
 
       <ScrollView contentContainerStyle={styles.content}>
         {notifications.map((item) => (

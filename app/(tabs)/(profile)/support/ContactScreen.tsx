@@ -16,6 +16,7 @@ import { ContactSupportSchema } from '@/utils/validation';
 import { useContactSupport } from '@/hooks/useUpdateProfile';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { theme } from '@/styles/theme';
+import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -43,7 +44,7 @@ export default function ContactScreen() {
 
   return (
     <ScreenContainer>
-      <ScreenHeader title="Support" />
+      <ScreenHeader title="Support"  onBackPress={() => router.push('/(tabs)/(profile)/SupportScreen')}/>
 
       {/* Form */}
       <Formik
@@ -84,8 +85,6 @@ export default function ContactScreen() {
               error={touched.email ? errors.email : undefined}
               editable={!isPending}
             />
-
-            
             <InputField
               label="Subject"
               placeholder="Subject"
@@ -107,7 +106,7 @@ export default function ContactScreen() {
                 editable={!isPending}
                 style={[
                   styles.input,
-                  { height: 120 }, // 👈 increase height
+                  { height: 120 },
                   touched.message && errors.message ? { borderColor: 'red' } : null
                 ]}
                 multiline

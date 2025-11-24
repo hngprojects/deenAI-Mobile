@@ -64,9 +64,13 @@ export default function TasbihScreen() {
       <Text style={styles.counterText}>{count}</Text>
 
       <TouchableOpacity onPress={handleIncrement}>
+
+          <View style={styles.digitaltimer , border radious}>
+          00000  <Text style={styles.counterText}>{count}</Text>
+        </View>
         <View style={styles.deviceWrapper}>
           <Image
-            source={require("@/assets/images/tasbihone.png")}
+            source={require("@/assets/images/tasbihtwo.png")}
             style={styles.deviceImage}
             resizeMode="contain"
           />
@@ -74,7 +78,7 @@ export default function TasbihScreen() {
 
         <View style={styles.deviceWrapper}>
           <Image
-            source={require("@/assets/images/tasbihone.png")}
+            source={require("@/assets/images/tasbihthree.png")}
             style={styles.deviceImage}
             resizeMode="contain"
           />

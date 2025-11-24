@@ -2,14 +2,14 @@ import { theme } from "@/styles/theme";
 import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import ScreenHeader from "../../../components/screenHeader";
+import ScreenTitle from "@/components/ScreenTitle";
 
 export default function DeleteAccountScreen() {
   const router = useRouter();
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title="Delete Account" />
+      <ScreenTitle title="Delete Account"  onBackPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}/>
 
       <View style={styles.textWrapper}>
         <Text style={styles.boldText}>
@@ -21,23 +21,21 @@ export default function DeleteAccountScreen() {
         </Text>
 
         <Text style={styles.normalText}>
-          We’re sad to see you go, but we understand that sometimes it’s necessary. Please take a moment to consider the consequences before proceeding.
+          We&apos;re sad to see you go, but we understand that sometimes it&apos;s necessary. Please take a moment to consider the consequences before proceeding.
         </Text>
       </View>
 
-      <View style={styles.buttonWrapper}>
-        {/* Cancel button goes back */}
+      <View style={styles.modalButtons}>
         <TouchableOpacity
-          style={[styles.button, styles.cancelButton]}
-          onPress={() => router.back()}
+          style={[styles.modalButton, styles.cancelButton]}
+           onPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}
         >
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
 
-        {/* Delete button navigates to delete check page */}
         <TouchableOpacity
-          style={[styles.button, styles.deleteButton]}
-          onPress={() => router.push("/")}
+          style={[styles.modalButton, styles.deleteButton]}
+           onPress={() => router.push('/(tabs)/(profile)/delete/DeleteAccoutReasonScreen')}
         >
           <Text style={styles.deleteButtonText}>Delete</Text>
         </TouchableOpacity>
@@ -47,30 +45,55 @@ export default function DeleteAccountScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "white" },
+container: { flex: 1, padding: 20, backgroundColor: "white" },
+textWrapper: { marginTop: 30, marginBottom: 40 },
 
-  textWrapper: { marginTop: 30, marginBottom: 40 },
-  boldText: { fontSize: 16, fontWeight: "700", color: "#000", marginBottom: 10, fontFamily:theme.font.regular },
-  normalText: { fontSize: 14, fontWeight: "400", color: "#555", marginBottom: 6, fontFamily:theme.font.regular },
+ boldText: { 
+  fontSize: 26, 
+  color: "#000", 
+  marginBottom: 10, 
+  fontFamily: theme.font.semiBold,
+  textAlign: "center",
+  alignSelf: "center",
+},
 
-  buttonWrapper: { flexDirection: "column", gap: 12 }, 
+normalText: { 
+  fontSize: 20,
+  fontWeight: "400",
+  color: "#555",
+  marginBottom: 12, 
+  fontFamily: theme.font.regular,
+  textAlign: "center",
+  alignSelf: "center",
+},
+  modalButtons: {
+    flexDirection: "column",
+    gap: 12,
+    width: "100%",
+    marginTop: 12,
+  },
 
-  button: {
+  modalButton: {
     width: "100%",
     padding: 16,
-    borderRadius: 10,
+    borderRadius: 16,
     alignItems: "center",
+    justifyContent: "center",
   },
-
   cancelButton: {
-    backgroundColor: "#F2393C",
-  },
-  cancelButtonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
-
-  deleteButton: {
-    backgroundColor: theme.color.background, 
+    borderColor: theme.color.border,
     borderWidth: 1,
-    borderColor: "#000",
   },
-  deleteButtonText: { color: "#000", fontWeight: "700", fontSize: 16 },
+  cancelButtonText: {
+    fontSize: 16,
+    fontFamily: theme.font.semiBold,
+  },
+  deleteButton: {
+    backgroundColor: '#E55153',
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: theme.font.semiBold,
+  },
 });

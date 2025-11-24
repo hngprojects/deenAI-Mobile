@@ -12,3 +12,17 @@ export interface ContactSupportType {
     subject: string;
     message: string
 }
+
+export interface RequestOtpPayload {
+    email: string;
+}
+
+export interface VerifyOtpPayload {
+    email: string;
+    otp: string;
+}
+
+export interface OtpResponse {
+    success: boolean;
+    message: string;
+}

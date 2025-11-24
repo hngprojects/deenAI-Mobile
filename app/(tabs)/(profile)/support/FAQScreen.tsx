@@ -4,6 +4,7 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ScreenContainer from '@/components/ScreenContainer';
 import ScreenHeader from '@/components/screenHeader';
 import { useRouter } from 'expo-router';
+import ScreenTitle from '@/components/ScreenTitle';
 
 export default function FAQScreen() {
 const router = useRouter();
@@ -22,7 +23,8 @@ const faqList: FAQItem[] = [
 ];
   return (
     <ScreenContainer backgroundColor={theme.color.background3}>
-      <ScreenHeader title="Frequently Asked Questions" />
+
+    <ScreenHeader title="Frequently Asked Questions"  onBackPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}/>
 
       <View style={styles.list}>
       {faqList.map((item, index) => (
