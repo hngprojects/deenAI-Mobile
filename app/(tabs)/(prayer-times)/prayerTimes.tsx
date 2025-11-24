@@ -138,3 +138,11 @@ export default function PrayerTimesScreen() {
     </View>
   ))}
 </View>
+
+        {/* Extra space at bottom */}
+        <View style={styles.bottomSpace} />
+      </ScrollView>
+    </View>
+  );
+}
+
