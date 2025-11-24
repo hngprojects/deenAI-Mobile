@@ -215,3 +215,152 @@ export default function PrayerDetailsScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fafafa',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: '#ffffff',
+  },
+  headerTitle: {
+    fontWeight: '600',
+    color: '#000000',
+  },
+  iconButton: {
+    padding: 8,
+  },
+  backIcon: {
+    // Size handled by responsive function
+  },
+  calendarIcon: {
+    // Size handled by responsive function
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    // Padding handled by responsive function
+  },
+  dateNavigation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateContainer: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  gregorianDate: {
+    color: '#9C7630',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  islamicDate: {
+    color: '#3C3A35',
+    textAlign: 'center',
+  },
+  navIcon: {
+    // Size handled by responsive function
+  },
+  section: {
+    // Margin handled by responsive function
+  },
+  sectionTitle: {
+    fontWeight: '600',
+    color: '#000000',
+  },
+  upcomingContainer: {
+    backgroundColor: '#964B00',
+  },
+  upcomingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  upcomingIcon: {
+    // Size and margin handled by responsive function
+  },
+  upcomingTextContainer: {
+    flex: 1,
+  },
+  upcomingTime: {
+    color: '#ffffff',
+    opacity: 0.9,
+  },
+  upcomingPrayer: {
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  upcomingLocation: {
+    color: '#ffffff',
+    opacity: 0.8,
+  },
+  prayerItemContainer: {
+    // Margin handled by responsive function
+  },
+  prayerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#ffffff',
+  },
+  prayerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  speakerIcon: {
+    // Size and margin handled by responsive function
+  },
+  prayerName: {
+    color: '#000000',
+    fontWeight: '500',
+  },
+  prayerTime: {
+    color: '#000000',
+    fontWeight: '500',
+  },
+  forbiddenItemContainer: {
+    marginBottom: 12,
+  },
+  forbiddenItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+     borderRadius: 12,
+    padding: 16,
+  },
+  forbiddenIcon: {
+      width: 55,
+    height: 55,
+  },
+  forbiddenTextContainer: {
+    flex: 1,
+     marginLeft: 12,
+  },
+  forbiddenPeriod: {
+    color: '#000000',
+    fontWeight: '500',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  forbiddenTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  forbiddenTime: {
+    color: '#666666',
+    fontSize: 14,
+  },
+  timeSeparatorLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#666666',
+    marginHorizontal: 8,
+    opacity: 0.5,
+  },
+});
