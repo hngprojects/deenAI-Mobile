@@ -1,8 +1,8 @@
 import { theme } from "@/styles/theme";
 import { IMessage } from "@/types/chat.type";
-import { Copy, Share, ThumbsDown, ThumbsUp } from "lucide-react-native";
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Copy, Share } from "lucide-react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import Markdown from "react-native-markdown-display";
 
 interface MessageBubbleProps {
   message: IMessage;
@@ -37,27 +37,31 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             borderBottomRightRadius: 15,
           }}
         >
-          <Text
+          <Markdown
             style={{
-              color:
-                message.role === "assistant"
-                  ? theme.color.black
-                  : theme.color.white,
-              fontSize: 16,
-              lineHeight: 24,
+              body: {
+                color:
+                  message.role === "assistant"
+                    ? theme.color.black
+                    : theme.color.white,
+                fontSize: 14,
+                lineHeight: 24,
+              },
             }}
           >
             {message.content}
-          </Text>
+          </Markdown>
         </View>
 
         {/* Actions - Like, copy, dislike, share */}
         {message.role === "assistant" && (
           <View style={styles.actions}>
-            <ThumbsUp size={24} color={theme.color.actionIcon} />
-            <ThumbsDown size={24} color={theme.color.actionIcon} />
-            <Copy size={24} color={theme.color.actionIcon} />
-            <Share size={24} color={theme.color.actionIcon} />
+            {/* <ThumbsUp size={24} color={theme.color.actionIcon} />
+            <ThumbsDown size={24} color={theme.color.actionIcon} /> */}
+            <TouchableOpacity onPress={() => {}}>
+              <Copy size={18} color={theme.color.actionIcon} />
+            </TouchableOpacity>
+            <Share size={18} color={theme.color.actionIcon} />
           </View>
         )}
       </View>

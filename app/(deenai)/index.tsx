@@ -5,6 +5,7 @@ import ScreenHeader from "@/components/screenHeader";
 import { chatService } from "@/service/deenai.service";
 import { useChatStore } from "@/store/chat.store";
 import { theme } from "@/styles/theme";
+import { router } from "expo-router";
 import { Book, Loader, Mic, Send } from "lucide-react-native";
 import React, { useState } from "react";
 import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
@@ -72,6 +73,8 @@ export default function index() {
     }
   };
 
+  const handleHistoryPress = () => router.push("/(deenai)/chat-history");
+
   return (
     <>
       <ScreenContainer
@@ -86,7 +89,7 @@ export default function index() {
           title="DEEN AI"
           titleAlign="center"
           rightComponent={
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleHistoryPress}>
               <View style={styles.historyButton}>
                 <Book color={theme.color.black} size={24} />
               </View>
