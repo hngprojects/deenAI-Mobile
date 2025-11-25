@@ -1,0 +1,407 @@
+name: iOS CI (optimized)
+
+# Trigger CI on PRs and pushes to protected branches
+on:
+  pull_request:
+    branches: [main, dev, staging]
+  push:
+    branches: [main, staging]
+
+# Prevent parallel runs for same branch/ref
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20.x"
+  RUBY_VERSION: "3.2"
+  COCOAPODS_VERSION: "1.15.2"
+  XCODE_PATH: "/Applications/Xcode_15.2.app/Contents/Developer"
+  DERIVED_DATA_PATH: ios/DerivedData
+  TIMEOUT_MINUTES_JOB: 60
+
+# Utility: default retry wrapper used in run steps to handle transient network flakiness
+defaults:
+  run:
+    shell: bash -l {0}
+
+jobs:
+  # -------------------------
+  # LINT + TYPECHECK (runs on linux for speed/cost)
+  # -------------------------
+  lint:
+    name: Lint & Typecheck (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Show available Xcode versions
+        run: ls /Applications
+
+      - name: Select Latest Xcode Automatically
+        run: |
+          LATEST_XCODE=$(ls /Applications | grep Xcode | sort -V | tail -n 1)
+          sudo xcode-select -s "/Applications/$LATEST_XCODE"
+          echo "Selected Xcode: $LATEST_XCODE"
+
+
+      - name: Cache node modules (explicit)
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install dependencies (fast, reproducible)
+        run: |
+          set -euo pipefail
+          npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+  # -------------------------
+  # TESTS (runs on linux for speed/cost)
+  # -------------------------
+  test:
+    name: Unit & Integration Tests (Linux)
+    runs-on: ubuntu-latest
+    needs: lint
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Run Jest tests (coverage, limited workers)
+        run: npm test -- --coverage --maxWorkers=2
+
+      - name: Upload test coverage (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-coverage-${{ github.sha }}
+          path: coverage/
+          retention-days: 30
+
+      - name: Upload junit.xml (if present)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.sha }}
+          path: junit.xml
+          retention-days: 30
+
+  # -------------------------
+  # EXPO DIAGNOSTICS & VALIDATION (macOS)
+  # -------------------------
+  expo-diagnostics:
+    name: Expo Diagnostics (macOS)
+    runs-on: macos-14
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Install pinned Expo CLI
+        run: |
+          set -euo pipefail
+          npm install -g expo-cli@~48.0.0
+          expo --version
+
+      - name: Run expo-doctor
+        run: npx expo-doctor
+
+      - name: Validate iOS config (bundleIdentifier)
+        run: |
+          if [ -f "app.json" ]; then
+            node -e "
+              const cfg = require('./app.json');
+              const ios = cfg.expo?.ios;
+              if (!ios || !ios.bundleIdentifier) {
+                console.error('Missing iOS configuration or bundleIdentifier');
+                process.exit(1);
+              }
+              console.log('Bundle ID:', ios.bundleIdentifier);
+            "
+          fi
+
+  # -------------------------
+  # COCOAPODS & PREBUILD (macOS)
+  # -------------------------
+  cocoapods-check:
+    name: CocoaPods Check (macOS)
+    runs-on: macos-14
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Node deps
+        run: npm ci
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+
+      - name: Install CocoaPods (pinned)
+        run: |
+          set -euo pipefail
+          gem install cocoapods -v ${{ env.COCOAPODS_VERSION }}
+          pod --version
+
+      - name: Setup Expo (pinned)
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: "48.0.0"
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Prebuild iOS (clean)
+        run: npx expo prebuild --platform ios --clean --no-install
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock', 'ios/Podfile') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: Install Pod dependencies
+        working-directory: ios
+        run: |
+          set -euo pipefail
+          pod install --repo-update
+
+  # -------------------------
+  # BUILD VALIDATION (macOS)
+  # -------------------------
+  build-validation:
+    name: Build Validation (Simulator, macOS)
+    runs-on: macos-14
+    needs: [lint, test, expo-diagnostics, cocoapods-check]
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Node deps
+        run: npm ci
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+
+      - name: Select Xcode
+        run: sudo xcode-select -s ${{ env.XCODE_PATH }}
+
+      - name: Verify Xcode & Simulators
+        run: |
+          xcodebuild -version
+          xcrun simctl list devices available
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.DERIVED_DATA_PATH }}
+          key: ${{ runner.os }}-derived-${{ hashFiles('ios/Podfile.lock', 'package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-derived-
+
+      - name: Prebuild iOS
+        run: npx expo prebuild --platform ios --clean --no-install
+
+      - name: Install CocoaPods (cached)
+        working-directory: ios
+        run: |
+          set -euo pipefail
+          pod install
+
+      - name: Build for iOS Simulator (no code signing)
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -workspace deenaimobile.xcworkspace \
+            -scheme deenaimobile \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.2' \
+            -derivedDataPath ${{ env.DERIVED_DATA_PATH }} \
+            build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO | xcpretty
+
+      - name: Verify .app exists & upload artifact
+        run: |
+          APP_PATH="${{ env.DERIVED_DATA_PATH }}/Build/Products/Debug-iphonesimulator/deenaimobile.app"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "App not found at $APP_PATH"
+            ls -la ${{ env.DERIVED_DATA_PATH }} || true
+            exit 1
+          fi
+
+      - name: Upload simulator app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-app-${{ github.sha }}
+          path: ${{ env.DERIVED_DATA_PATH }}/Build/Products/Debug-iphonesimulator/deenaimobile.app
+          retention-days: 7
+
+  # -------------------------
+  # DEVICE CLOUD E2E TESTING (MAESTRO CLOUD)
+  # -------------------------
+  # Uncomment to enable device-cloud test automation
+  #
+  # device-e2e:
+  #   name: Device Cloud E2E (Maestro Cloud)
+  #   runs-on: macos-14
+  #   needs: build-validation
+  #   steps:
+  #     - name: Download simulator app
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: ios-simulator-app-${{ github.sha }}
+  #         path: ./build
+  #
+  #     - name: Run Maestro Cloud Tests
+  #       uses: mobile-dev-inc/action-maestro-cloud@v1
+  #       with:
+  #         api-key: ${{ secrets.MAESTRO_CLOUD_API_KEY }}
+  #         workspace: ./maestro
+  #         app-file: ./build/deenaimobile.app
+  #
+  #     - name: Upload Maestro Test Artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: maestro-artifacts
+  #         path: |
+  #           maestro-report.xml
+  #           flow_results/
+  #           screenshots/
+  #           logs/
+  #         if-no-files-found: ignore
+
+  # -------------------------
+  # SECURITY SCAN (macOS)
+  # -------------------------
+  security-scan:
+    name: Security Scan
+    runs-on: macos-14
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: npm audit (moderate)
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Secret scan (trufflehog)
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+      - name: Repo-scan for iOS secrets
+        run: |
+          set -euo pipefail
+          if find . -name "*.p12" -o -name "*.cer" -o -name "*.mobileprovision" | grep -q .; then
+            echo "Provisioning/profile/cert files found. Remove them from git and use secrets."
+            exit 1
+          fi
+
+  # -------------------------
+  # FINAL GATE
+  # -------------------------
+  ci-success:
+    name: CI Success Gate
+    runs-on: ubuntu-latest
+    needs: [lint, test, expo-diagnostics, cocoapods-check, build-validation, security-scan]
+    timeout-minutes: 10
+    if: always()
+    steps:
+      - name: Evaluate required jobs
+        run: |
+          set -euo pipefail
+          FAILED=0
+          if [[ "${{ needs.lint.result }}" == "failure" ]]; then FAILED=1; fi
+          if [[ "${{ needs.test.result }}" == "failure" ]]; then FAILED=1; fi
+          if [[ "${{ needs['expo-diagnostics'].result }}" == "failure" ]]; then FAILED=1; fi
+          if [[ "${{ needs['cocoapods-check'].result }}" == "failure" ]]; then FAILED=1; fi
+          if [[ "${{ needs['build-validation'].result }}" == "failure" ]]; then FAILED=1; fi
+          if [[ "${{ needs['security-scan'].result }}" == "failure" ]]; then FAILED=1; fi
+          if [[ "$FAILED" -eq 1 ]]; then
+            echo "❌ CI pipeline failed"
+            exit 1
+          fi
+          echo "✅ CI pipeline passed"
+
+# Notes:
+# - Replace expo-version and other pinned versions to match your project.
+# - Keep secrets.EXPO_TOKEN set in repo secrets.
+# - Adjust XCODE_PATH to match GitHub macOS images.
