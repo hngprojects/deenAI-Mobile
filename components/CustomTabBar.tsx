@@ -5,7 +5,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Define which routes should be hidden from the tab bar
-const HIDDEN_ROUTES = ['(hadith)', 'hadiths'];
+const HIDDEN_ROUTES = [''];
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const insets = useSafeAreaInsets();

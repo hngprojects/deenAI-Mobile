@@ -57,11 +57,11 @@ export const useSignup = () => {
         onMutate: () => useAuthStore.getState().setLoading(true),
         onSuccess: (data, variables) => {
             queryClient.invalidateQueries({ queryKey: ['user'] });
-            showToast('Account created! Please verify your email.', 'success');
+            showToast('Account created! Now login.', 'success');
 
-            // Route to verify-email after successful signup
+            // Route to Xverify-emailX after successful signup
             router.push({
-                pathname: '/(auth)/verify-email',
+                pathname: '/(auth)/login',
                 params: { email: variables.email }
             });
         },

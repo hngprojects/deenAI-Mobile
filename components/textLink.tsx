@@ -1,18 +1,20 @@
 import { theme } from "@/styles/theme";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, TextStyle } from "react-native";
 
 interface Props {
   label: string;
   linkText: string;
   onPress: () => void;
+  labelStyle?: TextStyle;
+  linkStyle?: TextStyle;
 }
 
-export default function TextLink({ label, linkText, onPress }: Props) {
+export default function TextLink({ label, linkText, onPress, labelStyle, linkStyle }: Props) {
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label} </Text>
+      <Text style={[styles.label, labelStyle]}>{label} </Text>
       <TouchableOpacity onPress={onPress}>
-        <Text style={styles.link}>{linkText}</Text>
+        <Text style={[styles.link, linkStyle]}>{linkText}</Text>
       </TouchableOpacity>
     </View>
   );
