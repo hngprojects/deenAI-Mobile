@@ -302,8 +302,6 @@ const styles = StyleSheet.create({
     paddingVertical: responsiveSize(14),
     alignItems: "center",
     justifyContent: "center",
-    borderRightWidth: 1,
-    borderRightColor: "rgba(255, 255, 255, 0.2)",
   },
   lastDayHeader: {
     borderRightWidth: 0,
