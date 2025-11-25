@@ -6,13 +6,14 @@ import { theme } from "@/styles/theme";
 import { IChat } from "@/types/chat.type";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 const ChatHistory = () => {
-  const [chatRooms, setChatRooms] = useState<IChat[]>([]);
   const [todayChats, setTodayChats] = useState<IChat[]>([]);
   const [yesterdayChats, setYesterdayChats] = useState<IChat[]>([]);
   const [earlierChats, setEarlierChats] = useState<IChat[]>([]);
+
+  const [loading, setLoading] = useState(false);
 
   const handleBackPress = () => {
     router.replace("/(deenai)/" as any);
@@ -21,10 +22,10 @@ const ChatHistory = () => {
   useEffect(() => {
     const fetchChatHistory = async () => {
       try {
+        setLoading(true);
         const res = await chatService.getUserChats();
         console.log(res);
         if (res && res.length > 0) {
-          setChatRooms(res);
           const today = new Date();
           const yesterday = new Date();
           yesterday.setDate(yesterday.getDate() - 1);
@@ -57,6 +58,8 @@ const ChatHistory = () => {
         }
       } catch (e) {
         console.error("Error fetching chat history:", e);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -72,39 +75,41 @@ const ChatHistory = () => {
       contentContainerStyle={styles.contentContainer}
     >
       <ScreenHeader title="Chat History" onBackPress={handleBackPress} />
+      {loading ? (
+        <ActivityIndicator size={"small"} />
+      ) : (
+        <View style={styles.container}>
+          {/* Today Chats */}
+          {todayChats.length > 0 && (
+            <View>
+              <Text>Today</Text>
+              {todayChats.map((chat) => (
+                <ChatRoomItem key={chat.id} chat={chat} />
+              ))}
+            </View>
+          )}
 
-      {/* Render chat rooms grouped by date */}
-      <View style={styles.container}>
-        {/* Today Chats */}
-        {todayChats.length > 0 && (
-          <View>
-            <Text>Today</Text>
-            {todayChats.map((chat) => (
-              <ChatRoomItem key={chat.id} chat={chat} />
-            ))}
-          </View>
-        )}
+          {/* Yesterday Chats */}
+          {yesterdayChats.length > 0 && (
+            <View>
+              <Text>Yesterday</Text>
+              {yesterdayChats.map((chat) => (
+                <ChatRoomItem key={chat.id} chat={chat} />
+              ))}
+            </View>
+          )}
 
-        {/* Yesterday Chats */}
-        {yesterdayChats.length > 0 && (
-          <View>
-            <Text>Yesterday</Text>
-            {yesterdayChats.map((chat) => (
-              <ChatRoomItem key={chat.id} chat={chat} />
-            ))}
-          </View>
-        )}
-
-        {/* Earlier Chats */}
-        {earlierChats.length > 0 && (
-          <View>
-            <Text>Earlier</Text>
-            {earlierChats.map((chat) => (
-              <ChatRoomItem key={chat.id} chat={chat} />
-            ))}
-          </View>
-        )}
-      </View>
+          {/* Earlier Chats */}
+          {earlierChats.length > 0 && (
+            <View>
+              <Text>Earlier</Text>
+              {earlierChats.map((chat) => (
+                <ChatRoomItem key={chat.id} chat={chat} />
+              ))}
+            </View>
+          )}
+        </View>
+      )}
     </ScreenContainer>
   );
 };

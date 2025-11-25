@@ -157,7 +157,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                         },
                       ]}
                     >
-                      {ref.collection} :{ref.hadithNumber}
+                      {ref.collection} : {ref.hadithNumber}
                       {ref.endAyah && ref.endAyah !== ref.startAyah
                         ? `-${ref.endAyah}`
                         : ""}

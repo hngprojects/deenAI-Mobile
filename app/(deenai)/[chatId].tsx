@@ -155,6 +155,7 @@ export default function ChatRoom() {
 
           <TouchableOpacity
             style={styles.sendButtonContainer}
+            disabled={loading || !prompt.trim()}
             onPress={handleSend}
           >
             {loading ? (
