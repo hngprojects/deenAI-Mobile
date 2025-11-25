@@ -347,16 +347,15 @@ jobs:
 
       - name: npm audit (moderate)
         run: npm audit --audit-level=moderate
-        continue-on-error: true
+        continue-on-error: false
       
-      - name: Secret scan (trufflehog)
-        # Use npx to execute the command directly
+      - name: Secret scan (trufflehog CLI)
         run: |
           set -euo pipefail
-          npx trufflehog \
-            --path ./ \
-            --base ${{ github.event.repository.default_branch }} \
-            --head HEAD
+          brew install trufflehog
+          trufflehog git file:///Users/runner/work/deenAI-Mobile/deenAI-Mobile \
+            --since-commit ${{ github.event.repository.default_branch }} \
+            --max-depth 0
     
       - name: Repo-scan for iOS secrets
         run: |
