@@ -15,6 +15,7 @@ import {
   getHijriDateString,
   getISOWeekNumber,
 } from "@/utils/calendarLogic";
+import { themes } from "@/styles/themes";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -22,10 +23,8 @@ export default function CalendarScreen() {
   const router = useRouter();
   const { currentDate, setDate, nextMonth, prevMonth } = usePrayerStore();
 
-  // ✨ Use the dedicated hook to get calculated prayer times reactively
   const prayerTimes = usePrayerTimes() as Record<string, string>;
 
-  // These useMemos ensure calculation only runs when currentDate changes
   const calendarWeeks = useMemo(
     () => generateCalendarGrid(currentDate),
     [currentDate]
@@ -47,7 +46,6 @@ export default function CalendarScreen() {
 
   const dayHeaders = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
-  // Define prayer order to match your design
   const prayerOrder = ["Subh", "Dhuhr", "Asr", "Maghrib", "Isha", "Tahajjud"];
 
   const handleDatePress = (dateObj: Date | null) => {
@@ -255,7 +253,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveSize(18),
     fontWeight: "600",
     color: "#964B00",
-    fontFamily: "NunitoSans-SemiBold",
+    fontFamily: themes.font.semiBold,
   },
   navButton: {
     padding: responsiveSize(4),
@@ -264,13 +262,13 @@ const styles = StyleSheet.create({
     fontSize: responsiveSize(20),
     color: "#964B00",
     fontWeight: "600",
-    fontFamily: "NunitoSans-SemiBold",
+    fontFamily: themes.font.semiBold,
   },
   islamicMonthText: {
     fontSize: responsiveSize(12),
     color: "#666666",
     textAlign: "center",
-    fontFamily: "NunitoSans-Regular",
+    fontFamily: themes.font.regular,
   },
   scrollView: {
     flex: 1,
@@ -314,7 +312,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveSize(13),
     fontWeight: "600",
     color: "#FFFFFF",
-    fontFamily: "NunitoSans-SemiBold",
+    fontFamily: themes.font.semiBold,
   },
   dateCell: {
     flex: 1,
@@ -338,7 +336,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveSize(15),
     fontWeight: "500",
     color: "#3C3A35",
-    fontFamily: "NunitoSans-Regular",
+    fontFamily: themes.font.regular,
   },
   otherMonthText: {
     color: "#CCCCCC",
@@ -346,7 +344,7 @@ const styles = StyleSheet.create({
   selectedDateText: {
     color: "#FFFFFF",
     fontWeight: "700",
-    fontFamily: "NunitoSans-Bold",
+    fontFamily: themes.font.bold,
   },
   emptyDateText: {
     color: "transparent",
@@ -376,13 +374,13 @@ const styles = StyleSheet.create({
     color: "#3C3A35",
     fontWeight: "500",
     marginLeft: responsiveSize(12),
-    fontFamily: "NunitoSans-Regular",
+    fontFamily: themes.font.regular,
   },
   prayerTime: {
     fontSize: responsiveSize(16),
     color: "#3C3A35",
     fontWeight: "600",
-    fontFamily: "NunitoSans-SemiBold",
+    fontFamily: themes.font.semiBold,
   },
   bottomSpace: {
     height: responsiveSize(40),
@@ -406,7 +404,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveSize(14),
     color: "#666",
     fontWeight: "500",
-    fontFamily: "NunitoSans-Regular",
+    fontFamily: themes.font.regular,
   },
   prayerTimeContainer: {
     flexDirection: "row",
@@ -417,6 +415,6 @@ const styles = StyleSheet.create({
     fontSize: responsiveSize(11),
     color: "#3C3A35",
     fontWeight: "500",
-    fontFamily: "NunitoSans-Regular",
+    fontFamily: themes.font.regular,
   },
 });
