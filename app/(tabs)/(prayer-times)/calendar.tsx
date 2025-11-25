@@ -15,7 +15,7 @@ import {
   getHijriDateString,
   getISOWeekNumber,
 } from "@/utils/calendarLogic";
-import { themes } from "@/styles/themes";
+import { theme } from "@/styles/theme";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveSize(18),
     fontWeight: "600",
     color: "#964B00",
-    fontFamily: themes.font.semiBold,
+    fontFamily: theme.font.semiBold,
   },
   navButton: {
     padding: responsiveSize(4),
@@ -262,13 +262,13 @@ const styles = StyleSheet.create({
     fontSize: responsiveSize(20),
     color: "#964B00",
     fontWeight: "600",
-    fontFamily: themes.font.semiBold,
+    fontFamily: theme.font.semiBold,
   },
   islamicMonthText: {
     fontSize: responsiveSize(12),
     color: "#666666",
     textAlign: "center",
-    fontFamily: themes.font.regular,
+    fontFamily: theme.font.regular,
   },
   scrollView: {
     flex: 1,
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveSize(13),
     fontWeight: "600",
     color: "#FFFFFF",
-    fontFamily: themes.font.semiBold,
+    fontFamily: theme.font.semiBold,
   },
   dateCell: {
     flex: 1,
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveSize(15),
     fontWeight: "500",
     color: "#3C3A35",
-    fontFamily: themes.font.regular,
+    fontFamily: theme.font.regular,
   },
   otherMonthText: {
     color: "#CCCCCC",
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   selectedDateText: {
     color: "#FFFFFF",
     fontWeight: "700",
-    fontFamily: themes.font.bold,
+    fontFamily: theme.font.bold,
   },
   emptyDateText: {
     color: "transparent",
@@ -374,13 +374,13 @@ const styles = StyleSheet.create({
     color: "#3C3A35",
     fontWeight: "500",
     marginLeft: responsiveSize(12),
-    fontFamily: themes.font.regular,
+    fontFamily: theme.font.regular,
   },
   prayerTime: {
     fontSize: responsiveSize(16),
     color: "#3C3A35",
     fontWeight: "600",
-    fontFamily: themes.font.semiBold,
+    fontFamily: .font.semiBold,
   },
   bottomSpace: {
     height: responsiveSize(40),
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveSize(14),
     color: "#666",
     fontWeight: "500",
-    fontFamily: themes.font.regular,
+    fontFamily: theme.font.regular,
   },
   prayerTimeContainer: {
     flexDirection: "row",
@@ -415,6 +415,6 @@ const styles = StyleSheet.create({
     fontSize: responsiveSize(11),
     color: "#3C3A35",
     fontWeight: "500",
-    fontFamily: themes.font.regular,
+    fontFamily: theme.font.regular,
   },
 });
