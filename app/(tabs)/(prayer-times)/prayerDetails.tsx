@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  Pressable, 
-  Image, 
-  StyleSheet, 
-  Dimensions,
-  useWindowDimensions 
-} from 'react-native';
 import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  Dimensions,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View
+} from 'react-native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -200,7 +200,7 @@ export default function PrayerDetailsScreen() {
           <View style={styles.forbiddenTimeContainer}>
             <Text style={styles.forbiddenTime}>{item.start}</Text>
             <View style={styles.timeSeparatorLine} />
-            <Text style={[styles.forbiddenTime, styles.endTime]}>{item.end}</Text>
+            <Text style={[styles.forbiddenTime]}>{item.end}</Text>
           </View>
         </View>
       </View>
