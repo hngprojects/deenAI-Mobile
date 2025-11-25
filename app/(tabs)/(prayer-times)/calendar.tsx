@@ -325,9 +325,6 @@ const styles = StyleSheet.create({
   },
   selectedDateCell: {
     backgroundColor: "#964B00",
-    marginHorizontal: responsiveSize(4),
-    marginVertical: responsiveSize(4),
-    borderRadius: responsiveSize(8),
   },
   lastCell: {
     borderRightWidth: 0,

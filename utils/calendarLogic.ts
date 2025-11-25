@@ -20,7 +20,6 @@ export const generateCalendarGrid = (currentDate: Date) => {
   const weeks: (Date | null)[][] = [];
   let currentWeek: (Date | null)[] = [];
 
-  // Add empty slots for previous month's padding
   for (let i = 0; i < adjustedStart; i++) {
     currentWeek.push(null);
   }

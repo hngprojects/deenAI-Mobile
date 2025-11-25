@@ -41,7 +41,6 @@ export const usePrayerStore = create<PrayerState>((set, get) => ({
 }));
 
 export const usePrayerTimes = () => {
-  // 🚨 We need to access the store state directly from the hook:
   const { currentDate, coordinates } = usePrayerStore();
 
   return useMemo(() => {
