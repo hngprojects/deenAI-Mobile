@@ -188,6 +188,9 @@ export default function CalendarScreen() {
           {prayerOrder.map((prayer) => {
             const time = prayerTimes[prayer];
             if (!time) return null;
+            const timeParts = time.match(/^(.+?)(\s*[AP]M)$/i);
+            const timeValue = timeParts ? timeParts[1] : time;
+            const period = timeParts ? timeParts[2].trim() : "";
 
             return (
               <View key={prayer} style={styles.prayerItem}>
@@ -198,7 +201,10 @@ export default function CalendarScreen() {
                   />
                   <Text style={styles.prayerName}>{prayer}</Text>
                 </View>
-                <Text style={styles.prayerTime}>{time}</Text>
+                <View style={styles.prayerTimeContainer}>
+                  <Text style={styles.prayerTime}>{timeValue}</Text>
+                  <Text style={styles.prayerPeriod}>{period}</Text>
+                </View>
               </View>
             );
           })}
@@ -399,6 +405,17 @@ const styles = StyleSheet.create({
   weekNumberText: {
     fontSize: responsiveSize(14),
     color: "#666",
+    fontWeight: "500",
+    fontFamily: "NunitoSans-Regular",
+  },
+  prayerTimeContainer: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: responsiveSize(4),
+  },
+  prayerPeriod: {
+    fontSize: responsiveSize(11),
+    color: "#3C3A35",
     fontWeight: "500",
     fontFamily: "NunitoSans-Regular",
   },
