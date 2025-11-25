@@ -19,6 +19,14 @@ export interface IMessage {
 export interface ChatResponseData {
   userMessage: IMessage;
   aiMessage: IMessage;
+  messages?: IMessage[];
+}
+
+export interface ChatMessagesResponse {
+  success: boolean;
+  status: string;
+  message: string;
+  data: IMessage[];
 }
 
 export interface ChatResponse<T> {

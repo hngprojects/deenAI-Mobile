@@ -1,9 +1,10 @@
 import ChatRoomItem from "@/components/deen-ai/history/ChatRoomItem";
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
-import { chatService } from "@/service/deenai.service";
+import { chatService } from "@/service/chat.service";
 import { theme } from "@/styles/theme";
 import { IChat } from "@/types/chat.type";
+import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -12,6 +13,10 @@ const ChatHistory = () => {
   const [todayChats, setTodayChats] = useState<IChat[]>([]);
   const [yesterdayChats, setYesterdayChats] = useState<IChat[]>([]);
   const [earlierChats, setEarlierChats] = useState<IChat[]>([]);
+
+  const handleBackPress = () => {
+    router.replace("/(deenai)/" as any);
+  };
 
   useEffect(() => {
     const fetchChatHistory = async () => {
@@ -66,7 +71,7 @@ const ChatHistory = () => {
       paddingHorizontal={0}
       contentContainerStyle={styles.contentContainer}
     >
-      <ScreenHeader title="Chat History" />
+      <ScreenHeader title="Chat History" onBackPress={handleBackPress} />
 
       {/* Render chat rooms grouped by date */}
       <View style={styles.container}>
