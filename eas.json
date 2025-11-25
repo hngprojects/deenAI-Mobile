@@ -1,0 +1,59 @@
+{
+  "cli": {
+    "version": ">= 3.4.1"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_BUILD_ENV": "development"
+      }
+    },
+    
+    "staging": {
+      "releaseChannel": "staging",
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_BUILD_ENV": "staging"
+      }
+    },
+    "production": {
+      "releaseChannel": "production",
+      "env": {
+        "EXPO_PUBLIC_BUILD_ENV": "production"
+      }
+    },
+    "internal": {
+      "releaseChannel": "internal",
+      "distribution": "internal"
+    }
+  },
+  "submit": {
+    // ----------------------------------------
+    // SUBMIT PROFILES 
+    // Defines tracks for Play Store submission
+    // ----------------------------------------
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./google-play-key.json", // Placeholder path (google-play-key.json should be in your project root)
+        "track": "production",
+        "releaseStatus": "completed"
+      }
+    },
+    "staging": {
+      "android": {
+        "serviceAccountKeyPath": "./google-play-key.json",
+        "track": "beta", 
+        "releaseStatus": "draft"
+      }
+    },
+    "internal": {
+      "android": {
+        "serviceAccountKeyPath": "./google-play-key.json",
+        "track": "internal",
+        "releaseStatus": "draft"
+      }
+    }
+  }
+}
