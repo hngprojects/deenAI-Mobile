@@ -1,104 +1,95 @@
 import { useLocation } from '@/hooks/useLocation';
-import * as adhan from 'adhan';
+import prayerService from '@/service/prayer.service';
+import { usePrayerStore } from '@/store/prayer-store';
 import { useRouter } from 'expo-router';
-import moment from 'moment-timezone';
-import React, { useCallback, useEffect, useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-
-
-type PrayerTimesType = {
-  Fajr: string;
-  Dhuhr: string;
-  Asr: string;
-  Maghrib: string;
-  Isha: string;
-  Tahajjud: string;
-};
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function PrayerTimesScreen() {
   const router = useRouter();
-  const { location, getCurrentLocation } = useLocation();
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [prayerTimes, setPrayerTimes] = useState<PrayerTimesType | null>(null);
-  const [islamicDate, setIslamicDate] = useState<string>('');
+  const { location: userLocation, getCurrentLocation, checkPermission } = useLocation();
+  const {
+    prayerTimes,
+    currentDate,
+    islamicDate,
+    location,
+    isLoading,
+    error,
+    setPrayerTimes,
+    setCurrentDate,
+    setIslamicDate,
+    setLocation,
+    setLoading,
+    setError,
+  } = usePrayerStore();
 
+  const [initializing, setInitializing] = useState(true);
+
+  // Initialize location and prayer times
   useEffect(() => {
-    if (!location) {
-      getCurrentLocation();
+    initializePrayerTimes();
+  }, []);
+
+  // Mock forbidden times data (not implemented yet)
+  const forbiddenTimesData = [
+    { period: 'Sunrise', start: '06:34 AM', end: '06:49 AM', icon: 'sunrise' },
+    { period: 'Noon', start: '12:22 PM', end: '12:30 PM', icon: 'noon' },
+    { period: 'Sunset', start: '06:10 PM', end: '06:25 PM', icon: 'sunset' }
+  ];
+
+  // Update prayer times when date or location changes
+  useEffect(() => {
+    if (location) {
+      updatePrayerTimes(location, currentDate);
     }
-  }, [location]);
+  }, [currentDate, location]);
 
-  // Calculate Prayer Times
-  useEffect(() => {
-    if (!location) return;
-
-    calculatePrayerTimes();
-  }, [location, currentDate]);
-
-  // Calculate Islamic date
-  useEffect(() => {
-    calculateIslamicDate();
-  }, [currentDate]);
-
-  const calculatePrayerTimes = useCallback(() => {
-    if (!location) return;
-
+  const initializePrayerTimes = async () => {
     try {
-      const coordinates = new adhan.Coordinates(location.latitude, location.longitude);
-      const params = adhan.CalculationMethod.MuslimWorldLeague();
-      params.madhab = adhan.Madhab.Shafi; 
+      setLoading(true);
+      setError(null);
 
-      const times = new adhan.PrayerTimes(coordinates, currentDate, params);
-      const timezone = moment.tz.guess();
-
-      // Format prayer times
-      const formatted = {
-        Fajr: moment(times.fajr).tz(timezone).format("hh:mm A"),
-        Dhuhr: moment(times.dhuhr).tz(timezone).format("hh:mm A"),
-        Asr: moment(times.asr).tz(timezone).format("hh:mm A"),
-        Maghrib: moment(times.maghrib).tz(timezone).format("hh:mm A"),
-        Isha: moment(times.isha).tz(timezone).format("hh:mm A"),
-        Tahajjud: moment(times.fajr).subtract(90, "minutes").tz(timezone).format("hh:mm A"),
-      };
-
-      setPrayerTimes(formatted);
-    } catch (error) {
-      console.error('Prayer calculation error:', error);
-    }
-  }, [location, currentDate]);
-
-  const calculateIslamicDate = () => {
-    try {
-      const hijriFormatter = new Intl.DateTimeFormat('en-US-u-ca-islamic', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      });
-
-      const parts = hijriFormatter.formatToParts(currentDate);
-      const day = parts.find(p => p.type === 'day')?.value;
-      const month = parts.find(p => p.type === 'month')?.value;
-      const year = parts.find(p => p.type === 'year')?.value;
-
-      if (day && month && year) {
-        setIslamicDate(`${day} ${month} | ${year}AH`);
-      } else {
-        console.error('Could not construct Islamic date from parts:', parts);
-        setIslamicDate('Error formatting date');
+      // Check if we have permission
+      const hasPermission = await checkPermission();
+      
+      let coords = userLocation;
+      
+      if (!coords && hasPermission) {
+        coords = await getCurrentLocation();
       }
-    } catch (error) {
-      console.error('Islamic date error:', error);
-      setIslamicDate('Loading...');
+
+      if (coords) {
+        setLocation(coords);
+        updatePrayerTimes(coords, currentDate);
+      } else {
+        setError('Unable to get location. Please enable location services.');
+      }
+    } catch (err) {
+      console.error('Initialization error:', err);
+      setError('Failed to initialize prayer times');
+    } finally {
+      setLoading(false);
+      setInitializing(false);
+    }
+  };
+
+  const updatePrayerTimes = (coords: any, date: Date) => {
+    try {
+      // Get prayer times
+      const times = prayerService.getFormattedPrayerTimes(coords, date);
+      setPrayerTimes(times);
+
+      // Get Islamic date
+      const hijriDate = prayerService.getIslamicDate(date);
+      setIslamicDate(hijriDate);
+    } catch (err) {
+      console.error('Error updating prayer times:', err);
+      setError('Failed to calculate prayer times');
     }
   };
 
   const formatGregorianDate = (date: Date) => {
-    const options: Intl.DateTimeFormatOptions = { 
-      weekday: 'long', 
-      day: 'numeric', 
-      month: 'long',
-      year: 'numeric'
-    };
+    const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long' };
     return date.toLocaleDateString('en-US', options);
   };
 
@@ -114,31 +105,46 @@ export default function PrayerTimesScreen() {
     setCurrentDate(newDate);
   };
 
-  const forbiddenTimes = [
-    { period: 'Sunrise', start: '06:34 AM', end: '06:49 AM', icon: 'sunrise' },
-    { period: 'Noon', start: '12:22 PM', end: '12:30 PM', icon: 'noon' },
-    { period: 'Sunset', start: '06:10 PM', end: '06:25 PM', icon: 'sunset' }
-  ];
+  // Show loading state
+  if (initializing || isLoading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#9C7630" />
+        <Text style={styles.loadingText}>Loading prayer times...</Text>
+      </View>
+    );
+  }
 
+  // Show error state
+  if (error && !prayerTimes) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.errorText}>{error}</Text>
+        <Pressable onPress={initializePrayerTimes} style={styles.retryButton}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { paddingTop: 30 }]}>
-      {/* Header - Matching prayer details screen */}
+      {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.iconButton}>
-          <Image
+          <Image 
             source={require('@/assets/images/prayerTimes-icons/arrow-left.png')}
             style={styles.backIcon}
           />
         </Pressable>
-
+        
         <Text style={styles.headerTitle}>Prayer Times</Text>
 
-        <Pressable
+        <Pressable 
           style={styles.iconButton}
           onPress={() => router.push('/(tabs)/(prayer-times)/calendar')}
         >
-          <Image
+          <Image 
             source={require('@/assets/images/prayerTimes-icons/calendar.png')}
             style={styles.calendarIcon}
           />
@@ -149,7 +155,7 @@ export default function PrayerTimesScreen() {
         {/* Date Navigation */}
         <View style={styles.dateNavigation}>
           <Pressable onPress={navigateToPreviousDay} style={styles.iconButton}>
-            <Image
+            <Image 
               source={require('@/assets/images/prayerTimes-icons/lessthan.png')}
               style={styles.navIcon}
             />
@@ -160,32 +166,31 @@ export default function PrayerTimesScreen() {
               {formatGregorianDate(currentDate)}
             </Text>
             <Text style={styles.islamicDate}>
-              {islamicDate}
+              {islamicDate || 'Loading...'}
             </Text>
           </View>
 
           <Pressable onPress={navigateToNextDay} style={styles.iconButton}>
-            <Image
+            <Image 
               source={require('@/assets/images/prayerTimes-icons/greaterthan.png')}
               style={styles.navIcon}
             />
           </Pressable>
         </View>
 
-        {/* Individual Prayer Times Containers */}
+        {/* Prayer Times */}
         {prayerTimes && (
           <View style={styles.section}>
             {Object.entries(prayerTimes).map(([prayer, time]) => (
               <View key={prayer} style={styles.prayerItemContainer}>
                 <View style={styles.prayerItem}>
                   <View style={styles.prayerLeft}>
-                    <Image
+                    <Image 
                       source={require('@/assets/images/speakerIcon.png')}
                       style={styles.speakerIcon}
                     />
                     <Text style={styles.prayerName}>{prayer}</Text>
                   </View>
-
                   <Text style={styles.prayerTime}>{time}</Text>
                 </View>
               </View>
@@ -193,19 +198,19 @@ export default function PrayerTimesScreen() {
           </View>
         )}
 
-        {/* Individual Forbidden Times Containers */}
+        {/* Forbidden Times (Mock data - not yet implemented) */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Forbidden Salat Times</Text>
-          {forbiddenTimes.map((item, index) => (
+          {forbiddenTimesData.map((item, index) => (
             <View key={index} style={styles.forbiddenItemContainer}>
               <View style={styles.forbiddenItem}>
-                <Image
+                <Image 
                   source={
-                    item.period === 'Sunrise'
+                    item.period === 'Sunrise' 
                       ? require('@/assets/images/prayerTimes-icons/sunrise.png')
                       : item.period === 'Noon'
-                        ? require('@/assets/images/prayerTimes-icons/noon.png')
-                        : require('@/assets/images/prayerTimes-icons/sunset-icon.png')
+                      ? require('@/assets/images/prayerTimes-icons/noon.png')
+                      : require('@/assets/images/prayerTimes-icons/sunset-icon.png')
                   }
                   style={styles.forbiddenIcon}
                 />
@@ -214,7 +219,7 @@ export default function PrayerTimesScreen() {
                   <View style={styles.forbiddenTimeContainer}>
                     <Text style={styles.forbiddenTime}>{item.start}</Text>
                     <View style={styles.timeSeparatorLine} />
-                    <Text style={[styles.forbiddenTime,]}>{item.end}</Text>
+                    <Text style={[styles.forbiddenTime, styles.endTime]}>{item.end}</Text>
                   </View>
                 </View>
               </View>
@@ -234,7 +239,33 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fafafa',
   },
-  // Header matching prayer details screen
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666666',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#9C7630',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -301,7 +332,6 @@ const styles = StyleSheet.create({
     color: '#000000',
     marginBottom: 12,
   },
-  // Individual prayer item containers
   prayerItemContainer: {
     marginBottom: 12,
   },
@@ -312,7 +342,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
-
   },
   prayerLeft: {
     flexDirection: 'row',
@@ -333,7 +362,6 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
   },
-  // Individual forbidden item containers
   forbiddenItemContainer: {
     marginBottom: 12,
   },
@@ -343,17 +371,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
-
   },
   forbiddenIcon: {
     width: 55,
     height: 55,
-
   },
   forbiddenTextContainer: {
     flex: 1,
     marginLeft: 12,
-
   },
   forbiddenPeriod: {
     fontSize: 16,
@@ -378,6 +403,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     opacity: 0.5,
   },
+  endTime: {},
   bottomSpace: {
     height: 20,
   },
