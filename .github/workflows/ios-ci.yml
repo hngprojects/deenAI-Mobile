@@ -128,11 +128,10 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Install pinned Expo CLI
+      - name: Use local Expo CLI
         run: |
-          set -euo pipefail
-          npm install -g expo-cli@~54.0.0
-          expo --version
+         set -euo pipefail
+         npx expo --version
 
       - name: Run expo-doctor
         run: npx expo-doctor
@@ -188,7 +187,7 @@ jobs:
       - name: Setup Expo (pinned)
         uses: expo/expo-github-action@v8
         with:
-          expo-version: "48.0.0"
+          eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Prebuild iOS (clean)
@@ -359,13 +358,15 @@ jobs:
         run: npm audit --audit-level=moderate
         continue-on-error: true
 
+      - name: 🐋 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Secret scan (trufflehog)
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
-          extra_args: --results=verified,unknown
 
       - name: Repo-scan for iOS secrets
         run: |
