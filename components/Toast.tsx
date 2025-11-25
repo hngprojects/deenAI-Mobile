@@ -1,7 +1,7 @@
 import { theme } from '@/styles/theme';
 import { AlertCircle, CheckCircle, Mail } from 'lucide-react-native';
 import React, { useEffect } from 'react';
-import { Animated, Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -13,8 +13,6 @@ interface ToastProps {
     onHide?: () => void;
     icon?: React.ReactNode;
 }
-
-const { width } = Dimensions.get('window');
 
 export default function Toast({
     visible,
@@ -50,6 +48,7 @@ export default function Toast({
 
             return () => clearTimeout(timer);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [visible]);
 
     const hideToast = () => {
@@ -79,7 +78,7 @@ export default function Toast({
                 return '#FF9800';
             case 'info':
             default:
-                return '#A67C52'; // Brown color from your design
+                return theme.color.brand;
         }
     };
 

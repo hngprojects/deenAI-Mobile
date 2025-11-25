@@ -28,10 +28,14 @@ function RootLayoutNav() {
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === "(auth)";
-    const inTabsGroup = segments[0] === "(tabs)";
-    const inOnboardingGroup = segments[0] === "(onboarding)";
-    const inDeenaiGroup = segments[0] === "(deenai)";
+    const inAuthGroup = segments[0] === '(auth)';
+    const inTabsGroup = segments[0] === '(tabs)';
+    const inOnboardingGroup = segments[0] === '(onboarding)';
+    const inTasbihGroup = segments[0] === '(tasbih)';
+    const inDeenAIGroup = segments[0] === '(deenai)';
+    const inProfileGroup = segments[0] === 'profile';
+    const inHadithGroup = segments[0] === '(hadith)';
+    const inPrayerTimesGroup = segments[0] === '(prayer-times)';
     const inRoot = segments.length === 0;
 
     console.log("🧭 Navigation check:", {
@@ -40,18 +44,23 @@ function RootLayoutNav() {
       segments,
       inAuthGroup,
       inTabsGroup,
+      inTasbihGroup,
+      inHadithGroup,
       inRoot,
     });
 
     if (isAuthenticated || isGuest) {
-      if (!inTabsGroup && !inOnboardingGroup && !inDeenaiGroup) {
-        console.log("➡️ Redirecting to tabs");
-        router.replace("/(tabs)");
+      // Allow navigation to protected routes: tabs, onboarding, tasbih, deenai, profile
+      if (!inTabsGroup && !inOnboardingGroup && !inTasbihGroup && !inDeenAIGroup && !inProfileGroup && !inHadithGroup && !inPrayerTimesGroup) {
+        console.log('➡️ Redirecting to tabs');
+        router.replace('/(tabs)');
       }
-    } else {
-      if (inTabsGroup || inDeenaiGroup) {
-        console.log("➡️ Redirecting to login");
-        router.replace("/(auth)/login");
+    }
+    else {
+      // Not authenticated - only allow auth routes
+      if (inTabsGroup || inTasbihGroup || inDeenAIGroup || inProfileGroup || inHadithGroup || inPrayerTimesGroup) {
+        console.log('➡️ Redirecting to login');
+        router.replace('/(auth)/login');
       }
     }
   }, [isAuthenticated, isGuest, isLoading, router, segments]);
@@ -62,7 +71,9 @@ function RootLayoutNav() {
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(onboarding)" />
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="(tasbih)" />
       <Stack.Screen name="(deenai)" />
+      <Stack.Screen name="profile" />
     </Stack>
   );
 }

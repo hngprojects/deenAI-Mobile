@@ -10,7 +10,8 @@ export default function QuickActions() {
   };
 
   const handleHadithPress = () => {
-    router.push("/(tabs)/hadiths");
+    console.log("Hadith pressed");
+    router.push('/(hadith)');
   };
 
   return (
@@ -25,7 +26,6 @@ export default function QuickActions() {
           style={styles.cardIcon}
           resizeMode="contain"
         />
-
         <View style={styles.cardContent}>
           <Text style={styles.cardTitle}>
             Uncover new &{"\n"}amazing things{"\n"}with Deen Ai

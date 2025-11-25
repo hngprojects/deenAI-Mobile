@@ -1,4 +1,5 @@
 import { AuthResponse, AuthTokens, LoginFormValues, OtpResponse, RequestOtpPayload, ResetPasswordPayload, SignupFormValues, User, VerifyOtpPayload } from '@/types/auth.types';
+import { apiService } from './api.service';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 class AuthService {
@@ -29,6 +30,19 @@ class AuthService {
             body: JSON.stringify(credentials),
         });
     }
+
+    async googleLogin(idToken: string): Promise<AuthResponse> {
+        // The apiService already returns the full response object
+        const response = await apiService.post<AuthResponse>(
+            '/auth/google',
+            { idToken },
+            { skipAuth: true }
+        );
+
+        // Return the response directly, don't access .data
+        return response;
+    }
+
 
     async signup(userData: SignupFormValues): Promise<AuthResponse> {
         const { confirmPassword, ...apiData } = userData;

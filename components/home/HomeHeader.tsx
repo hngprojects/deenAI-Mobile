@@ -1,7 +1,7 @@
 import { useAuth, useLogout } from '@/hooks/useAuth';
 import { theme } from '@/styles/theme';
-import { Bell } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { Bell } from 'lucide-react-native';
 import React from 'react';
 import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -50,44 +50,43 @@ export default function HomeHeader() {
     console.log('Notifications pressed');
   };
 
+  const handleTasbihPress = () => {
+    console.log('Navigating to Tasbih...');
+    router.push('/(tasbih)');
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.userInfo}>
         <TouchableOpacity
           style={styles.avatar}
           onPress={handleAvatarPress}
-          // disabled={isLoggingOut}
           activeOpacity={0.7}
         >
-          {/* {isLoggingOut ? (
-                        <ActivityIndicator size="small" color={theme.color.white} />
-                    ) : (
-                    )} */}
-        <Text style={styles.avatarText}>{getInitials(userName)}</Text>
+          <Text style={styles.avatarText}>{getInitials(userName)}</Text>
         </TouchableOpacity>
         <View style={styles.greeting}>
           <Text style={styles.greetingText}>Assalam Alaykum</Text>
           <Text style={styles.userName}>{userName}</Text>
         </View>
       </View>
-      
+
       <View style={styles.notifyButtons}>
-      <TouchableOpacity onPress={() => router.push("/(tabs)/(tasbih)")}>
-        <Image
-            source={require("@/assets/images/tasbihIcon.png")}
+        <TouchableOpacity onPress={handleTasbihPress} style={styles.notificationButton}>
+          <Image
+            source={require("@/assets/images/tasbih.png")}
             style={styles.iconImage}
             resizeMode="contain"
           />
-      </TouchableOpacity>
-  
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.notificationButton}
-        onPress={handleNotificationPress}
-      >
-        <Bell size={24} color={theme.color.secondary} strokeWidth={2} />
-        {!isGuest && <View style={styles.notificationBadge} />}
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.notificationButton}
+          onPress={handleNotificationPress}
+        >
+          <Bell size={24} color={theme.color.secondary} strokeWidth={2} />
+          {!isGuest && <View style={styles.notificationBadge} />}
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -100,11 +99,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
+    backgroundColor: theme.color.background,
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: 10,
   },
   avatar: {
     width: 56,
@@ -134,14 +134,15 @@ const styles = StyleSheet.create({
   },
 
   notifyButtons: {
-    flexDirection: "row",   // this puts children side by side
-    justifyContent: "space-between", // optional: space them out
-    alignItems: "center", // optional: vertically center
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
   },
 
   iconImage: {
-    width: 47,
-    height: 47, 
+    width: 27,
+    height: 27,
     resizeMode: "contain",
   },
 

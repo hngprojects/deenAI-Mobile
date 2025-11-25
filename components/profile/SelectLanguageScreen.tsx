@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import ScreenHeader from '../screenHeader';
 import { theme } from '@/styles/theme';
-import { useRouter } from 'expo-router';
+// import { useRouter } from 'expo-router';
 
 export default function SelectLanguage() {
-  const router = useRouter();
-  const [selectedLanguage, setSelectedLanguage] = useState('English');
+  // const router = useRouter();
+  // const [selectedLanguage, setSelectedLanguage] = useState('English');
 
   const languages = [
     { key: 'English', subtitle: 'English' },
@@ -31,9 +31,9 @@ export default function SelectLanguage() {
               <Text style={styles.text}>{lang.key}</Text>
               <Text style={styles.subtitle}>{lang.subtitle}</Text>
             </View>
-            <Image 
-              source={require('../../assets/images/arrow-right.png')} 
-              style={styles.arrowImage} 
+            <Image
+              source={require('../../assets/images/arrow-right.png')}
+              style={styles.arrowImage}
             />
           </TouchableOpacity>
         ))}
@@ -45,14 +45,14 @@ export default function SelectLanguage() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.color.background },
   list: { marginTop: 20, paddingHorizontal: 16 },
-  item: { 
-    padding: 16, 
-    backgroundColor: '#F4F4F4', 
-    borderRadius: 12, 
-    marginBottom: 14, 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center' 
+  item: {
+    padding: 16,
+    backgroundColor: '#F4F4F4',
+    borderRadius: 12,
+    marginBottom: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
   textWrapper: {
     flexDirection: 'column',

@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, TextInput, StyleSheet, } from 'react-native';
 import { theme } from '@/styles/theme';
 import ScreenContainer from '@/components/ScreenContainer';

@@ -1,7 +1,8 @@
+import { useNavigation } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import React from 'react';
-import { StyleSheet, Text, TextStyle, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { theme } from '../styles/theme';
 
 interface ScreenHeaderProps {
@@ -12,6 +13,8 @@ interface ScreenHeaderProps {
     rightComponent?: React.ReactNode;
     titleAlign?: 'left' | 'center';
     titleStyle?: TextStyle;
+    paddingTop?: number;
+    headerStyle?: ViewStyle;
 }
 
 const ScreenHeader: React.FC<ScreenHeaderProps> = ({
@@ -22,8 +25,11 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
     rightComponent,
     titleAlign = 'center',
     titleStyle,
+    paddingTop = 0,
+    headerStyle,
 }) => {
     const router = useRouter();
+    const navigation = useNavigation();
 
     const handleBackPress = () => {
         if (onBackPress) {
@@ -31,12 +37,18 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
         } else if (backRoute) {
             router.push(backRoute);
         } else {
-            router.back();
+            // Try navigation.goBack() first (works in tab stacks)
+            // Fall back to router.back() if goBack() doesn't work
+            if (navigation.canGoBack()) {
+                navigation.goBack();
+            } else {
+                router.back();
+            }
         }
     };
 
     return (
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop }, headerStyle]}>
             {showBackButton ? (
                 <TouchableOpacity
                     style={styles.backButton}
@@ -74,6 +86,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 15,
         justifyContent: 'space-between',
+        paddingHorizontal: 20,
     },
     backButton: {
         width: 40,
