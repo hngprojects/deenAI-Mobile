@@ -70,7 +70,7 @@ export default function TabLayout() {
                     }}
                 />
                 <Tabs.Screen
-                    name="hadiths"
+                    name="(hadith)"
                     options={{
                         href: null,
                     }}

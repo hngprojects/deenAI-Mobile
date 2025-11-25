@@ -20,7 +20,8 @@
               "NSIncludesSubdomains": true
             }
           }
-        }
+        },
+        "ITSAppUsesNonExemptEncryption": false
       },
       "bundleIdentifier": "com.allcodez.DeenAiMobile"
     },
@@ -45,7 +46,10 @@
               "pathPrefix": "/@deenai/DeenAi-Mobile"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ],
       "edgeToEdgeEnabled": true,
@@ -63,27 +67,12 @@
       "favicon": "./assets/images/splash-icon.png"
     },
     "plugins": [
-      "expo-router",
       [
-        "expo-splash-screen",
+        "@react-native-google-signin/google-signin",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "dark": {
-            "backgroundColor": "#000000"
-          }
+          "iosUrlScheme": "com.googleusercontent.apps.363819299326-00i9lufgchdclqtqc6nn3kp1bu95ahkp"
         }
-      ],
-      [
-        "expo-location",
-        {
-          "locationAlwaysAndWhenInUsePermission": "Allow DeenAi to use your location to provide accurate prayer times."
-        }
-      ],
-      "expo-secure-store",
-      "expo-web-browser"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

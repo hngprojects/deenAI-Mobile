@@ -2,7 +2,11 @@ import Checkbox from '@/components/Checkbox';
 import NetworkToast from '@/components/NetworkToast';
 import ScreenContainer from '@/components/ScreenContainer';
 import ScreenHeader from '@/components/screenHeader';
+// import { useGoogleSignIn } from '@/hooks/useGoogleSignIn';
+import { useGoogleOAuth } from '@/hooks/useGoogleOAuth';
+
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { useToast } from '@/hooks/useToast';
 import { theme } from '@/styles/theme';
 import { useRouter } from 'expo-router';
 import { Formik } from 'formik';
@@ -19,8 +23,7 @@ import SocialLoginButton from '../../components/socialLoginButton';
 import { useLogin } from '../../hooks/useAuth';
 import { LoginFormValues, SocialProvider } from '../../types';
 import { LoginSchema } from '../../utils/validation';
-import { useToast } from '@/hooks/useToast';
-import { useGoogleOAuth } from '@/hooks/useGoogleOAuth';
+import TextLink from '@/components/textLink';
 
 export default function LoginScreen() {
     const router = useRouter();
@@ -30,8 +33,8 @@ export default function LoginScreen() {
     const { isConnected, showToast: showNetworkToast, toastType, showNoConnectionToast } = useNetworkStatus();
 
     const { mutate: login, isPending: loading } = useLogin();
-    const { signInWithGoogle } = useGoogleOAuth();
-
+    // const { signInWithGoogle, isLoading: googleLoading } = useGoogleSignIn();
+    const { signInWithGoogle, isLoading: googleLoading } = useGoogleOAuth();
     const initialValues: LoginFormValues = {
         email: '',
         password: '',
@@ -55,18 +58,18 @@ export default function LoginScreen() {
         }
     };
 
-     const handleSocialLogin = async (provider: SocialProvider) => {
-            if (!isConnected) {
-                showNoConnectionToast();
-                return;
-            }
+    const handleSocialLogin = async (provider: SocialProvider) => {
+        if (!isConnected) {
+            showNoConnectionToast();
+            return;
+        }
 
-            if (provider === 'google') {
-                await signInWithGoogle();
-            } else if (provider === 'apple') {
-                showToast('Apple login coming soon!', 'info');
-            }
-        };
+        if (provider === 'google') {
+            await signInWithGoogle();
+        } else if (provider === 'apple') {
+            showToast('Apple login coming soon!', 'info');
+        }
+    };
 
 
     const handleForgotPassword = () => {
@@ -162,6 +165,16 @@ export default function LoginScreen() {
                         </View>
                     )}
                 </Formik>
+
+                <View style={{ alignItems: "center", marginTop: 20 }}>
+                    <TextLink
+                        label="Don’t have an account?"
+                        linkText="Sign up"
+                        onPress={() => router.push("/(auth)/signup")}
+                        labelStyle={{ color: theme.color.black }}
+                        linkStyle={{ color: theme.color.brand }}
+                    />
+                </View>
 
                 <Text style={styles.divider}>or</Text>
 

@@ -1,6 +1,7 @@
 import NetworkToast from '@/components/NetworkToast';
 import ScreenContainer from '@/components/ScreenContainer';
 import ScreenHeader from '@/components/screenHeader';
+// import { useGoogleSignIn } from '@/hooks/useGoogleSignIn';
 import { useGoogleOAuth } from '@/hooks/useGoogleOAuth';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useToast } from '@/hooks/useToast';
@@ -15,6 +16,7 @@ import SocialLoginButton from '../../components/socialLoginButton';
 import { useSignup } from '../../hooks/useAuth';
 import { SignupFormValues, SocialProvider } from '../../types';
 import { SignupSchema } from '../../utils/validation';
+import TextLink from '@/components/textLink';
 
 export default function SignupScreen() {
     const router = useRouter();
@@ -23,7 +25,8 @@ export default function SignupScreen() {
 
     const { mutate: signup, isPending: loading } = useSignup();
     const { showToast } = useToast();
-    const { signInWithGoogle } = useGoogleOAuth();
+    // const { signInWithGoogle, isLoading: googleLoading } = useGoogleSignIn();
+    const { signInWithGoogle, isLoading: googleLoading } = useGoogleOAuth();
 
     const { isConnected, showToast: showNetworkToast, toastType, showNoConnectionToast } = useNetworkStatus();
 
@@ -158,6 +161,16 @@ export default function SignupScreen() {
                         </View>
                     )}
                 </Formik>
+
+                <View style={{ alignItems: "center" }}>
+                    <TextLink
+                        label="Already have an account?"
+                        linkText="Log in"
+                        onPress={() => router.push("/(auth)/login")}
+                        labelStyle={{ color: theme.color.black }}
+                        linkStyle={{ color: theme.color.brand }}
+                    />
+                </View>
 
                 <Text style={styles.divider}>or</Text>
 

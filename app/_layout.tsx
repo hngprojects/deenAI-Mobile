@@ -34,6 +34,7 @@ function RootLayoutNav() {
     const inTasbihGroup = segments[0] === '(tasbih)';
     const inDeenAIGroup = segments[0] === '(deenai)';
     const inProfileGroup = segments[0] === 'profile';
+    const inHadithGroup = segments[0] === '(hadith)';
     const inRoot = segments.length === 0;
 
     console.log("🧭 Navigation check:", {
@@ -43,19 +44,20 @@ function RootLayoutNav() {
       inAuthGroup,
       inTabsGroup,
       inTasbihGroup,
+      inHadithGroup,
       inRoot,
     });
 
     if (isAuthenticated || isGuest) {
       // Allow navigation to protected routes: tabs, onboarding, tasbih, deenai, profile
-      if (!inTabsGroup && !inOnboardingGroup && !inTasbihGroup && !inDeenAIGroup && !inProfileGroup) {
+      if (!inTabsGroup && !inOnboardingGroup && !inTasbihGroup && !inDeenAIGroup && !inProfileGroup && !inHadithGroup) {
         console.log('➡️ Redirecting to tabs');
         router.replace('/(tabs)');
       }
     }
     else {
       // Not authenticated - only allow auth routes
-      if (inTabsGroup || inTasbihGroup || inDeenAIGroup || inProfileGroup) {
+      if (inTabsGroup || inTasbihGroup || inDeenAIGroup || inProfileGroup || inHadithGroup) {
         console.log('➡️ Redirecting to login');
         router.replace('/(auth)/login');
       }

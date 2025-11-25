@@ -1,4 +1,5 @@
 import { theme } from "@/styles/theme";
+import { router } from "expo-router";
 import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -10,6 +11,7 @@ export default function QuickActions() {
 
   const handleHadithPress = () => {
     console.log("Hadith pressed");
+    router.push('/(hadith)');
   };
 
   return (
@@ -24,7 +26,6 @@ export default function QuickActions() {
           style={styles.cardIcon}
           resizeMode="contain"
         />
-
         <View style={styles.cardContent}>
           <Text style={styles.cardTitle}>
             Uncover new &{"\n"}amazing things{"\n"}with Deen Ai

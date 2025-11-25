@@ -32,8 +32,15 @@ class AuthService {
     }
 
     async googleLogin(idToken: string): Promise<AuthResponse> {
-        const response = await apiService.post<any>('/auth/google', { idToken }, { skipAuth: true });
-        return response.data; // Extract data from wrapper
+        // The apiService already returns the full response object
+        const response = await apiService.post<AuthResponse>(
+            '/auth/google',
+            { idToken },
+            { skipAuth: true }
+        );
+
+        // Return the response directly, don't access .data
+        return response;
     }
 
 
