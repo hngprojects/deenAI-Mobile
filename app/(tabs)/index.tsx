@@ -1,5 +1,5 @@
 import ScreenContainer from '@/components/ScreenContainer';
-import TodaysHadith from '@/components/hadith/TodaysReflection';
+import TodaysHadith from '@/components/hadith/TodaysHadith';
 import HomeHeader from '@/components/home/HomeHeader';
 import QuickActions from '@/components/home/QuickActions';
 import TodaysReflection from '@/components/home/TodaysReflection';
@@ -23,7 +23,7 @@ export default function HomeScreen() {
                     <UpcomingSolat />
                     <QuickActions />
 
-                    <View style={{ paddingHorizontal: 20, backgroundColor: 'red' }}>
+                    <View style={{ paddingHorizontal: 20 }}>
                         <TodaysHadith />
                     </View>
 
