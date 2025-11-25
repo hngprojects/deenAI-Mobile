@@ -58,7 +58,7 @@ export default function TabLayout() {
                     })}
                 />
                 <Tabs.Screen
-                    name="profile"
+                    name="(profile)"
                     options={{
                         title: 'Profile',
                         tabBarIcon: ({ color, focused }) => (
@@ -77,6 +77,18 @@ export default function TabLayout() {
                 />
                 <Tabs.Screen
                     name="(tasbih)"
+                    options={{
+                        href: null,
+                    }}
+                />
+                <Tabs.Screen
+                    name="(prayer-times)"
+                    options={{
+                        href: null,
+                    }}
+                />
+                <Tabs.Screen
+                    name="(profile)/edit"
                     options={{
                         href: null,
                     }}
