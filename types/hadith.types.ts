@@ -1,10 +1,19 @@
-// types/hadith.types.ts
-
-export interface HadithMetadata {
+export interface HadithGrade {
   name: string;
-  sections: {
-    [key: string]: string;
-  };
+  grade: string;
+}
+
+export interface HadithReference {
+  book: number;
+  hadith: number;
+}
+
+export interface Hadith {
+  hadithnumber: number;
+  arabicnumber: number;
+  text: string;
+  grades: HadithGrade[];
+  reference: HadithReference;
 }
 
 export interface SectionDetail {
@@ -14,46 +23,65 @@ export interface SectionDetail {
   arabicnumber_last: number;
 }
 
-export interface HadithReference {
-  book: number;
-  hadith: number;
-}
-
-export interface HadithData {
-  hadithnumber: number;
-  arabicnumber: number;
-  text: string;
-  grades: any[];
-  reference: HadithReference;
-}
-
-export interface HadithCollection {
-  metadata: HadithMetadata;
+export interface HadithMetadata {
+  name: string;
+  sections: {
+    [key: string]: string; // sectionNumber: sectionTitle
+  };
   section_details: {
     [key: string]: SectionDetail;
   };
-  hadiths: HadithData[];
+}
+
+export interface HadithDataset {
+  metadata: HadithMetadata;
+  hadiths: Hadith[];
 }
 
 export interface HadithBook {
+  bookNumber: number;
+  book: string;
+  hadiths: Hadith[];
+  hadithStartNumber: number;
+  hadithEndNumber: number;
+  arabicStartNumber: number;
+  arabicEndNumber: number;
+  numberOfHadith: number;
+}
+
+export interface HadithCollection {
   id: string;
   name: string;
-  title: string;
+  arabicName: string;
   description: string;
-  image: any;
+  image: any; // For require() image
+  color: string;
+  totalHadiths: number;
 }
 
-export interface HadithCategory {
-  id: string;
-  number: string;
-  title: string;
-  hadithRange: string;
+export type HadithCollectionId = 'muslim' | 'bukhari' | 'abudawud' | 'tirmidhi';
+
+export interface HadithLanguage {
+  arabic: HadithDataset;
+  english: HadithDataset;
 }
 
-export interface HadithDisplayData {
-  english: HadithData[];
-  arabic: HadithData[];
-}
+export interface HadithState {
+  collections: HadithCollection[];
+  currentCollection: HadithCollectionId | null;
+  currentBook: HadithBook | null;
+  currentHadith: number | null;
+  language: 'english' | 'arabic' | 'both';
 
-export type CollectionId = 'bukhari' | 'muslim' | 'abudawud' | 'tirmidhi';
-export type Language = 'eng' | 'ara';
+  // Data storage
+  loadedData: {
+    [key in HadithCollectionId]?: {
+      arabic: HadithDataset;
+      english: HadithDataset;
+      books: HadithBook[];
+    };
+  };
+
+  isLoading: boolean;
+  error: string | null;
+}
