@@ -112,7 +112,6 @@ export default function CalendarScreen() {
           </View>
 
           {calendarWeeks.map((week, weekIndex) => {
-            // Check if this is the last week and has dates from next month
             const isLastWeek = weekIndex === calendarWeeks.length - 1;
             const hasNextMonthDates = week.some(
               (dateObj) =>

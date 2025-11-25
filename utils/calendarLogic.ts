@@ -44,3 +44,11 @@ export const generateCalendarGrid = (currentDate: Date) => {
 
   return weeks;
 };
+
+export const getISOWeekNumber = (date: Date) => {
+  const temp = new Date(date.getTime());
+  temp.setHours(0, 0, 0, 0);
+  temp.setDate(temp.getDate() + 4 - (temp.getDay() || 7));
+  const yearStart = new Date(temp.getFullYear(), 0, 1);
+  return Math.ceil(((temp.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+};
