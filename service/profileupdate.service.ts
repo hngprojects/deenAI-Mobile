@@ -33,57 +33,47 @@ class ProfileUpdateService {
     }
 
     async editProfile(userData: EditProfileType): Promise<ApiResponse<EditProfileType>> {
-        // clean data: remove fields UI uses but backend does not need
         const { email, ...apiData } = userData as any;
 
-        return apiService.post<ApiResponse<EditProfileType>>(
-            '/user/editprofile',
+        return apiService.put<ApiResponse<EditProfileType>>(
+            '/api/v1/users/me/profile',
             apiData
         );
     }
 
     async contactSupport(userData: ContactSupportType): Promise<ApiResponse<ContactSupportType>> {
-    // clean data: remove fields UI uses but backend does not need
     const { ...apiData } = userData as any;
 
         return apiService.post<ApiResponse<ContactSupportType>>(
-            '/user/contactSupport',
+            '/api/v1/contact',
             apiData
         );
     }
 
     async updateProfile(id: string, content: string) {
-        /* untouched */
     }
 
     async deleteAccount(id: string) {
-        /* untouched */
     }
 
     
         async resendVerification(payload: RequestOtpPayload): Promise<OtpResponse> {
-            return this.apiCall<OtpResponse>('/auth/resend-verification', {
-                method: 'POST',
-                body: JSON.stringify(payload),
-            });
-        }
-    
-        async verifyEmail(payload: VerifyOtpPayload): Promise<OtpResponse> {
-            return this.apiCall<OtpResponse>('/auth/verify-email', {
+            return this.apiCall<OtpResponse>('/api/v1/auth/verify-otp', {
                 method: 'POST',
                 body: JSON.stringify(payload),
             });
         }
 
+
         async requestOtp(payload: RequestOtpPayload): Promise<OtpResponse> {
-            return this.apiCall<OtpResponse>('/auth/forgot-password', {
+            return this.apiCall<OtpResponse>('/api/v1/auth/forgot-password', {
                 method: 'POST',
                 body: JSON.stringify(payload),
             });
         }
     
         async verifyOtp(payload: VerifyOtpPayload): Promise<OtpResponse> {
-            return this.apiCall<OtpResponse>('/auth/verify-otp', {
+            return this.apiCall<OtpResponse>('/api/v1/auth/verify-otp', {
                 method: 'POST',
                 body: JSON.stringify(payload),
             });
@@ -91,4 +81,4 @@ class ProfileUpdateService {
     
 }
 
-export const profileupdateService = new ProfileUpdateService();
+export const profileupdateService = new ProfileUpdateService();   
