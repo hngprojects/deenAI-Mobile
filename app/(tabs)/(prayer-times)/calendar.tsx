@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveSize(16),
     color: "#3C3A35",
     fontWeight: "600",
-    fontFamily: .font.semiBold,
+    fontFamily: theme.font.semiBold,
   },
   bottomSpace: {
     height: responsiveSize(40),
