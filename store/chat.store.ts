@@ -1,4 +1,4 @@
-import { chatService } from "@/service/deenai.service";
+import { chatService } from "@/service/chat.service";
 import { IMessage } from "@/types/chat.type";
 import { create } from "zustand";
 
@@ -8,6 +8,7 @@ interface ChatStore {
   setCurrentChatId: (chatId: string | null) => void;
   addMessage: (message: IMessage) => void;
   clearMessages: () => void;
+  loadChatMessages: (messages: IMessage[]) => void;
   createNewChat: (firstMessage: string) => Promise<string>;
 }
 
@@ -20,6 +21,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       messages: [...state.messages, message],
     })),
   clearMessages: () => set({ messages: [], currentChatId: null }),
+  loadChatMessages: (messages: IMessage[]) => set({ messages }),
   createNewChat: async (_) => {
     const response = await chatService.createChat();
     return response?.id as string;

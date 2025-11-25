@@ -1,60 +1,60 @@
 // app/(tabs)/(quran)/surahDetail.tsx
 
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Platform, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-import VerseItem from '@/components/quran/verseItem';
-import ScreenContainer from '@/components/ScreenContainer';
-import ScreenHeader from '@/components/screenHeader';
-import { quranService } from '@/service/quran.service';
-import { theme } from '@/styles/theme';
-import { Surah, Verse } from '@/types/quran.types';
+import VerseItem from "@/components/quran/verseItem";
+import ScreenContainer from "@/components/ScreenContainer";
+import ScreenHeader from "@/components/screenHeader";
+import { quranService } from "@/service/quran.service";
+import { theme } from "@/styles/theme";
+import { Surah, Verse } from "@/types/quran.types";
 
 export default function SurahDetail() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  console.log('=== SurahDetail Component Mounted ===');
-  console.log('Params received:', params);
+  console.log("=== SurahDetail Component Mounted ===");
+  console.log("Params received:", params);
 
   const surah: Surah = JSON.parse(params.surah as string);
-  console.log('Parsed surah:', surah);
+  console.log("Parsed surah:", surah);
 
   const [verses, setVerses] = useState<Verse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
 
-  useEffect(() => {
-    console.log('useEffect triggered for surah number:', surah.number);
-    loadSurahData();
-    loadBookmarks();
-    saveLastRead();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [surah.number]);
-
   const loadSurahData = async () => {
     try {
-      console.log('Starting to load verses for surah:', surah.number);
+      console.log("Starting to load verses for surah:", surah.number);
       setLoading(true);
       setError(null);
 
       const surahVerses = await quranService.getSurahVerses(surah.number);
 
-      console.log('Verses loaded successfully:', {
+      console.log("Verses loaded successfully:", {
         count: surahVerses.length,
         firstVerse: surahVerses[0],
-        lastVerse: surahVerses[surahVerses.length - 1]
+        lastVerse: surahVerses[surahVerses.length - 1],
       });
 
       setVerses(surahVerses);
     } catch (err) {
-      console.error('Error loading surah verses:', err);
-      setError('Failed to load verses: ' + (err as Error).message);
+      console.error("Error loading surah verses:", err);
+      setError("Failed to load verses: " + (err as Error).message);
     } finally {
       setLoading(false);
-      console.log('Loading finished. Verses in state:', verses.length);
+      console.log("Loading finished. Verses in state:", verses.length);
     }
   };
 
@@ -62,11 +62,11 @@ export default function SurahDetail() {
     try {
       const allBookmarks = await quranService.getBookmarks();
       const surahBookmarks = allBookmarks
-        .filter(b => b.surahNumber === surah.number)
-        .map(b => b.verseNumber);
+        .filter((b) => b.surahNumber === surah.number)
+        .map((b) => b.verseNumber);
       setBookmarks(new Set(surahBookmarks));
     } catch (err) {
-      console.error('Error loading bookmarks:', err);
+      console.error("Error loading bookmarks:", err);
     }
   };
 
@@ -74,7 +74,7 @@ export default function SurahDetail() {
     try {
       await quranService.setLastRead(surah.number, 1, surah.englishName);
     } catch (err) {
-      console.error('Error saving last read:', err);
+      console.error("Error saving last read:", err);
     }
   };
 
@@ -84,37 +84,48 @@ export default function SurahDetail() {
 
       if (isBookmarked) {
         await quranService.removeBookmark(surah.number, verseNumber);
-        setBookmarks(prev => {
+        setBookmarks((prev) => {
           const newSet = new Set(prev);
           newSet.delete(verseNumber);
           return newSet;
         });
       } else {
-        await quranService.addBookmark(surah.number, verseNumber, surah.englishName);
-        setBookmarks(prev => new Set(prev).add(verseNumber));
+        await quranService.addBookmark(
+          surah.number,
+          verseNumber,
+          surah.englishName
+        );
+        setBookmarks((prev) => new Set(prev).add(verseNumber));
       }
     } catch (err) {
-      console.error('Error toggling bookmark:', err);
+      console.error("Error toggling bookmark:", err);
     }
   };
 
   const handleReflectPress = (verse: Verse) => {
-    console.log('Reflect pressed for verse:', verse.number);
+    console.log("Reflect pressed for verse:", verse.number);
     router.push({
-      pathname: '/(tabs)/(reflect)/reflect-verse',
+      pathname: "/(tabs)/(reflect)/reflect-verse",
       params: {
         surahNumber: surah.number.toString(),
         verseNumber: verse.number.toString(),
         arabicText: verse.arabic,
         translation: verse.translation,
-        surahName: surah.englishName
-      }
+        surahName: surah.englishName,
+      },
     });
   };
 
+  useEffect(() => {
+    console.log("useEffect triggered for surah number:", surah.number);
+    loadSurahData();
+    loadBookmarks();
+    saveLastRead();
+  }, [surah.number]);
+
   const renderItem = ({ item, index }: { item: Verse; index: number }) => {
     if (index === 0) {
-      console.log('Rendering first verse:', item);
+      console.log("Rendering first verse:", item);
     }
     return (
       <VerseItem
@@ -134,14 +145,17 @@ export default function SurahDetail() {
   const SurahInfoCard = () => (
     <View style={styles.surahInfoCard}>
       <Text style={styles.surahNumberAndName}>
-        {surah.number}. {surah.englishName} (&quot;{surah.englishNameTranslation}&quot;)
+        {surah.number}. {surah.englishName} (&quot;
+        {surah.englishNameTranslation}&quot;)
       </Text>
-      <Text style={styles.verseCount}>{verses.length}/{surah.numberOfAyahs}</Text>
+      <Text style={styles.verseCount}>
+        {verses.length}/{surah.numberOfAyahs}
+      </Text>
     </View>
   );
 
   const ListHeader = () => {
-    console.log('Rendering ListHeader');
+    console.log("Rendering ListHeader");
     return (
       <>
         <ScreenHeader
@@ -154,10 +168,14 @@ export default function SurahDetail() {
     );
   };
 
-  console.log('Current render state:', { loading, error, versesCount: verses.length });
+  console.log("Current render state:", {
+    loading,
+    error,
+    versesCount: verses.length,
+  });
 
   if (loading) {
-    console.log('Showing loading state');
+    console.log("Showing loading state");
     return (
       <ScreenContainer
         backgroundColor={theme.color.white}
@@ -181,7 +199,7 @@ export default function SurahDetail() {
   }
 
   if (error) {
-    console.log('Showing error state:', error);
+    console.log("Showing error state:", error);
     return (
       <ScreenContainer
         backgroundColor={theme.color.white}
@@ -204,7 +222,7 @@ export default function SurahDetail() {
   }
 
   if (verses.length === 0) {
-    console.log('Showing empty state');
+    console.log("Showing empty state");
     return (
       <ScreenContainer
         backgroundColor={theme.color.white}
@@ -226,7 +244,7 @@ export default function SurahDetail() {
     );
   }
 
-  console.log('Rendering FlatList with', verses.length, 'verses');
+  console.log("Rendering FlatList with", verses.length, "verses");
   return (
     <ScreenContainer
       backgroundColor={theme.color.white}
@@ -253,16 +271,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 10 : 54,
+    paddingTop:
+      Platform.OS === "android" ? (StatusBar.currentHeight || 0) + 10 : 54,
     paddingBottom: 40,
   },
   surahInfoCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     backgroundColor: theme.color.white,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: "#E5E5E5",
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
@@ -285,8 +304,8 @@ const styles = StyleSheet.create({
   },
   centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 20,
   },
   loadingText: {
@@ -298,7 +317,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     fontFamily: theme.font.regular,
-    color: '#FF4444',
-    textAlign: 'center',
+    color: "#FF4444",
+    textAlign: "center",
   },
 });

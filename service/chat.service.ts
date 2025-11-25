@@ -1,4 +1,9 @@
-import { ChatResponse, ChatResponseData, IChat } from "@/types/chat.type";
+import {
+  ChatMessagesResponse,
+  ChatResponse,
+  ChatResponseData,
+  IChat,
+} from "@/types/chat.type";
 import { apiService } from "./api.service";
 
 class ChatService {
@@ -50,6 +55,28 @@ class ChatService {
     }
 
     console.warn("Failed to create Chatroom");
+  }
+
+  async getChatRoomMessages(chatRoomId: string) {
+    if (!chatRoomId) throw new Error("ChatRoom ID is required!");
+
+    try {
+      console.log("Getting chat room messages for", chatRoomId);
+
+      const response = await apiService.get<ChatMessagesResponse>(
+        `/chats/${chatRoomId}/messages`
+      );
+
+      // console.log("Fetched chat room messages", response);
+
+      if (response.success && response.data) {
+        return response;
+      }
+
+      console.warn("Failed to get chat room messages");
+    } catch (error) {
+      console.error("Error getting chat room messages", JSON.stringify(error));
+    }
   }
 }
 
