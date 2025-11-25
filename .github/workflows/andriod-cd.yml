@@ -35,7 +35,6 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       build_number: ${{ steps.version.outputs.build_number }}
-      version_code: ${{ steps.version.outputs.version_code }}
     
     steps:
       - name: Checkout repository
@@ -73,20 +72,10 @@ jobs:
           else
             VERSION=$(node -p "require('./package.json').version")
           fi
-          
           BUILD_NUMBER=${{ github.run_number }}
-          
-          # Convert semantic version to version code (e.g., 1.2.3 -> 10203)
-          # This ensures version codes are monotonically increasing
-          VERSION_CODE=$(echo $VERSION | awk -F. '{printf "%d%02d%02d", $1, $2, $3}')
-          
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
-          echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
-          
-          echo "📦 Deploying version: $VERSION"
-          echo "🔢 Build number: $BUILD_NUMBER"
-          echo "📱 Version code: $VERSION_CODE"
+          echo "📦 Deploying version: $VERSION (Build: $BUILD_NUMBER)"
 
   # =============================================================================
   # BUILD SIGNED APK
@@ -119,63 +108,27 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Generate Android native project using Expo prebuild
-      # No EXPO_TOKEN required - uses local expo-cli from node_modules
-      - name: Generate Android native project
-        run: |
-          echo "📦 Generating Android project with Expo prebuild..."
-          npx expo prebuild --platform android --clean --skip-dependency-update react-native,react
-          
-          echo "✅ Android project generated successfully"
+      # Setup Expo with authentication
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
 
-      # Update version information in Android project
-      - name: Update Android version information
+      # Prebuild native Android project with version info
+      - name: Prebuild Android project
         run: |
-          VERSION="${{ needs.pre-deployment-checks.outputs.version }}"
-          VERSION_CODE="${{ needs.pre-deployment-checks.outputs.version_code }}"
-          
-          # Update version in gradle.properties
-          echo "" >> android/gradle.properties
-          echo "# Version information from CI/CD" >> android/gradle.properties
-          echo "VERSION_NAME=$VERSION" >> android/gradle.properties
-          echo "VERSION_CODE=$VERSION_CODE" >> android/gradle.properties
-          
-          echo "✅ Updated version to $VERSION (code: $VERSION_CODE)"
-
-      # Update build.gradle to use version from gradle.properties
-      - name: Configure build.gradle for versioning
-        run: |
-          # Backup original build.gradle
-          cp android/app/build.gradle android/app/build.gradle.bak
-          
-          # Add version code and name from gradle.properties
-          cat > /tmp/version_config.gradle << 'EOF'
-          
-          // Read version from gradle.properties
-          def versionName = project.hasProperty('VERSION_NAME') ? VERSION_NAME : "1.0.0"
-          def versionCode = project.hasProperty('VERSION_CODE') ? VERSION_CODE.toInteger() : 1
-          
-          android {
-              defaultConfig {
-                  versionCode versionCode
-                  versionName versionName
-              }
-          }
-          EOF
-          
-          # Append to build.gradle
-          cat /tmp/version_config.gradle >> android/app/build.gradle
-          
-          echo "✅ Configured build.gradle for dynamic versioning"
+          npx expo prebuild --platform android --clean
+        env:
+          EXPO_PUBLIC_VERSION: ${{ needs.pre-deployment-checks.outputs.version }}
 
       # Decode and setup keystore for signing
       # Keystore must be base64 encoded and stored in secrets
       - name: Setup Android keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
-          echo "✅ Keystore decoded and placed in android/app/"
 
-      # Create keystore.properties file for Gradle signing configuration
+      # Create keystore.properties file for Gradle
       - name: Create keystore properties
         run: |
           cat > android/keystore.properties << EOF
@@ -184,112 +137,49 @@ jobs:
           keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
           storeFile=release.keystore
           EOF
-          
-          echo "✅ Created keystore.properties"
 
-      # Update build.gradle to use keystore.properties for signing
-      - name: Configure signing in build.gradle
+      # Update gradle.properties with version information
+      - name: Update version in gradle
         run: |
-          cat > /tmp/signing_config.gradle << 'EOF'
-          
-          // Load keystore properties
-          def keystorePropertiesFile = rootProject.file("keystore.properties")
-          def keystoreProperties = new Properties()
-          if (keystorePropertiesFile.exists()) {
-              keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-          }
-          
-          android {
-              signingConfigs {
-                  release {
-                      if (keystorePropertiesFile.exists()) {
-                          storeFile file(keystoreProperties['storeFile'])
-                          storePassword keystoreProperties['storePassword']
-                          keyAlias keystoreProperties['keyAlias']
-                          keyPassword keystoreProperties['keyPassword']
-                      }
-                  }
-              }
-              buildTypes {
-                  release {
-                      signingConfig signingConfigs.release
-                      minifyEnabled true
-                      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-                  }
-              }
-          }
+          cat >> android/gradle.properties << EOF
+          VERSION_NAME=${{ needs.pre-deployment-checks.outputs.version }}
+          VERSION_CODE=${{ needs.pre-deployment-checks.outputs.build_number }}
           EOF
-          
-          # Insert signing config into build.gradle
-          cat /tmp/signing_config.gradle >> android/app/build.gradle
-          
-          echo "✅ Configured signing in build.gradle"
-
-      # Cache Gradle dependencies
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
 
       # Grant execute permissions to gradlew
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      # Build signed release APK using Gradle
+      # Build signed release APK
       - name: Build release APK
         working-directory: android
-        run: |
-          ./gradlew assembleRelease --stacktrace --no-daemon
-          echo "✅ APK build completed"
+        run: ./gradlew assembleRelease
 
       # Verify APK was created and is signed
       - name: Verify APK signature
         run: |
           APK_PATH="android/app/build/outputs/apk/release/app-release.apk"
-          
           if [ ! -f "$APK_PATH" ]; then
             echo "❌ APK not found at $APK_PATH"
             exit 1
           fi
-          
-          echo "✅ APK found at $APK_PATH"
-          
-          # Check APK size
-          SIZE=$(stat -c%s "$APK_PATH")
-          SIZE_MB=$((SIZE / 1024 / 1024))
-          echo "📦 APK size: ${SIZE_MB}MB"
-          
-          # Verify APK signature using apksigner
-          echo "🔐 Verifying APK signature..."
+          # Check APK signature using apksigner
           $ANDROID_HOME/build-tools/*/apksigner verify --verbose "$APK_PATH"
-          
-          echo "✅ APK signature verified successfully"
 
       # Rename APK with version information
       - name: Rename APK with version
         run: |
-          VERSION="${{ needs.pre-deployment-checks.outputs.version }}"
-          BUILD="${{ needs.pre-deployment-checks.outputs.build_number }}"
-          
-          OLD_PATH="android/app/build/outputs/apk/release/app-release.apk"
-          NEW_PATH="android/app/build/outputs/apk/release/deenai-mobile-v${VERSION}-build${BUILD}.apk"
-          
-          mv "$OLD_PATH" "$NEW_PATH"
-          echo "APK_PATH=$NEW_PATH" >> $GITHUB_ENV
-          
-          echo "✅ Renamed APK to: deenai-mobile-v${VERSION}-build${BUILD}.apk"
+          VERSION=${{ needs.pre-deployment-checks.outputs.version }}
+          BUILD=${{ needs.pre-deployment-checks.outputs.build_number }}
+          mv android/app/build/outputs/apk/release/app-release.apk \
+             android/app/build/outputs/apk/release/deenai-mobile-v${VERSION}.apk
 
       # Upload signed APK as downloadable artifact
       - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: signed-apk-v${{ needs.pre-deployment-checks.outputs.version }}
-          path: ${{ env.APK_PATH }}
+          name: deenai-mobile-v${{ needs.pre-deployment-checks.outputs.version }}-apk
+          path: android/app/build/outputs/apk/release/deenai-mobile-*.apk
           retention-days: 90  # Keep for 90 days
 
       # Clean up sensitive files
@@ -298,7 +188,6 @@ jobs:
         run: |
           rm -f android/app/release.keystore
           rm -f android/keystore.properties
-          echo "✅ Cleaned up sensitive files"
 
   # =============================================================================
   # BUILD SIGNED AAB (Android App Bundle)
@@ -330,40 +219,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Generate Android native project
-      - name: Generate Android native project
-        run: |
-          echo "📦 Generating Android project with Expo prebuild..."
-          npx expo prebuild --platform android --clean --skip-dependency-update react-native,react
-          echo "✅ Android project generated"
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
 
-      # Update version information
-      - name: Update Android version information
+      - name: Prebuild Android project
         run: |
-          VERSION="${{ needs.pre-deployment-checks.outputs.version }}"
-          VERSION_CODE="${{ needs.pre-deployment-checks.outputs.version_code }}"
-          
-          echo "" >> android/gradle.properties
-          echo "VERSION_NAME=$VERSION" >> android/gradle.properties
-          echo "VERSION_CODE=$VERSION_CODE" >> android/gradle.properties
-
-      # Configure build.gradle for versioning
-      - name: Configure build.gradle for versioning
-        run: |
-          cat > /tmp/version_config.gradle << 'EOF'
-          
-          def versionName = project.hasProperty('VERSION_NAME') ? VERSION_NAME : "1.0.0"
-          def versionCode = project.hasProperty('VERSION_CODE') ? VERSION_CODE.toInteger() : 1
-          
-          android {
-              defaultConfig {
-                  versionCode versionCode
-                  versionName versionName
-              }
-          }
-          EOF
-          
-          cat /tmp/version_config.gradle >> android/app/build.gradle
+          npx expo prebuild --platform android --clean
+        env:
+          EXPO_PUBLIC_VERSION: ${{ needs.pre-deployment-checks.outputs.version }}
 
       # Setup keystore for AAB signing
       - name: Setup Android keystore
@@ -379,115 +245,60 @@ jobs:
           storeFile=release.keystore
           EOF
 
-      # Configure signing in build.gradle
-      - name: Configure signing in build.gradle
+      - name: Update version in gradle
         run: |
-          cat > /tmp/signing_config.gradle << 'EOF'
-          
-          def keystorePropertiesFile = rootProject.file("keystore.properties")
-          def keystoreProperties = new Properties()
-          if (keystorePropertiesFile.exists()) {
-              keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-          }
-          
-          android {
-              signingConfigs {
-                  release {
-                      if (keystorePropertiesFile.exists()) {
-                          storeFile file(keystoreProperties['storeFile'])
-                          storePassword keystoreProperties['storePassword']
-                          keyAlias keystoreProperties['keyAlias']
-                          keyPassword keystoreProperties['keyPassword']
-                      }
-                  }
-              }
-              buildTypes {
-                  release {
-                      signingConfig signingConfigs.release
-                      minifyEnabled true
-                      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-                  }
-              }
-          }
+          cat >> android/gradle.properties << EOF
+          VERSION_NAME=${{ needs.pre-deployment-checks.outputs.version }}
+          VERSION_CODE=${{ needs.pre-deployment-checks.outputs.build_number }}
           EOF
-          
-          cat /tmp/signing_config.gradle >> android/app/build.gradle
-
-      # Cache Gradle dependencies
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      # Build signed release AAB (Android App Bundle) using Gradle
+      # Build signed release AAB (Android App Bundle)
       - name: Build release AAB
         working-directory: android
-        run: |
-          ./gradlew bundleRelease --stacktrace --no-daemon
-          echo "✅ AAB build completed"
+        run: ./gradlew bundleRelease
 
       # Verify AAB was created and is properly signed
       - name: Verify AAB
         run: |
           AAB_PATH="android/app/build/outputs/bundle/release/app-release.aab"
-          
           if [ ! -f "$AAB_PATH" ]; then
             echo "❌ AAB not found at $AAB_PATH"
             exit 1
           fi
-          
-          echo "✅ AAB found at $AAB_PATH"
-          
-          # Check AAB size
+          # Check file size (AAB should be reasonable size)
           SIZE=$(stat -c%s "$AAB_PATH")
-          SIZE_MB=$((SIZE / 1024 / 1024))
-          echo "📦 AAB size: ${SIZE_MB}MB"
-          
-          # AAB signature verification
-          echo "🔐 Verifying AAB structure..."
-          unzip -l "$AAB_PATH" | head -20
-          
-          echo "✅ AAB structure verified"
+          echo "AAB size: $SIZE bytes"
+          if [ "$SIZE" -lt 1000000 ]; then
+            echo "Warning: AAB seems too small"
+          fi
 
       # Rename AAB with version information
       - name: Rename AAB with version
         run: |
-          VERSION="${{ needs.pre-deployment-checks.outputs.version }}"
-          BUILD="${{ needs.pre-deployment-checks.outputs.build_number }}"
-          
-          OLD_PATH="android/app/build/outputs/bundle/release/app-release.aab"
-          NEW_PATH="android/app/build/outputs/bundle/release/deenai-mobile-v${VERSION}-build${BUILD}.aab"
-          
-          mv "$OLD_PATH" "$NEW_PATH"
-          echo "AAB_PATH=$NEW_PATH" >> $GITHUB_ENV
-          
-          echo "✅ Renamed AAB to: deenai-mobile-v${VERSION}-build${BUILD}.aab"
+          VERSION=${{ needs.pre-deployment-checks.outputs.version }}
+          BUILD=${{ needs.pre-deployment-checks.outputs.build_number }}
+          mv android/app/build/outputs/bundle/release/app-release.aab \
+             android/app/build/outputs/bundle/release/deenai-mobile-v${VERSION}.aab
 
       # Upload signed AAB as downloadable artifact
       - name: Upload signed AAB
         uses: actions/upload-artifact@v4
         with:
-          name: signed-aab-v${{ needs.pre-deployment-checks.outputs.version }}
-          path: ${{ env.AAB_PATH }}
+          name: deenai-mobile-v${{ needs.pre-deployment-checks.outputs.version }}-aab
+          path: android/app/build/outputs/bundle/release/deenai-mobile-*.aab
           retention-days: 90
 
       # Generate and upload mapping file for crash reporting
-      # ProGuard mapping file is essential for deobfuscating crash reports
+      # Proguard mapping file is essential for deobfuscating crash reports
       - name: Upload ProGuard mapping file
         uses: actions/upload-artifact@v4
         with:
           name: mapping-v${{ needs.pre-deployment-checks.outputs.version }}
           path: android/app/build/outputs/mapping/release/mapping.txt
           retention-days: 365  # Keep mapping files for 1 year
-        continue-on-error: true  # Don't fail if mapping file doesn't exist
 
       # Clean up sensitive files
       - name: Cleanup keystore
@@ -499,46 +310,45 @@ jobs:
   # =============================================================================
   # E2E TESTING ON RELEASE BUILD
   # Tests the actual signed release APK before distribution
-  # Uncomment when E2E tests are ready
   # =============================================================================
-  # e2e-release-tests:
-  #   name: E2E Tests on Release APK
-  #   runs-on: ubuntu-latest
-  #   needs: [build-apk]
-  #   
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
-  #
-  #     # Download the signed release APK
-  #     - name: Download release APK
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: signed-apk-v${{ needs.pre-deployment-checks.outputs.version }}
-  #         path: ./app
-  #
-  #     # Install Maestro for E2E testing
-  #     - name: Install Maestro
-  #       run: |
-  #         curl -Ls "https://get.maestro.mobile.dev" | bash
-  #         echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
-  #
-  #     # Run critical E2E smoke tests on release build
-  #     - name: Run E2E smoke tests
-  #       uses: mobile-dev-inc/action-maestro-cloud@v1
-  #       with:
-  #         api-key: ${{ secrets.MAESTRO_CLOUD_API_KEY }}
-  #         app-file: ./app/deenai-mobile-*.apk
-  #         flows: .maestro/smoke/
-  #
-  #     # Upload test results
-  #     - name: Upload E2E test results
-  #       if: always()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: e2e-release-results
-  #         path: ~/.maestro/tests/
-  #         retention-days: 30
+  e2e-release-tests:
+    name: E2E Tests on Release APK
+    runs-on: ubuntu-latest
+    needs: [build-apk, pre-deployment-checks]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Download the signed release APK
+      - name: Download release APK
+        uses: actions/download-artifact@v4
+        with:
+          name: deenai-mobile-v${{ needs.pre-deployment-checks.outputs.version }}-apk
+          path: ./app
+
+      # Install Maestro for E2E testing
+      - name: Install Maestro
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
+
+      # Run critical E2E smoke tests on release build
+      - name: Run E2E smoke tests
+        uses: mobile-dev-inc/action-maestro-cloud@v1
+        with:
+          api-key: ${{ secrets.MAESTRO_CLOUD_API_KEY }}
+          project-id: ${{ secrets.MAESTRO_PROJECT_ID }}
+          app-file: ./app/deenai-mobile-*.apk
+
+      # Upload test results
+      - name: Upload E2E test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-release-results
+          path: ~/.maestro/tests/
+          retention-days: 30
 
   # =============================================================================
   # CREATE GITHUB RELEASE
@@ -561,14 +371,14 @@ jobs:
       - name: Download APK
         uses: actions/download-artifact@v4
         with:
-          name: signed-apk-v${{ needs.pre-deployment-checks.outputs.version }}
+          name: deenai-mobile-v${{ needs.pre-deployment-checks.outputs.version }}-apk
           path: ./artifacts/apk
 
       # Download AAB artifact
       - name: Download AAB
         uses: actions/download-artifact@v4
         with:
-          name: signed-aab-v${{ needs.pre-deployment-checks.outputs.version }}
+          name: deenai-mobile-v${{ needs.pre-deployment-checks.outputs.version }}-aab
           path: ./artifacts/aab
 
       # Download ProGuard mapping file
@@ -577,18 +387,16 @@ jobs:
         with:
           name: mapping-v${{ needs.pre-deployment-checks.outputs.version }}
           path: ./artifacts/mapping
-        continue-on-error: true
 
       # Generate release notes from commits
       - name: Generate release notes
         id: release_notes
         run: |
-          VERSION="${{ needs.pre-deployment-checks.outputs.version }}"
-          BUILD="${{ needs.pre-deployment-checks.outputs.build_number }}"
-          VERSION_CODE="${{ needs.pre-deployment-checks.outputs.version_code }}"
+          VERSION=${{ needs.pre-deployment-checks.outputs.version }}
+          BUILD=${{ needs.pre-deployment-checks.outputs.build_number }}
           
           cat > release_notes.md << EOF
-          # 🤖 DeenAI Mobile Android v${VERSION} (Build ${BUILD})
+          # DeenAI Mobile v${VERSION} (Build ${BUILD})
           
           ## 📦 Downloads
           - **APK**: For direct installation and testing
@@ -596,49 +404,24 @@ jobs:
           - **Mapping**: ProGuard mapping file for crash analysis
           
           ## 🔧 Build Information
-          - **Version**: ${VERSION}
-          - **Build Number**: ${BUILD}
-          - **Version Code**: ${VERSION_CODE}
-          - **Commit**: ${GITHUB_SHA:0:7}
-          - **Built**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')
-          - **Built With**: Standard React Native/Android tools (no Expo EAS dependency)
+          - Version: ${VERSION}
+          - Build Number: ${BUILD}
+          - Commit: ${GITHUB_SHA:0:7}
+          - Built: $(date -u +'%Y-%m-%d %H:%M:%S UTC')
           
           ## 📝 Changes
-          $(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD 2>/dev/null || echo "- Initial release")
+          $(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD || echo "- Initial release")
           
           ## ⚙️ Technical Details
           - React Native: 0.81.5
-          - Expo SDK: ~54.0.23 (prebuild only, no runtime dependency)
+          - Expo SDK: ~54.0.23
           - Minimum SDK: Check app-level build.gradle
-          - Java: 17
-          - Gradle: Wrapper version in project
           
           ---
-          
-          ## 📲 Installation Instructions for APK:
-          
-          1. **Enable Unknown Sources**
-             - Go to Settings > Security
-             - Enable "Install from Unknown Sources" or "Unknown Sources"
-             
-          2. **Download & Install**
-             - Download the APK file
-             - Open the downloaded file
-             - Follow installation prompts
-          
-          ## 🚀 Play Store Upload Instructions for AAB:
-          
-          1. Go to [Google Play Console](https://play.google.com/console)
-          2. Select your app
-          3. Navigate to Release > Production (or Testing tracks)
-          4. Create new release
-          5. Upload the AAB file
-          6. Upload the mapping.txt file for crash reporting
-          7. Complete release details and submit
-          
-          ---
-          
-          **Note**: This build uses standard React Native/Android build tools with Expo prebuild for project generation.
+          **Installation Instructions for APK:**
+          1. Enable "Install from Unknown Sources" on your Android device
+          2. Download the APK file
+          3. Open and install the APK
           EOF
           
           echo "notes_file=release_notes.md" >> $GITHUB_OUTPUT
@@ -647,7 +430,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          name: DeenAI Mobile Android v${{ needs.pre-deployment-checks.outputs.version }}
+          name: DeenAI Mobile v${{ needs.pre-deployment-checks.outputs.version }}
           body_path: release_notes.md
           draft: false
           prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
@@ -676,7 +459,7 @@ jobs:
   #     - name: Download AAB
   #       uses: actions/download-artifact@v4
   #       with:
-  #         name: signed-aab-v${{ needs.pre-deployment-checks.outputs.version }}
+  #         name: deenai-mobile-v${{ needs.pre-deployment-checks.outputs.version }}-aab
   #         path: ./artifacts/aab
   #
   #     # Upload to Google Play Store
@@ -691,11 +474,10 @@ jobs:
   #         status: ${{ github.event.inputs.release_type == 'production' && 'completed' || 'draft' }}
   #         inAppUpdatePriority: 2
   #         whatsNewDirectory: ./whatsnew/  # Optional: Release notes per language
-  #         mappingFile: ./artifacts/mapping/mapping.txt
 
   # =============================================================================
   # NOTIFY DEPLOYMENT
-  # Sends deployment notifications to Slack/Discord/Email
+  # Sends deployment notifications to Slack
   # =============================================================================
   notify-deployment:
     name: Notify Deployment Status
@@ -712,37 +494,20 @@ jobs:
       #     webhook-type: incoming-webhook
       #     payload: |
       #       {
-      #         "text": "🚀 DeenAI Mobile Android Deployment",
+      #         "text": "🚀 DeenAI Mobile Deployment",
       #         "blocks": [
       #           {
       #             "type": "section",
       #             "text": {
       #               "type": "mrkdwn",
-      #               "text": "*DeenAI Mobile Android v${{ needs.pre-deployment-checks.outputs.version }}* has been deployed!\n*Status:* ${{ needs.create-release.result }}\n*Build:* #${{ needs.pre-deployment-checks.outputs.build_number }}\n*Version Code:* ${{ needs.pre-deployment-checks.outputs.version_code }}"
+      #               "text": "*DeenAI Mobile v${{ needs.pre-deployment-checks.outputs.version }}* has been deployed!\n*Status:* ${{ needs.create-release.result }}\n*Build:* #${{ needs.pre-deployment-checks.outputs.build_number }}"
       #             }
       #           }
       #         ]
       #       }
 
-      # Alternative: Discord webhook notification
-      # - name: Send Discord notification
-      #   uses: sarisia/actions-status-discord@v1
-      #   if: always()
-      #   with:
-      #     webhook: ${{ secrets.DISCORD_WEBHOOK }}
-      #     title: "DeenAI Mobile Android Deployment"
-      #     description: |
-      #       Version: ${{ needs.pre-deployment-checks.outputs.version }}
-      #       Build: ${{ needs.pre-deployment-checks.outputs.build_number }}
-      #       Version Code: ${{ needs.pre-deployment-checks.outputs.version_code }}
-      #       Status: ${{ needs.create-release.result }}
-      #     color: ${{ needs.create-release.result == 'success' && '0x00FF00' || '0xFF0000' }}
-
       - name: Deployment summary
         run: |
-          echo "🎉 Android Deployment completed for v${{ needs.pre-deployment-checks.outputs.version }}"
+          echo "🎉 Deployment completed for v${{ needs.pre-deployment-checks.outputs.version }}"
           echo "📦 APK and AAB artifacts are available for download"
-          echo "🔢 Version Code: ${{ needs.pre-deployment-checks.outputs.version_code }}"
           echo "🔗 Check the Releases page for download links"
-          echo ""
-          echo "Build Method: Standard React Native/Android (Expo prebuild for project generation)"

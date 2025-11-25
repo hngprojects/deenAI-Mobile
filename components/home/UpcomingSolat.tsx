@@ -1,18 +1,18 @@
 import { theme } from '@/styles/theme';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { ArrowRight} from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function UpcomingSolat() {
+    const router = useRouter();
     const handleSeeAll = () => {
-        // TODO: Navigate to all prayer times
-        console.log('See all pressed');
+        router.push('/(tabs)/(prayer-times)/prayerTimes');
     };
 
     const handlePrayerPress = () => {
-        // TODO: Navigate to prayer details
-        console.log('Prayer card pressed');
+        router.push('/(tabs)/(prayer-times)/prayerDetails');
     };
 
     return (
