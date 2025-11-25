@@ -2,7 +2,7 @@ import { useLocation } from '@/hooks/useLocation';
 import * as adhan from 'adhan';
 import { useRouter } from 'expo-router';
 import moment from 'moment-timezone';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 
@@ -40,7 +40,7 @@ export default function PrayerTimesScreen() {
     calculateIslamicDate();
   }, [currentDate]);
 
-  const calculatePrayerTimes = () => {
+  const calculatePrayerTimes = useCallback(() => {
     if (!location) return;
 
     try {
@@ -65,7 +65,7 @@ export default function PrayerTimesScreen() {
     } catch (error) {
       console.error('Prayer calculation error:', error);
     }
-  };
+  }, [location, currentDate]);
 
   const calculateIslamicDate = () => {
     try {
@@ -80,7 +80,12 @@ export default function PrayerTimesScreen() {
       const month = parts.find(p => p.type === 'month')?.value;
       const year = parts.find(p => p.type === 'year')?.value;
 
-      setIslamicDate(`${day} ${month} | ${year}AH`);
+      if (day && month && year) {
+        setIslamicDate(`${day} ${month} | ${year}AH`);
+      } else {
+        console.error('Could not construct Islamic date from parts:', parts);
+        setIslamicDate('Error formatting date');
+      }
     } catch (error) {
       console.error('Islamic date error:', error);
       setIslamicDate('Loading...');
