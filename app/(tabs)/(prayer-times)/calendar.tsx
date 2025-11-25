@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -9,41 +9,53 @@ import {
   Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { usePrayerStore, usePrayerTimes } from "@/store/prayerStore";
+import {
+  generateCalendarGrid,
+  getHijriDateString,
+} from "@/utils/calendarLogic";
 
 const { width: screenWidth } = Dimensions.get("window");
 
 export default function CalendarScreen() {
   const router = useRouter();
-  const [selectedDate, setSelectedDate] = useState(19);
+  const { currentDate, setDate, nextMonth, prevMonth } = usePrayerStore();
 
-  // Mock prayer times data
-  const prayerTimes = {
-    Subh: "05:21 AM",
-    Dhuhr: "12:30 PM",
-    Asr: "03:52 PM",
-    Maghrib: "06:26 PM",
-    Isha: "07:56 PM",
-    Tahajjud: "01:39 AM",
+  // ✨ Use the dedicated hook to get calculated prayer times reactively
+  const prayerTimes = usePrayerTimes() as Record<string, string>;
+
+  // These useMemos ensure calculation only runs when currentDate changes
+  const calendarWeeks = useMemo(
+    () => generateCalendarGrid(currentDate),
+    [currentDate]
+  );
+
+  const hijriString = useMemo(
+    () => getHijriDateString(currentDate),
+    [currentDate]
+  );
+
+  const dayHeaders = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+
+  // Define prayer order to match your design
+  const prayerOrder = ["Subh", "Dhuhr", "Asr", "Maghrib", "Isha", "Tahajjud"];
+
+  const handleDatePress = (dateObj: Date | null) => {
+    if (dateObj) {
+      setDate(dateObj);
+    }
   };
 
-  // Calendar data without row numbers
-  const calendarWeeks = [
-    [3, 4, 5, 6, 7, 8, 9],
-    [10, 11, 12, 13, 14, 15, 16],
-    [17, 18, 19, 20, 21, 22, 23],
-    [24, 25, 26, 27, 28, 29, 30],
-    [1, 2, 3, 4, 5, 6, 7],
-  ];
+  const handleNextMonth = () => {
+    nextMonth();
+  };
 
-  const dayHeaders = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"];
-
-  const handleDatePress = (date: number) => {
-    setSelectedDate(date);
+  const handlePrevMonth = () => {
+    prevMonth();
   };
 
   return (
-    <View style={[styles.container, { paddingTop: 30 }]}>
-      {/* Header */}
+    <View style={styles.container}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.iconButton}>
           <Image
@@ -52,133 +64,151 @@ export default function CalendarScreen() {
           />
         </Pressable>
 
-        {/* Calendar Header with Month/Year */}
         <View style={styles.calendarHeader}>
           <View style={styles.monthYearContainer}>
-            <Text style={styles.monthYearText}>November, 2025</Text>
-            <Image
-              source={require("@/assets/images/prayerTimes-icons/arrow-down.png")}
-              style={styles.dropdownIcon}
-            />
+            <Pressable
+              onPress={handlePrevMonth}
+              hitSlop={10}
+              style={styles.navButton}
+            >
+              <Text style={styles.navButtonText}>‹</Text>
+            </Pressable>
+            <Text style={styles.monthYearText}>
+              {currentDate.toLocaleDateString("en-US", {
+                month: "long",
+                year: "numeric",
+              })}
+            </Text>
+            <Pressable
+              onPress={handleNextMonth}
+              hitSlop={10}
+              style={styles.navButton}
+            >
+              <Text style={styles.navButtonText}>›</Text>
+            </Pressable>
           </View>
-          <Text style={styles.islamicMonthText}>
-            Jumada I – Jumada II, 1447
-          </Text>
+          <Text style={styles.islamicMonthText}>{hijriString}</Text>
         </View>
       </View>
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
-        {/* Calendar Grid - Without "No" Column */}
         <View style={styles.calendarTable}>
-          {/* Table Headers - Only Day Headers */}
           <View style={styles.tableHeaderRow}>
-            {dayHeaders.map((day) => (
-              <View key={day} style={styles.dayHeader}>
+            {dayHeaders.map((day, index) => (
+              <View
+                key={day}
+                style={[
+                  styles.dayHeader,
+                  index === dayHeaders.length - 1 && styles.lastDayHeader,
+                ]}
+              >
                 <Text style={styles.tableHeaderText}>{day}</Text>
               </View>
             ))}
           </View>
 
-          {/* Table Rows with Borders - No Week Numbers */}
-          {calendarWeeks.map((week, weekIndex) => (
-            <View key={weekIndex} style={styles.tableRow}>
-              {week.map((date, dayIndex) => (
-                <Pressable
-                  key={dayIndex}
-                  style={[
-                    styles.dateCell,
-                    styles.tableCell,
-                    dayIndex === 6 && styles.lastCell, // Last cell in row
-                    date === selectedDate && styles.selectedDateCell,
-                  ]}
-                  onPress={() => handleDatePress(date)}
-                >
-                  <Text
-                    style={[
-                      styles.dateText,
-                      date === selectedDate && styles.selectedDateText,
-                    ]}
-                  >
-                    {date}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          ))}
+          {calendarWeeks.map((week, weekIndex) => {
+            // Check if this is the last week and has dates from next month
+            const isLastWeek = weekIndex === calendarWeeks.length - 1;
+            const hasNextMonthDates = week.some(
+              (dateObj) =>
+                dateObj && dateObj.getMonth() !== currentDate.getMonth()
+            );
+
+            return (
+              <View
+                key={weekIndex}
+                style={[
+                  styles.tableRow,
+                  isLastWeek && hasNextMonthDates && styles.lastWeekRow,
+                ]}
+              >
+                {week.map((dateObj, dayIndex) => {
+                  const isSelected =
+                    dateObj &&
+                    dateObj.getDate() === currentDate.getDate() &&
+                    dateObj.getMonth() === currentDate.getMonth() &&
+                    dateObj.getFullYear() === currentDate.getFullYear();
+
+                  const isCurrentMonth =
+                    dateObj && dateObj.getMonth() === currentDate.getMonth();
+
+                  const isLastCell = dayIndex === 6;
+
+                  return (
+                    <Pressable
+                      key={dayIndex}
+                      style={[
+                        styles.dateCell,
+                        isSelected && styles.selectedDateCell,
+                        isLastCell && styles.lastCell,
+                      ]}
+                      onPress={() => handleDatePress(dateObj)}
+                      disabled={!dateObj}
+                    >
+                      <Text
+                        style={[
+                          styles.dateText,
+                          !isCurrentMonth && styles.otherMonthText,
+                          isSelected && styles.selectedDateText,
+                          !dateObj && styles.emptyDateText,
+                        ]}
+                      >
+                        {dateObj ? dateObj.getDate() : ""}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            );
+          })}
         </View>
 
-        {/* Prayer Times Section */}
         <View style={styles.prayerSection}>
-          <Text style={styles.prayerSectionTitle}>Daily Prayers</Text>
+          {prayerOrder.map((prayer) => {
+            const time = prayerTimes[prayer];
+            if (!time) return null;
 
-          {/* Individual Prayer Time Containers */}
-          {Object.entries(prayerTimes).map(([prayer, time]) => (
-            <View key={prayer} style={styles.prayerItemContainer}>
-              <View style={styles.prayerItem}>
+            return (
+              <View key={prayer} style={styles.prayerItem}>
                 <View style={styles.prayerLeft}>
                   <Image
-                    source={require("@/assets/images/speakerIcon.png")}
+                    source={require("@/assets/images/prayerTimes-icons/speakerIcon.png")}
                     style={styles.speakerIcon}
                   />
                   <Text style={styles.prayerName}>{prayer}</Text>
                 </View>
                 <Text style={styles.prayerTime}>{time}</Text>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
 
-        {/* Extra space at bottom */}
         <View style={styles.bottomSpace} />
       </ScrollView>
     </View>
   );
 }
 
-const responsiveSize = (size: number) => {
-  const scale = screenWidth / 375;
-  return Math.round(size * Math.min(scale, 1.2));
-};
+const responsiveSize = (size: number) =>
+  Math.round(size * Math.min(screenWidth / 375, 1.2));
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fafafa",
+    backgroundColor: "#F5F5F5",
+    paddingTop: 40,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: responsiveSize(16),
+    paddingHorizontal: responsiveSize(20),
     paddingVertical: responsiveSize(16),
-    backgroundColor: "#ffffff",
-  },
-  calendarHeader: {
-    alignItems: "center",
-    flex: 1,
-  },
-  monthYearContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: responsiveSize(4),
-  },
-  monthYearText: {
-    fontSize: responsiveSize(18),
-    fontWeight: "600",
-    color: "#9C7630",
-    marginRight: responsiveSize(8),
-  },
-  dropdownIcon: {
-    width: responsiveSize(16),
-    height: responsiveSize(16),
-  },
-  islamicMonthText: {
-    fontSize: responsiveSize(12),
-    color: "#666666",
-    textAlign: "center",
+    backgroundColor: "#FFFFFF",
   },
   iconButton: {
     padding: responsiveSize(8),
@@ -187,117 +217,152 @@ const styles = StyleSheet.create({
     width: responsiveSize(24),
     height: responsiveSize(24),
   },
-  calendarIcon: {
-    width: responsiveSize(20),
-    height: responsiveSize(20),
+  calendarHeader: {
+    flex: 1,
+    alignItems: "center",
+    marginRight: responsiveSize(32),
+  },
+  monthYearContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: responsiveSize(4),
+    gap: responsiveSize(12),
+  },
+  monthYearText: {
+    fontSize: responsiveSize(18),
+    fontWeight: "600",
+    color: "#964B00",
+    fontFamily: "NunitoSans-SemiBold",
+  },
+  navButton: {
+    padding: responsiveSize(4),
+  },
+  navButtonText: {
+    fontSize: responsiveSize(20),
+    color: "#964B00",
+    fontWeight: "600",
+    fontFamily: "NunitoSans-SemiBold",
+  },
+  islamicMonthText: {
+    fontSize: responsiveSize(12),
+    color: "#666666",
+    textAlign: "center",
+    fontFamily: "NunitoSans-Regular",
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: responsiveSize(16),
-    paddingVertical: responsiveSize(20),
+    paddingTop: responsiveSize(20),
   },
-  // Updated Calendar Table without "No" Column
   calendarTable: {
-    backgroundColor: "#ffffff",
-    borderRadius: responsiveSize(12),
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    marginBottom: responsiveSize(24),
+    backgroundColor: "#FFFFFF",
+    borderRadius: responsiveSize(16),
     overflow: "hidden",
+    marginBottom: responsiveSize(24),
   },
   tableHeaderRow: {
     flexDirection: "row",
     backgroundColor: "#964B00",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
+    borderTopLeftRadius: responsiveSize(16),
+    borderTopRightRadius: responsiveSize(16),
   },
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
+    borderBottomColor: "#D5D4DF",
+  },
+  lastWeekRow: {
+    backgroundColor: "#D5D4DF",
   },
   dayHeader: {
     flex: 1,
-    paddingVertical: responsiveSize(12),
+    paddingVertical: responsiveSize(14),
     alignItems: "center",
     justifyContent: "center",
     borderRightWidth: 1,
-    borderRightColor: "#ffffff",
+    borderRightColor: "rgba(255, 255, 255, 0.2)",
   },
-  tableCell: {
-    flex: 1,
-    paddingVertical: responsiveSize(12),
-    alignItems: "center",
-    justifyContent: "center",
-    borderRightWidth: 1,
-    borderRightColor: "#E5E5E5",
-  },
-  dateCell: {
-    // Additional date cell styling if needed
-  },
-  lastCell: {
-    borderRightWidth: 0, // Remove right border for last cell
+  lastDayHeader: {
+    borderRightWidth: 0,
   },
   tableHeaderText: {
-    fontSize: responsiveSize(14),
+    fontSize: responsiveSize(13),
     fontWeight: "600",
-    color: "#ffffff",
+    color: "#FFFFFF",
+    fontFamily: "NunitoSans-SemiBold",
   },
-  dateText: {
-    fontSize: responsiveSize(14),
-    fontWeight: "500",
-    color: "#000000",
+  dateCell: {
+    flex: 1,
+    paddingVertical: responsiveSize(18),
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: responsiveSize(52),
+    borderRightWidth: 1,
+    borderRightColor: "#E8E8E8",
   },
   selectedDateCell: {
     backgroundColor: "#964B00",
+    marginHorizontal: responsiveSize(4),
+    marginVertical: responsiveSize(4),
+    borderRadius: responsiveSize(8),
+  },
+  lastCell: {
+    borderRightWidth: 0,
+  },
+  dateText: {
+    fontSize: responsiveSize(15),
+    fontWeight: "500",
+    color: "#3C3A35",
+    fontFamily: "NunitoSans-Regular",
+  },
+  otherMonthText: {
+    color: "#CCCCCC",
   },
   selectedDateText: {
-    color: "#ffffff",
-    fontWeight: "600",
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontFamily: "NunitoSans-Bold",
   },
-  // Prayer Times Section
+  emptyDateText: {
+    color: "transparent",
+  },
   prayerSection: {
     marginBottom: responsiveSize(24),
-  },
-  prayerSectionTitle: {
-    fontSize: responsiveSize(18),
-    fontWeight: "600",
-    color: "#000000",
-    marginBottom: responsiveSize(16),
-  },
-  prayerItemContainer: {
-    marginBottom: responsiveSize(12),
   },
   prayerItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#FFFFFF",
     borderRadius: responsiveSize(12),
     padding: responsiveSize(16),
+    marginBottom: responsiveSize(12),
   },
   prayerLeft: {
     flexDirection: "row",
     alignItems: "center",
   },
-  prayerName: {
-    fontSize: responsiveSize(16),
-    color: "#000000",
-    fontWeight: "500",
-    marginLeft: responsiveSize(12),
-  },
-  prayerTime: {
-    fontSize: responsiveSize(16),
-    color: "#000000",
-    fontWeight: "500",
-  },
   speakerIcon: {
     width: responsiveSize(24),
     height: responsiveSize(24),
   },
+  prayerName: {
+    fontSize: responsiveSize(16),
+    color: "#3C3A35",
+    fontWeight: "500",
+    marginLeft: responsiveSize(12),
+    fontFamily: "NunitoSans-Regular",
+  },
+  prayerTime: {
+    fontSize: responsiveSize(16),
+    color: "#3C3A35",
+    fontWeight: "600",
+    fontFamily: "NunitoSans-SemiBold",
+  },
   bottomSpace: {
-    height: responsiveSize(20),
+    height: responsiveSize(40),
   },
 });
