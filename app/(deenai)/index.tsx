@@ -118,6 +118,7 @@ export default function DEENAI() {
             scrollable={true}
             showsVerticalScrollIndicator={false}
             paddingHorizontal={0}
+            keyboardAvoiding={true}
           >
             <StarterPrompts setMessage={setPrompt} />
           </ScreenContainer>
