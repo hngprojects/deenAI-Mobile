@@ -13,6 +13,7 @@ import { usePrayerStore, usePrayerTimes } from "@/store/prayerStore";
 import {
   generateCalendarGrid,
   getHijriDateString,
+  getISOWeekNumber,
 } from "@/utils/calendarLogic";
 
 const { width: screenWidth } = Dimensions.get("window");
@@ -28,6 +29,15 @@ export default function CalendarScreen() {
   const calendarWeeks = useMemo(
     () => generateCalendarGrid(currentDate),
     [currentDate]
+  );
+
+  const weekNumbers = useMemo(
+    () =>
+      calendarWeeks.map((week) => {
+        const firstRealDay = week.find((d) => d !== null) as Date;
+        return getISOWeekNumber(firstRealDay);
+      }),
+    [calendarWeeks]
   );
 
   const hijriString = useMemo(
@@ -165,6 +175,13 @@ export default function CalendarScreen() {
               </View>
             );
           })}
+          <View style={styles.weekNumberRow}>
+            {weekNumbers.map((wn, i) => (
+              <View key={i} style={styles.weekNumberCell}>
+                <Text style={styles.weekNumberText}>{wn}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <View style={styles.prayerSection}>
@@ -363,5 +380,26 @@ const styles = StyleSheet.create({
   },
   bottomSpace: {
     height: responsiveSize(40),
+  },
+
+  weekNumberRow: {
+    flexDirection: "row",
+    backgroundColor: "#F2F2F2",
+    borderTopWidth: 1,
+    borderTopColor: "#E5E5E5",
+    borderBottomLeftRadius: responsiveSize(16),
+    borderBottomRightRadius: responsiveSize(16),
+  },
+  weekNumberCell: {
+    flex: 1,
+    paddingVertical: responsiveSize(10),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  weekNumberText: {
+    fontSize: responsiveSize(14),
+    color: "#666",
+    fontWeight: "500",
+    fontFamily: "NunitoSans-Regular",
   },
 });
