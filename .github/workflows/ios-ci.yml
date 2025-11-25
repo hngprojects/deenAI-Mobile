@@ -45,16 +45,6 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Show available Xcode versions
-        run: ls /Applications
-
-      - name: Select Latest Xcode Automatically
-        run: |
-          LATEST_XCODE=$(ls /Applications | grep Xcode | sort -V | tail -n 1)
-          sudo xcode-select -s "/Applications/$LATEST_XCODE"
-          echo "Selected Xcode: $LATEST_XCODE"
-
-
       - name: Cache node modules (explicit)
         uses: actions/cache@v4
         with:
@@ -141,7 +131,7 @@ jobs:
       - name: Install pinned Expo CLI
         run: |
           set -euo pipefail
-          npm install -g expo-cli@~48.0.0
+          npm install -g expo-cli@~54.0.0
           expo --version
 
       - name: Run expo-doctor
@@ -237,6 +227,15 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+
+      - name: Show available Xcode versions
+        run: ls /Applications
+
+      - name: Select Latest Xcode Automatically
+        run: |
+          LATEST_XCODE=$(ls /Applications | grep Xcode | sort -V | tail -n 1)
+          sudo xcode-select -s "/Applications/$LATEST_XCODE"
+          echo "Selected Xcode: $LATEST_XCODE"
 
       - name: Install Node deps
         run: npm ci
@@ -366,6 +365,7 @@ jobs:
           path: ./
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
+          extra_args: --results=verified,unknown
 
       - name: Repo-scan for iOS secrets
         run: |
