@@ -1,86 +1,77 @@
 import MessageBubble from "@/components/deen-ai/MessageBubble";
-import StarterPrompts from "@/components/deen-ai/StarterPrompts";
-import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
 import { chatService } from "@/service/chat.service";
 import { useChatStore } from "@/store/chat.store";
 import { theme } from "@/styles/theme";
-import { router, useFocusEffect } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Book, Loader, Mic, Send } from "lucide-react-native";
-import React, { useCallback, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Platform,
   StatusBar,
   StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 
-export default function DEENAI() {
+export default function ChatRoom() {
+  const { chatId } = useLocalSearchParams<{ chatId: string }>();
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
-  const {
-    currentChatId,
-    addMessage,
-    createNewChat,
-    messages,
-    setCurrentChatId,
-    clearMessages,
-  } = useChatStore();
+  const [loadingMessages, setLoadingMessages] = useState(true);
+  const { addMessage, messages, setCurrentChatId, loadChatMessages } =
+    useChatStore();
 
-  // Clear messages when returning to this screen (new chat page)
-  useFocusEffect(
-    useCallback(() => {
-      clearMessages();
-    }, [])
-  );
+  useEffect(() => {
+    if (chatId) {
+      loadMessages();
+    }
+  }, [chatId]);
+
+  const loadMessages = async () => {
+    try {
+      setLoadingMessages(true);
+      setCurrentChatId(chatId);
+      const response = await chatService.getChatRoomMessages(chatId);
+      console.log("Loaded messages for chatId:", chatId, response);
+      if (response) {
+        loadChatMessages(response.data.reverse() || []);
+      }
+    } catch (error) {
+      console.error("Failed to load messages", error);
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
 
   const handleSend = async () => {
     if (loading) return;
     if (!prompt.trim()) return;
+
     try {
       setLoading(true);
-      if (!currentChatId) {
-        const newChatId = await createNewChat(prompt);
-        setCurrentChatId(newChatId);
 
-        console.log("newChatId", newChatId);
+      // Add user message optimistically
+      addMessage({
+        chatId: chatId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        role: "user",
+        id: "",
+        content: prompt,
+      });
 
-        addMessage({
-          chatId: newChatId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          role: "user",
-          id: "",
-          content: prompt,
-        });
+      const messageRes = await chatService.sendMessageToChatRoom(
+        prompt,
+        chatId
+      );
 
-        const messageRes = await chatService.sendMessageToChatRoom(
-          prompt,
-          newChatId
-        );
-
-        addMessage(messageRes?.aiMessage!);
-
-        // Navigate to the new chat room
-        router.replace(`/(deenai)/${newChatId}` as any);
-      } else {
-        console.log("CurrentchatID", currentChatId);
-        addMessage({
-          chatId: currentChatId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          role: "user",
-          id: "",
-          content: prompt,
-        });
-        const messageRes = await chatService.sendMessageToChatRoom(
-          prompt,
-          currentChatId
-        );
-        addMessage(messageRes?.aiMessage!);
+      if (messageRes?.aiMessage) {
+        addMessage(messageRes.aiMessage);
       }
 
       setPrompt("");
@@ -93,13 +84,27 @@ export default function DEENAI() {
 
   const handleHistoryPress = () => router.push("/(deenai)/chat-history");
 
+  const handleBackPress = () => {
+    router.replace("/(deenai)/" as any);
+  };
+
+  if (loadingMessages) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color={theme.color.brand} />
+        <Text style={styles.loadingText}>Loading messages...</Text>
+      </View>
+    );
+  }
+
   return (
-    <View style={{ flex: 1, backgroundColor: theme.color.background2 }}>
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.headerContainer}>
         <ScreenHeader
           title="DEEN AI"
           titleAlign="center"
+          onBackPress={handleBackPress}
           rightComponent={
             <TouchableOpacity onPress={handleHistoryPress}>
               <View style={styles.historyButton}>
@@ -113,25 +118,19 @@ export default function DEENAI() {
       {/* Messages */}
       <View style={{ flex: 1 }}>
         {messages.length === 0 ? (
-          <ScreenContainer
-            backgroundColor={theme.color.background2}
-            scrollable={true}
-            showsVerticalScrollIndicator={false}
-            paddingHorizontal={0}
-            keyboardAvoiding={true}
-          >
-            <StarterPrompts setMessage={setPrompt} />
-          </ScreenContainer>
+          <View style={styles.centerContent}>
+            <Text style={styles.emptyText}>No messages yet</Text>
+          </View>
         ) : (
           <FlatList
             style={{ flex: 1 }}
             contentContainerStyle={{
               paddingHorizontal: 20,
               paddingTop: 20,
-              paddingBottom: 10,
+              paddingBottom: 20,
             }}
             data={messages}
-            keyExtractor={(msg) => msg.createdAt}
+            keyExtractor={(msg, index) => msg.id || `${msg.createdAt}-${index}`}
             renderItem={(msg) => <MessageBubble message={msg.item} />}
             ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
           />
@@ -156,6 +155,7 @@ export default function DEENAI() {
 
           <TouchableOpacity
             style={styles.sendButtonContainer}
+            disabled={loading || !prompt.trim()}
             onPress={handleSend}
           >
             {loading ? (
@@ -173,6 +173,12 @@ export default function DEENAI() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: theme.color.background2,
+  },
+  centerContent: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerContainer: {
     paddingHorizontal: 20,
@@ -180,17 +186,6 @@ const styles = StyleSheet.create({
       Platform.OS === "android" ? (StatusBar.currentHeight || 0) + 10 : 54,
     paddingBottom: 10,
     backgroundColor: theme.color.background2,
-  },
-  contentContainer: {
-    paddingInline: 20,
-    flexGrow: 1,
-  },
-  messagesContainer: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    paddingVertical: 20,
-    gap: 30,
   },
   inputWrapper: {
     paddingHorizontal: 20,
@@ -230,11 +225,13 @@ const styles = StyleSheet.create({
     borderRadius: "100%",
     backgroundColor: theme.color.gray,
   },
-  fixedHeader: {
-    paddingTop:
-      Platform.OS === "android" ? (StatusBar.currentHeight || 0) + 10 : 54,
-    paddingHorizontal: 20,
-    paddingBottom: 10,
-    backgroundColor: theme.color.white,
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: theme.color.gray,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: theme.color.gray,
   },
 });

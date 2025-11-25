@@ -7,6 +7,16 @@ export interface IChat {
   updatedAt: string;
 }
 
+export interface Reference {
+  type: "quran" | "hadith";
+  // For Quran
+  surah?: number;
+  startAyah?: number;
+  endAyah?: number;
+  // For Hadith
+  collection?: string;
+  hadithNumber?: string;
+}
 export interface IMessage {
   id: string;
   chatId: string;
@@ -14,11 +24,20 @@ export interface IMessage {
   content: string;
   createdAt: string;
   updatedAt: string;
+  aiReferences?: Reference[];
 }
 
 export interface ChatResponseData {
   userMessage: IMessage;
   aiMessage: IMessage;
+  messages?: IMessage[];
+}
+
+export interface ChatMessagesResponse {
+  success: boolean;
+  status: string;
+  message: string;
+  data: IMessage[];
 }
 
 export interface ChatResponse<T> {

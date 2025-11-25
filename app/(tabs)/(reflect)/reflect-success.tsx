@@ -1,17 +1,7 @@
-import ScreenContainer from '@/components/ScreenContainer';
-import { theme } from '@/styles/theme';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { StyleSheet, Text, View, Image } from 'react-native';
-import PrimaryButton from '../../../components/primaryButton';
-
-type ReflectStackParamList = {
-  'reflect-success': undefined;
-  'index': undefined;
-  'saved-reflection': undefined;
-};
-
-type ReflectSuccessProp = NativeStackNavigationProp<ReflectStackParamList, 'reflect-success'>;
+import ScreenContainer from "@/components/ScreenContainer";
+import { theme } from "@/styles/theme";
+import { Image, StyleSheet, Text, View } from "react-native";
+import PrimaryButton from "../../../components/primaryButton";
 
 export default function ReflectSuccess() {
   const navigation = useNavigation<ReflectSuccessProp>();
@@ -28,18 +18,19 @@ export default function ReflectSuccess() {
         <Text style={styles.textHeader}>Your Reflection has been saved</Text>
 
         <Text style={styles.containerText}>
-          Your reflection has been added to your journal, a space you can return to anytime for peace and remembrance.
+          Your reflection has been added to your journal, a space you can return
+          to anytime for peace and remembrance.
         </Text>
 
         <PrimaryButton
           title="Open reflection journal"
-          onPress={() => navigation.replace('saved-reflection')}
+          onPress={() => navigation.replace("saved-reflection")}
           style={styles.button}
         />
 
         <Text
           style={styles.backText}
-          onPress={() => navigation.navigate('index')}
+          onPress={() => navigation.navigate("index")}
         >
           Back to Reflection
         </Text>
@@ -59,7 +50,7 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontFamily: theme.font.extraBold,
     textAlign: "center",
-    color: '#3C3A35',
+    color: "#3C3A35",
     lineHeight: 34,
     marginTop: 24,
     paddingLeft: 61,
@@ -68,7 +59,7 @@ const styles = StyleSheet.create({
   containerText: {
     fontSize: 18,
     textAlign: "center",
-    color: '#3C3A35',
+    color: "#3C3A35",
     lineHeight: 30,
     marginTop: 24,
     paddingLeft: 27,
@@ -87,5 +78,5 @@ const styles = StyleSheet.create({
   icon: {
     width: 110,
     height: 110,
-  }
+  },
 });
