@@ -157,12 +157,10 @@ const styles = StyleSheet.create({
   deviceImage: {
     width: 350,
     height: 450,
-    height: 450,
     resizeMode: "contain",
   },
   iconImage: {
     width: 56,
-    height: 56,
     height: 56,
     resizeMode: "contain",
   },
@@ -276,7 +274,6 @@ const styles = StyleSheet.create({
   cancelBtn: {
     marginTop: 10,
     paddingVertical: 13,
-    width: "100%",
     width: "100%",
     alignItems: "center",
     borderWidth: 1,

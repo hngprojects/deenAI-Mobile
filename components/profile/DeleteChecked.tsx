@@ -54,7 +54,6 @@ export default function DeletecheckScreen() {
                 value={checks[key]}
                 onValueChange={() => toggleCheck(key)}
                 color={checks[key] ? "#DEA947" : undefined}
-                tintColors={{ true: "#DEA947", false: "#000" }}
               />
               <Text style={styles.checkboxLabel}>{label}</Text>
             </View>
@@ -72,7 +71,6 @@ export default function DeletecheckScreen() {
 
         <TouchableOpacity
           style={[styles.button, styles.deleteButton]}
-          onPress={() => router.push("/profile/delete/pausedelete")}
           onPress={() => router.push("/profile/delete/pausedelete")}
         >
           <Text style={styles.deleteButtonText}>Yes, Delete My Account</Text>

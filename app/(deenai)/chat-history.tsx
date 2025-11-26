@@ -24,7 +24,6 @@ const ChatHistory = () => {
       try {
         setLoading(true);
         const res = await chatService.getUserChats();
-        console.log(res);
         if (res && res.length > 0) {
           const today = new Date();
           const yesterday = new Date();

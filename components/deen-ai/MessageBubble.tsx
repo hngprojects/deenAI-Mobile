@@ -1,16 +1,31 @@
-import { quranService } from "@/service/quran.service";
-import { theme } from "@/styles/theme";
-import { IMessage } from "@/types/chat.type";
+import { setStringAsync } from "expo-clipboard";
 import { router } from "expo-router";
 import { BookOpen, BookOpenText, Copy, Share } from "lucide-react-native";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import moment from "moment";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Markdown from "react-native-markdown-display";
+
+import { useToast } from "@/hooks/useToast";
+import { quranService } from "@/service/quran.service";
+import { useHadithStore } from "@/store/hadith-store";
+import { theme } from "@/styles/theme";
+import { IMessage } from "@/types/chat.type";
+import { HadithCollectionId } from "@/types/hadith.types";
 
 interface MessageBubbleProps {
   message: IMessage;
 }
 
 export default function MessageBubble({ message }: MessageBubbleProps) {
+  const {
+    loadCollection,
+    setCurrentCollection,
+    setCurrentBook,
+    getBooksByCollection,
+  } = useHadithStore();
+
+  const { showToast } = useToast();
+
   const handleQuranReference = async (
     surahNumber: number,
     ayahNumber?: number
@@ -34,6 +49,59 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
       console.error("Error navigating to Quran:", error);
     }
   };
+
+  const handleHadithReference = async (
+    collection: string,
+    hadithNumber: string
+  ) => {
+    try {
+      // Map collection name to ID
+      const collectionMap: Record<string, HadithCollectionId> = {
+        "Sahih Muslim": "muslim",
+        Muslim: "muslim",
+        muslim: "muslim",
+        "Sahih al-Bukhari": "bukhari",
+        "Sahih Bukhari": "bukhari",
+        Bukhari: "bukhari",
+        bukhari: "bukhari",
+        "Sunan Abi Dawud": "abudawud",
+        "Abu Dawud": "abudawud",
+        abudawud: "abudawud",
+        "Jami' at-Tirmidhi": "tirmidhi",
+        Tirmidhi: "tirmidhi",
+        tirmidhi: "tirmidhi",
+      };
+
+      const collectionId = collectionMap[collection];
+      if (!collectionId) {
+        console.warn("Unknown hadith collection:", collection);
+        return;
+      }
+
+      // Load the collection data
+      await loadCollection(collectionId);
+      setCurrentCollection(collectionId);
+
+      // Get all books for this collection
+      const books = getBooksByCollection(collectionId);
+
+      // Find the book that contains this hadith number
+      const hadithNum = parseInt(hadithNumber);
+      const book = books.find(
+        (b) =>
+          hadithNum >= b.hadithStartNumber && hadithNum <= b.hadithEndNumber
+      );
+
+      if (book) {
+        setCurrentBook(book);
+        router.push("/(hadith)/hadith-details");
+      } else {
+        console.warn("Book not found for hadith number:", hadithNumber);
+      }
+    } catch (error) {
+      console.error("Error navigating to Hadith:", error);
+    }
+  };
   return (
     <View
       style={{
@@ -42,6 +110,17 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         gap: 10,
       }}
     >
+      {message.role === "assistant" && (
+        <Image
+          source={require("../../assets/deen.png")}
+          style={{
+            width: 35,
+            height: 35,
+            // alignSelf: "flex-end",
+          }}
+        />
+      )}
+
       <View
         style={{
           flex: 1,
@@ -129,41 +208,47 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                       </Text>
                     </TouchableOpacity>
                   );
-                }
-                return (
-                  <TouchableOpacity
-                    key={idx}
-                    onPress={() =>
-                      handleQuranReference(ref.surah!, ref.startAyah)
-                    }
-                    style={styles.referenceLink}
-                  >
-                    <BookOpenText
-                      size={16}
-                      color={
-                        message.role === "assistant"
-                          ? theme.color.brand
-                          : theme.color.white
+                } else if (
+                  ref.type === "hadith" &&
+                  ref.collection &&
+                  ref.hadithNumber
+                ) {
+                  return (
+                    <TouchableOpacity
+                      key={idx}
+                      onPress={() =>
+                        handleHadithReference(
+                          ref.collection!,
+                          ref.hadithNumber!
+                        )
                       }
-                    />
-                    <Text
-                      style={[
-                        styles.referenceLinkText,
-                        {
-                          color:
-                            message.role === "assistant"
-                              ? theme.color.brand
-                              : theme.color.white,
-                        },
-                      ]}
+                      style={styles.referenceLink}
                     >
-                      {ref.collection} : {ref.hadithNumber}
-                      {ref.endAyah && ref.endAyah !== ref.startAyah
-                        ? `-${ref.endAyah}`
-                        : ""}
-                    </Text>
-                  </TouchableOpacity>
-                );
+                      <BookOpenText
+                        size={16}
+                        color={
+                          message.role === "assistant"
+                            ? theme.color.brand
+                            : theme.color.white
+                        }
+                      />
+                      <Text
+                        style={[
+                          styles.referenceLinkText,
+                          {
+                            color:
+                              message.role === "assistant"
+                                ? theme.color.brand
+                                : theme.color.white,
+                          },
+                        ]}
+                      >
+                        {ref.collection} • Hadith {ref.hadithNumber}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                }
+                return null;
               })}
             </View>
           )}
@@ -174,13 +259,36 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           <View style={styles.actions}>
             {/* <ThumbsUp size={24} color={theme.color.actionIcon} />
             <ThumbsDown size={24} color={theme.color.actionIcon} /> */}
-            <TouchableOpacity onPress={() => {}}>
-              <Copy size={18} color={theme.color.actionIcon} />
+            <TouchableOpacity
+              onPress={() => {
+                setStringAsync(message.content);
+                showToast("Copied");
+              }}
+            >
+              <Copy size={20} color={theme.color.actionIcon} />
             </TouchableOpacity>
-            <Share size={18} color={theme.color.actionIcon} />
+            <Share size={20} color={theme.color.actionIcon} />
           </View>
         )}
+
+        {/* Timestamp */}
+        {message.role === "user" && (
+          <Text style={{ color: theme.color.paragraph }}>
+            {moment(message.createdAt).format("hh:mm")}
+          </Text>
+        )}
       </View>
+
+      {message.role === "user" && (
+        <Image
+          source={require("../../assets/user.png")}
+          style={{
+            width: 35,
+            height: 35,
+            // alignSelf: "flex-end",
+          }}
+        />
+      )}
     </View>
   );
 }
@@ -188,7 +296,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 const styles = StyleSheet.create({
   container: {
     padding: 10,
-    maxWidth: "80%",
+    maxWidth: "90%",
   },
   actions: {
     display: "flex",
@@ -222,5 +330,4 @@ const styles = StyleSheet.create({
     fontSize: 13,
     paddingVertical: 2,
   },
-  hyperlink: {},
 });

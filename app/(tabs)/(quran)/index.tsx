@@ -2,6 +2,7 @@ import FeaturedSurahCard from "@/components/quran/featuredSurahCard";
 import SurahListItem from "@/components/quran/surahListItem";
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
+import SearchBar from "@/components/searchBar";
 import { quranService } from "@/service/quran.service";
 import { theme } from "@/styles/theme";
 import { Surah } from "@/types/quran.types";
@@ -18,7 +19,6 @@ import {
   Text,
   View,
 } from "react-native";
-import SearchBar from "@/components/searchBar";
 
 export type RootStackParamList = {
   Quran: undefined;
