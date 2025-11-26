@@ -133,7 +133,6 @@ export default function ChatRoom() {
       !afterStream && setLoadingMessages(true);
       setCurrentChatId(chatId);
       const response = await chatService.getChatRoomMessages(chatId);
-      console.log("Loaded messages for chatId:", chatId, response);
       if (response) {
         loadChatMessages(response.data.reverse() || []);
       }

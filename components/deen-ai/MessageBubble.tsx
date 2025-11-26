@@ -1,12 +1,16 @@
+import { setStringAsync } from "expo-clipboard";
+import { router } from "expo-router";
+import { BookOpen, BookOpenText, Copy, Share } from "lucide-react-native";
+import moment from "moment";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Markdown from "react-native-markdown-display";
+
+import { useToast } from "@/hooks/useToast";
 import { quranService } from "@/service/quran.service";
 import { useHadithStore } from "@/store/hadith-store";
 import { theme } from "@/styles/theme";
 import { IMessage } from "@/types/chat.type";
 import { HadithCollectionId } from "@/types/hadith.types";
-import { router } from "expo-router";
-import { BookOpen, BookOpenText, Copy, Share } from "lucide-react-native";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import Markdown from "react-native-markdown-display";
 
 interface MessageBubbleProps {
   message: IMessage;
@@ -19,6 +23,8 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
     setCurrentBook,
     getBooksByCollection,
   } = useHadithStore();
+
+  const { showToast } = useToast();
 
   const handleQuranReference = async (
     surahNumber: number,
@@ -104,6 +110,17 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         gap: 10,
       }}
     >
+      {message.role === "assistant" && (
+        <Image
+          source={require("../../assets/deen.png")}
+          style={{
+            width: 35,
+            height: 35,
+            // alignSelf: "flex-end",
+          }}
+        />
+      )}
+
       <View
         style={{
           flex: 1,
@@ -242,13 +259,36 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           <View style={styles.actions}>
             {/* <ThumbsUp size={24} color={theme.color.actionIcon} />
             <ThumbsDown size={24} color={theme.color.actionIcon} /> */}
-            <TouchableOpacity onPress={() => {}}>
-              <Copy size={18} color={theme.color.actionIcon} />
+            <TouchableOpacity
+              onPress={() => {
+                setStringAsync(message.content);
+                showToast("Copied");
+              }}
+            >
+              <Copy size={20} color={theme.color.actionIcon} />
             </TouchableOpacity>
-            <Share size={18} color={theme.color.actionIcon} />
+            <Share size={20} color={theme.color.actionIcon} />
           </View>
         )}
+
+        {/* Timestamp */}
+        {message.role === "user" && (
+          <Text style={{ color: theme.color.paragraph }}>
+            {moment(message.createdAt).format("hh:mm")}
+          </Text>
+        )}
       </View>
+
+      {message.role === "user" && (
+        <Image
+          source={require("../../assets/user.png")}
+          style={{
+            width: 35,
+            height: 35,
+            // alignSelf: "flex-end",
+          }}
+        />
+      )}
     </View>
   );
 }
@@ -256,7 +296,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 const styles = StyleSheet.create({
   container: {
     padding: 10,
-    maxWidth: "80%",
+    maxWidth: "90%",
   },
   actions: {
     display: "flex",
@@ -290,5 +330,4 @@ const styles = StyleSheet.create({
     fontSize: 13,
     paddingVertical: 2,
   },
-  hyperlink: {},
 });
