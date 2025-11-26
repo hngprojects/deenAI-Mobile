@@ -10,11 +10,18 @@ interface ChatStore {
   clearMessages: () => void;
   loadChatMessages: (messages: IMessage[]) => void;
   createNewChat: (firstMessage: string) => Promise<string>;
+  updateLastMessage: (content: string) => void;
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
   currentChatId: null,
   messages: [],
+  updateLastMessage: (content: string) =>
+    set((state) => ({
+      messages: state.messages.map((msg, idx) =>
+        idx === state.messages.length - 1 ? { ...msg, content } : msg
+      ),
+    })),
   setCurrentChatId: (id) => set({ currentChatId: id }),
   addMessage: (message: IMessage) =>
     set((state) => ({

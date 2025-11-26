@@ -5,7 +5,7 @@ import { useChatStore } from "@/store/chat.store";
 import { theme } from "@/styles/theme";
 import { router, useLocalSearchParams } from "expo-router";
 import { Book, Loader, Mic, Send } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -19,22 +19,118 @@ import {
 } from "react-native";
 
 export default function ChatRoom() {
-  const { chatId } = useLocalSearchParams<{ chatId: string }>();
+  const { chatId, first } = useLocalSearchParams<{
+    chatId: string;
+    first: string;
+  }>();
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(true);
-  const { addMessage, messages, setCurrentChatId, loadChatMessages } =
-    useChatStore();
+  const [streaming, setStreaming] = useState(false);
+  const streamCleanupRef = useRef<(() => void) | null>(null);
+  const chatListRef = useRef<FlatList<any> | null>(null);
 
+  const {
+    addMessage,
+    messages,
+    setCurrentChatId,
+    loadChatMessages,
+    updateLastMessage,
+  } = useChatStore();
+
+  // try stream immediately this page opens, if error, ignore
   useEffect(() => {
     if (chatId) {
-      loadMessages();
+      if (first) {
+        handleFirstMessageStream();
+      } else {
+        loadMessages();
+      }
     }
-  }, [chatId]);
 
-  const loadMessages = async () => {
+    return () => {
+      if (streamCleanupRef.current) {
+        streamCleanupRef.current();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // scroll to bottom when messages change
+    chatListRef.current?.scrollToEnd({ animated: true });
+  }, [messages]);
+
+  const handleFirstMessageStream = async () => {
     try {
       setLoadingMessages(true);
+      setCurrentChatId(chatId);
+
+      // Get the last message sent by the user
+      const lastUserMessage = messages[messages.length - 1];
+
+      if (!lastUserMessage || lastUserMessage.role !== "user") {
+        console.error("No user message found to stream response for.");
+        loadMessages();
+        return;
+      }
+
+      setLoadingMessages(false);
+      setStreaming(true);
+
+      // Send message to server
+      const messsageRes = await chatService.sendMessageToChatRoom(
+        lastUserMessage.content,
+        chatId
+      );
+
+      // add AI message placeholder
+      const aiMessagePlaceholder = {
+        chatId: chatId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        role: "assistant" as const,
+        id: `temp-ai-${Date.now()}`, // Use temp ID since server doesn't return aiMessage yet
+        content: "",
+      };
+      addMessage(aiMessagePlaceholder);
+
+      // Small delay to let the server start processing
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // stream
+      let streamedContent = "";
+
+      streamCleanupRef.current = await chatService.streamChatResponse(
+        chatId,
+        (chunk: string) => {
+          streamedContent += chunk;
+          updateLastMessage(streamedContent);
+        },
+        () => {
+          console.log("Stream completed");
+          setStreaming(false);
+          streamCleanupRef.current = null;
+          // reload messages to get final version with citations
+          loadMessages();
+        },
+        (error: string) => {
+          console.error("Stream error:", error);
+          setStreaming(false);
+          streamCleanupRef.current = null;
+          // show error to user
+          updateLastMessage(`Error: ${error}`);
+        }
+      );
+    } catch (error) {
+      console.error("Failed to stream first message", error);
+      setLoadingMessages(false);
+      setStreaming(false);
+    }
+  };
+
+  const loadMessages = async (afterStream = false) => {
+    try {
+      !afterStream && setLoadingMessages(true);
       setCurrentChatId(chatId);
       const response = await chatService.getChatRoomMessages(chatId);
       console.log("Loaded messages for chatId:", chatId, response);
@@ -49,36 +145,85 @@ export default function ChatRoom() {
   };
 
   const handleSend = async () => {
-    if (loading) return;
+    if (loading || streaming) return;
     if (!prompt.trim()) return;
+
+    const userPrompt = prompt.trim();
+    setPrompt("");
 
     try {
       setLoading(true);
 
       // Add user message optimistically
-      addMessage({
+      const userMessage = {
         chatId: chatId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        role: "user",
-        id: "",
-        content: prompt,
-      });
+        role: "user" as const,
+        id: `temp-${Date.now()}`,
+        content: userPrompt,
+      };
+      addMessage(userMessage);
 
+      // Send message to backend
       const messageRes = await chatService.sendMessageToChatRoom(
-        prompt,
+        userPrompt,
         chatId
       );
 
-      if (messageRes?.aiMessage) {
-        addMessage(messageRes.aiMessage);
-      }
+      // Create placeholder for AI message
+      const aiMessagePlaceholder = {
+        chatId: chatId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        role: "assistant" as const,
+        id: `temp-ai-${Date.now()}`, // Use temp ID since server doesn't return aiMessage yet
+        content: "",
+      };
+      addMessage(aiMessagePlaceholder);
 
-      setPrompt("");
+      setLoading(false);
+      setStreaming(true);
+
+      // Small delay to let the server start processing
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Start streaming the response
+      let streamedContent = "";
+
+      streamCleanupRef.current = await chatService.streamChatResponse(
+        chatId,
+        // onChunk
+        (chunk: string) => {
+          streamedContent += chunk;
+
+          // Update the last message (AI response) with accumulated content
+          updateLastMessage(streamedContent);
+          chatListRef.current?.scrollToEnd({ animated: true });
+        },
+        // onComplete
+        () => {
+          console.log("Stream completed");
+          setStreaming(false);
+          streamCleanupRef.current = null;
+
+          // Optionally reload messages to get the final saved version with citations
+          loadMessages(true);
+        },
+        // onError
+        (error: string) => {
+          console.error("Stream error:", error);
+          setStreaming(false);
+          streamCleanupRef.current = null;
+
+          // Show error to user
+          updateLastMessage(`Error: ${error}`);
+        }
+      );
     } catch (error) {
       console.error("Failed to send message", error);
-    } finally {
       setLoading(false);
+      setStreaming(false);
     }
   };
 
@@ -123,6 +268,7 @@ export default function ChatRoom() {
           </View>
         ) : (
           <FlatList
+            ref={chatListRef}
             style={{ flex: 1 }}
             contentContainerStyle={{
               paddingHorizontal: 20,

@@ -1,6 +1,8 @@
 import { quranService } from "@/service/quran.service";
+import { useHadithStore } from "@/store/hadith-store";
 import { theme } from "@/styles/theme";
 import { IMessage } from "@/types/chat.type";
+import { HadithCollectionId } from "@/types/hadith.types";
 import { router } from "expo-router";
 import { BookOpen, BookOpenText, Copy, Share } from "lucide-react-native";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -11,6 +13,13 @@ interface MessageBubbleProps {
 }
 
 export default function MessageBubble({ message }: MessageBubbleProps) {
+  const {
+    loadCollection,
+    setCurrentCollection,
+    setCurrentBook,
+    getBooksByCollection,
+  } = useHadithStore();
+
   const handleQuranReference = async (
     surahNumber: number,
     ayahNumber?: number
@@ -32,6 +41,59 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
       }
     } catch (error) {
       console.error("Error navigating to Quran:", error);
+    }
+  };
+
+  const handleHadithReference = async (
+    collection: string,
+    hadithNumber: string
+  ) => {
+    try {
+      // Map collection name to ID
+      const collectionMap: Record<string, HadithCollectionId> = {
+        "Sahih Muslim": "muslim",
+        Muslim: "muslim",
+        muslim: "muslim",
+        "Sahih al-Bukhari": "bukhari",
+        "Sahih Bukhari": "bukhari",
+        Bukhari: "bukhari",
+        bukhari: "bukhari",
+        "Sunan Abi Dawud": "abudawud",
+        "Abu Dawud": "abudawud",
+        abudawud: "abudawud",
+        "Jami' at-Tirmidhi": "tirmidhi",
+        Tirmidhi: "tirmidhi",
+        tirmidhi: "tirmidhi",
+      };
+
+      const collectionId = collectionMap[collection];
+      if (!collectionId) {
+        console.warn("Unknown hadith collection:", collection);
+        return;
+      }
+
+      // Load the collection data
+      await loadCollection(collectionId);
+      setCurrentCollection(collectionId);
+
+      // Get all books for this collection
+      const books = getBooksByCollection(collectionId);
+
+      // Find the book that contains this hadith number
+      const hadithNum = parseInt(hadithNumber);
+      const book = books.find(
+        (b) =>
+          hadithNum >= b.hadithStartNumber && hadithNum <= b.hadithEndNumber
+      );
+
+      if (book) {
+        setCurrentBook(book);
+        router.push("/(hadith)/hadith-details");
+      } else {
+        console.warn("Book not found for hadith number:", hadithNumber);
+      }
+    } catch (error) {
+      console.error("Error navigating to Hadith:", error);
     }
   };
   return (
@@ -129,41 +191,47 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                       </Text>
                     </TouchableOpacity>
                   );
-                }
-                return (
-                  <TouchableOpacity
-                    key={idx}
-                    onPress={() =>
-                      handleQuranReference(ref.surah!, ref.startAyah)
-                    }
-                    style={styles.referenceLink}
-                  >
-                    <BookOpenText
-                      size={16}
-                      color={
-                        message.role === "assistant"
-                          ? theme.color.brand
-                          : theme.color.white
+                } else if (
+                  ref.type === "hadith" &&
+                  ref.collection &&
+                  ref.hadithNumber
+                ) {
+                  return (
+                    <TouchableOpacity
+                      key={idx}
+                      onPress={() =>
+                        handleHadithReference(
+                          ref.collection!,
+                          ref.hadithNumber!
+                        )
                       }
-                    />
-                    <Text
-                      style={[
-                        styles.referenceLinkText,
-                        {
-                          color:
-                            message.role === "assistant"
-                              ? theme.color.brand
-                              : theme.color.white,
-                        },
-                      ]}
+                      style={styles.referenceLink}
                     >
-                      {ref.collection} : {ref.hadithNumber}
-                      {ref.endAyah && ref.endAyah !== ref.startAyah
-                        ? `-${ref.endAyah}`
-                        : ""}
-                    </Text>
-                  </TouchableOpacity>
-                );
+                      <BookOpenText
+                        size={16}
+                        color={
+                          message.role === "assistant"
+                            ? theme.color.brand
+                            : theme.color.white
+                        }
+                      />
+                      <Text
+                        style={[
+                          styles.referenceLinkText,
+                          {
+                            color:
+                              message.role === "assistant"
+                                ? theme.color.brand
+                                : theme.color.white,
+                          },
+                        ]}
+                      >
+                        {ref.collection} • Hadith {ref.hadithNumber}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                }
+                return null;
               })}
             </View>
           )}

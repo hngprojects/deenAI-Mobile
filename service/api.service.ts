@@ -151,6 +151,11 @@ class ApiService {
     }
   }
 
+  async getAuthToken(): Promise<string | null> {
+    const { token } = useAuthStore.getState();
+    return token || null;
+  }
+
   async get<T>(endpoint: string, options?: ApiRequestOptions): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: "GET" });
   }

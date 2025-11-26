@@ -2,7 +2,6 @@ import MessageBubble from "@/components/deen-ai/MessageBubble";
 import StarterPrompts from "@/components/deen-ai/StarterPrompts";
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
-import { chatService } from "@/service/chat.service";
 import { useChatStore } from "@/store/chat.store";
 import { theme } from "@/styles/theme";
 import { router, useFocusEffect } from "expo-router";
@@ -40,52 +39,29 @@ export default function DEENAI() {
   const handleSend = async () => {
     if (loading) return;
     if (!prompt.trim()) return;
+
+    const userPrompt = prompt.trim();
+    setPrompt("");
+
     try {
       setLoading(true);
-      if (!currentChatId) {
-        const newChatId = await createNewChat(prompt);
-        setCurrentChatId(newChatId);
 
-        console.log("newChatId", newChatId);
+      // Create new chat
+      const newChatId = await createNewChat(prompt);
+      setCurrentChatId(newChatId);
 
-        addMessage({
-          chatId: newChatId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          role: "user",
-          id: "",
-          content: prompt,
-        });
+      //  add user message optimistically
+      addMessage({
+        chatId: newChatId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        role: "user",
+        id: `temp-${Date.now()}`,
+        content: userPrompt,
+      });
 
-        const messageRes = await chatService.sendMessageToChatRoom(
-          prompt,
-          newChatId
-        );
-
-        addMessage(messageRes?.aiMessage!);
-
-        // Navigate to the new chat room
-        router.replace(`/(deenai)/${newChatId}` as any);
-      } else {
-        console.log("CurrentchatID", currentChatId);
-        addMessage({
-          chatId: currentChatId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          role: "user",
-          id: "",
-          content: prompt,
-        });
-        const messageRes = await chatService.sendMessageToChatRoom(
-          prompt,
-          currentChatId
-        );
-        addMessage(messageRes?.aiMessage!);
-      }
-
-      setPrompt("");
-    } catch (error) {
-      console.error("Failed to send message", error);
+      // Navigate to the new chat room
+      router.replace(`/(deenai)/${newChatId}?first=true` as any);
     } finally {
       setLoading(false);
     }
