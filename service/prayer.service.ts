@@ -1,59 +1,64 @@
-// service/prayer.service.ts
-import { 
-  Coordinates, 
-  CalculationMethod, 
-  PrayerTimes as AdhanPrayerTimes,
-  Prayer,
-  Qibla
-} from 'adhan';
-import { LocationCoordinates } from './location.service';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CalculationMethod, Coordinates, HighLatitudeRule, Madhab, PrayerTimes, Qibla } from 'adhan';
 
-export interface PrayerTimesResult {
+export interface PrayerTimesData {
   fajr: Date;
   sunrise: Date;
   dhuhr: Date;
   asr: Date;
   maghrib: Date;
   isha: Date;
+  qibla: number;
 }
 
-export interface ForbiddenTimesResult {
-  sunriseStart: Date;
-  sunriseEnd: Date;
-  noonStart: Date;
-  noonEnd: Date;
-  sunsetStart: Date;
-  sunsetEnd: Date;
+export interface HijriDate {
+  day: number;
+  month: number;
+  monthName: string;
+  year: number;
+  formatted: string;
 }
+
+export interface SavedLocation {
+  latitude: number;
+  longitude: number;
+  city?: string;
+  country?: string;
+  timestamp: number;
+}
+
+export interface PrayerSettings {
+  calculationMethod: string;
+  madhab: string;
+  highLatitudeRule: string;
+}
+
+const STORAGE_KEYS = {
+  LOCATION: '@prayer_location',
+  SETTINGS: '@prayer_settings',
+  CACHED_TIMES: '@prayer_times_cache',
+};
+
+const DEFAULT_SETTINGS: PrayerSettings = {
+  calculationMethod: 'MuslimWorldLeague',
+  madhab: 'Shafi',
+  highLatitudeRule: 'MiddleOfTheNight',
+};
 
 class PrayerService {
-  /**
-   * Format time to 12-hour format with AM/PM
-   */
-  private formatTime(date: Date): string {
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    });
-  }
-
   /**
    * Calculate prayer times for a given location and date
    */
   calculatePrayerTimes(
-    location: LocationCoordinates,
-    date: Date = new Date()
-  ): PrayerTimesResult {
-    const coordinates = new Coordinates(
-      location.latitude,
-      location.longitude
-    );
-
-    // Use Muslim World League calculation method
-    const params = CalculationMethod.MuslimWorldLeague();
-    
-    const prayerTimes = new AdhanPrayerTimes(coordinates, date, params);
+    latitude: number,
+    longitude: number,
+    date: Date = new Date(),
+    settings?: PrayerSettings
+  ): PrayerTimesData {
+    const coordinates = new Coordinates(latitude, longitude);
+    const params = this.getCalculationParams(settings);
+    const prayerTimes = new PrayerTimes(coordinates, date, params);
+    const qibla = Qibla(coordinates);
 
     return {
       fajr: prayerTimes.fajr,
@@ -62,177 +67,275 @@ class PrayerService {
       asr: prayerTimes.asr,
       maghrib: prayerTimes.maghrib,
       isha: prayerTimes.isha,
+      qibla: qibla,
     };
   }
 
   /**
-   * Get formatted prayer times
+   * Get calculation parameters based on settings
    */
-  getFormattedPrayerTimes(
-    location: LocationCoordinates,
-    date: Date = new Date()
-  ) {
-    const times = this.calculatePrayerTimes(location, date);
+  private getCalculationParams(settings?: PrayerSettings) {
+    const config = settings || DEFAULT_SETTINGS;
 
-    return {
-      Subh: this.formatTime(times.fajr),
-      Dhuhr: this.formatTime(times.dhuhr),
-      Asr: this.formatTime(times.asr),
-      Maghrib: this.formatTime(times.maghrib),
-      Isha: this.formatTime(times.isha),
-      Tahajjud: this.calculateTahajjud(times.isha, times.fajr),
-    };
+    // Get calculation method
+    let params = CalculationMethod[config.calculationMethod as keyof typeof CalculationMethod]();
+
+    // Set madhab
+    params.madhab = Madhab[config.madhab as keyof typeof Madhab];
+
+    // Set high latitude rule
+    params.highLatitudeRule = HighLatitudeRule[config.highLatitudeRule as keyof typeof HighLatitudeRule];
+
+    return params;
   }
 
   /**
-   * Calculate Tahajjud time (last third of the night)
+   * Get the current prayer name
    */
-  private calculateTahajjud(isha: Date, fajr: Date): string {
-    const ishaTime = isha.getTime();
-    const fajrTime = fajr.getTime();
-    
-    // If fajr is on the next day
-    let nightDuration = fajrTime - ishaTime;
-    if (nightDuration < 0) {
-      nightDuration += 24 * 60 * 60 * 1000; // Add 24 hours
-    }
-
-    // Last third of the night
-    const tahajjudTime = new Date(ishaTime + (nightDuration * 2) / 3);
-    
-    return this.formatTime(tahajjudTime);
-  }
-
-  /**
-   * Calculate forbidden prayer times
-   */
-  getForbiddenTimes(
-    location: LocationCoordinates,
-    date: Date = new Date()
-  ): ForbiddenTimesResult {
-    const times = this.calculatePrayerTimes(location, date);
-
-    // Sunrise forbidden time: from sunrise to ~15 minutes after
-    const sunriseEnd = new Date(times.sunrise.getTime() + 15 * 60 * 1000);
-
-    // Noon forbidden time: ~10 minutes before Dhuhr to Dhuhr
-    const noonStart = new Date(times.dhuhr.getTime() - 10 * 60 * 1000);
-
-    // Sunset forbidden time: ~15 minutes before Maghrib to Maghrib
-    const sunsetStart = new Date(times.maghrib.getTime() - 15 * 60 * 1000);
-
-    return {
-      sunriseStart: times.sunrise,
-      sunriseEnd,
-      noonStart,
-      noonEnd: times.dhuhr,
-      sunsetStart,
-      sunsetEnd: times.maghrib,
-    };
-  }
-
-  /**
-   * Get formatted forbidden times
-   */
-  getFormattedForbiddenTimes(
-    location: LocationCoordinates,
-    date: Date = new Date()
-  ) {
-    const times = this.getForbiddenTimes(location, date);
-
-    return [
-      {
-        period: 'Sunrise',
-        start: this.formatTime(times.sunriseStart),
-        end: this.formatTime(times.sunriseEnd),
-        icon: 'sunrise',
-      },
-      {
-        period: 'Noon',
-        start: this.formatTime(times.noonStart),
-        end: this.formatTime(times.noonEnd),
-        icon: 'noon',
-      },
-      {
-        period: 'Sunset',
-        start: this.formatTime(times.sunsetStart),
-        end: this.formatTime(times.sunsetEnd),
-        icon: 'sunset',
-      },
+  getCurrentPrayer(prayerTimes: PrayerTimesData): string {
+    const now = new Date();
+    const prayers: [string, Date][] = [
+      ['Fajr', prayerTimes.fajr],
+      ['Sunrise', prayerTimes.sunrise],
+      ['Dhuhr', prayerTimes.dhuhr],
+      ['Asr', prayerTimes.asr],
+      ['Maghrib', prayerTimes.maghrib],
+      ['Isha', prayerTimes.isha],
     ];
+
+    for (let i = prayers.length - 1; i >= 0; i--) {
+      if (now >= prayers[i][1]) {
+        return prayers[i][0];
+      }
+    }
+
+    return 'Isha'; // Default to Isha if before Fajr
   }
 
   /**
-   * Get Hijri/Islamic date
+   * Get the next prayer name and time
    */
-  getIslamicDate(date: Date = new Date()): string {
-    // Using Intl API for Islamic calendar
-    try {
-      const islamicDate = new Intl.DateTimeFormat('en-US-u-ca-islamic', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      }).format(date);
+  getNextPrayer(prayerTimes: PrayerTimesData): { name: string; time: Date } {
+    const now = new Date();
+    const prayers: [string, Date][] = [
+      ['Fajr', prayerTimes.fajr],
+      ['Dhuhr', prayerTimes.dhuhr],
+      ['Asr', prayerTimes.asr],
+      ['Maghrib', prayerTimes.maghrib],
+      ['Isha', prayerTimes.isha],
+    ];
 
-      // Format to match your style: "29 Jumada al-Awwal | 1447AH"
-      const parts = islamicDate.split(' ');
-      if (parts.length >= 3) {
-        const day = parts[0];
-        const month = parts[1];
-        const year = parts[2];
-        return `${day} ${month} | ${year}AH`;
+    for (const [name, time] of prayers) {
+      if (now < time) {
+        return { name, time };
       }
+    }
 
-      return islamicDate;
+    // If all prayers have passed, return tomorrow's Fajr
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowTimes = this.calculatePrayerTimes(0, 0, tomorrow); // Will need actual coordinates
+    return { name: 'Fajr', time: tomorrowTimes.fajr };
+  }
+
+  /**
+   * Get time remaining until next prayer
+   */
+  getTimeUntilNextPrayer(nextPrayerTime: Date): string {
+    const now = new Date();
+    const diff = nextPrayerTime.getTime() - now.getTime();
+
+    if (diff <= 0) return '00:00:00';
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  
+  getHijriDate(date: Date = new Date()): HijriDate {
+    const gY = date.getFullYear();
+    const gM = date.getMonth() + 1;
+    const gD = date.getDate();
+
+    // Gregorian to Julian Day calculation
+    const a = Math.floor((14 - gM) / 12);
+    const y = gY + 4800 - a;
+    const m = gM + 12 * a - 3;
+
+    const jd = gD + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
+
+    // Julian Day to Hijri conversion
+    const N = jd - 1948440 + 0.5;
+    const q = Math.floor(N / 10631);
+    const r = N % 10631;
+    const a2 = Math.floor(r / 325);
+    const b = r % 325;
+    const c = Math.floor(b / 30);
+    const d = b % 30;
+
+    let islamicYear = 30 * q + a2 + 1;
+    let islamicMonth = c + 1;
+    let islamicDay = Math.floor(d + 1);
+
+    // Ensure valid ranges
+    if (islamicMonth > 12) {
+      islamicMonth = 12;
+    }
+    if (islamicDay > 30) {
+      islamicDay = 30;
+    }
+    if (islamicDay < 1) {
+      islamicDay = 1;
+    }
+
+    const monthNames = [
+      'Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani',
+      'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', 'Shaban',
+      'Ramadan', 'Shawwal', 'Dhul-Qadah', 'Dhul-Hijjah'
+    ];
+
+    const monthIndex = Math.max(0, Math.min(11, islamicMonth - 1));
+    const monthName = monthNames[monthIndex];
+
+    return {
+      day: islamicDay,
+      month: islamicMonth,
+      monthName: monthName,
+      year: islamicYear,
+      formatted: `${islamicDay} ${monthName} | ${islamicYear}AH`,
+    };
+  }
+
+  /**
+   * Check if it's a forbidden prayer time
+   */
+  isForbiddenTime(prayerTimes: PrayerTimesData): boolean {
+    const now = new Date();
+    const sunriseEnd = new Date(prayerTimes.sunrise);
+    sunriseEnd.setMinutes(sunriseEnd.getMinutes() + 15);
+
+    const noonStart = new Date(prayerTimes.dhuhr);
+    noonStart.setMinutes(noonStart.getMinutes() - 8);
+    const noonEnd = new Date(prayerTimes.dhuhr);
+    noonEnd.setMinutes(noonEnd.getMinutes() + 8);
+
+    const sunsetStart = new Date(prayerTimes.maghrib);
+    sunsetStart.setMinutes(sunsetStart.getMinutes() - 15);
+
+    return (
+      (now >= prayerTimes.sunrise && now <= sunriseEnd) ||
+      (now >= noonStart && now <= noonEnd) ||
+      (now >= sunsetStart && now <= prayerTimes.maghrib)
+    );
+  }
+
+  /**
+   * Save location to storage
+   */
+  async saveLocation(location: SavedLocation): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.LOCATION, JSON.stringify(location));
     } catch (error) {
-      console.error('Error formatting Islamic date:', error);
-      return 'Islamic Date Unavailable';
+      console.error('Error saving location:', error);
+      throw error;
     }
   }
 
   /**
-   * Calculate Qibla direction
+   * Get saved location from storage
    */
-  getQiblaDirection(location: LocationCoordinates): number {
-    const coordinates = new Coordinates(
-      location.latitude,
-      location.longitude
-    );
-    return Qibla(coordinates);
+  async getSavedLocation(): Promise<SavedLocation | null> {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.LOCATION);
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      console.error('Error getting saved location:', error);
+      return null;
+    }
   }
 
   /**
-   * Get next prayer name and time
+   * Save prayer settings
    */
-  getNextPrayer(
-    location: LocationCoordinates,
-    date: Date = new Date()
-  ): { name: string; time: Date } | null {
-    const coordinates = new Coordinates(
-      location.latitude,
-      location.longitude
-    );
+  async saveSettings(settings: PrayerSettings): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      throw error;
+    }
+  }
 
-    const params = CalculationMethod.MuslimWorldLeague();
-    const prayerTimes = new AdhanPrayerTimes(coordinates, date, params);
+  /**
+   * Get saved prayer settings
+   */
+  async getSettings(): Promise<PrayerSettings> {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.SETTINGS);
+      return data ? JSON.parse(data) : DEFAULT_SETTINGS;
+    } catch (error) {
+      console.error('Error getting settings:', error);
+      return DEFAULT_SETTINGS;
+    }
+  }
 
-    const nextPrayer = prayerTimes.nextPrayer(date);
-    
-    if (!nextPrayer) return null;
+  /**
+   * Cache prayer times for a date
+   */
+  async cachePrayerTimes(date: Date, times: PrayerTimesData): Promise<void> {
+    try {
+      const dateKey = date.toISOString().split('T')[0];
+      const cache = await this.getCachedTimes();
+      cache[dateKey] = {
+        ...times,
+        fajr: times.fajr.toISOString(),
+        sunrise: times.sunrise.toISOString(),
+        dhuhr: times.dhuhr.toISOString(),
+        asr: times.asr.toISOString(),
+        maghrib: times.maghrib.toISOString(),
+        isha: times.isha.toISOString(),
+      };
+      await AsyncStorage.setItem(STORAGE_KEYS.CACHED_TIMES, JSON.stringify(cache));
+    } catch (error) {
+      console.error('Error caching prayer times:', error);
+    }
+  }
 
-    const prayerNames: { [key: string]: string } = {
-      [Prayer.Fajr]: 'Fajr',
-      [Prayer.Sunrise]: 'Sunrise',
-      [Prayer.Dhuhr]: 'Dhuhr',
-      [Prayer.Asr]: 'Asr',
-      [Prayer.Maghrib]: 'Maghrib',
-      [Prayer.Isha]: 'Isha',
-    };
+  /**
+   * Get cached prayer times
+   */
+  private async getCachedTimes(): Promise<any> {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.CACHED_TIMES);
+      return data ? JSON.parse(data) : {};
+    } catch (error) {
+      console.error('Error getting cached times:', error);
+      return {};
+    }
+  }
 
-    return {
-      name: prayerNames[nextPrayer] || 'Unknown',
-      time: prayerTimes.timeForPrayer(nextPrayer) || new Date(),
-    };
+  /**
+   * Format time to 12-hour format
+   */
+  formatTime(date: Date): string {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    return `${displayHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+  }
+
+  /**
+   * Format date
+   */
+  formatDate(date: Date): string {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]}`;
   }
 }
 

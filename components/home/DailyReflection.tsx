@@ -1,0 +1,424 @@
+import { useHadithStore } from '@/store/hadith-store';
+import { useReflectStore } from '@/store/reflect-store';
+import { theme } from '@/styles/theme';
+import { Hadith } from '@/types/hadith.types';
+import { Verse } from '@/types/quran.types';
+import { useRouter } from 'expo-router';
+import { BookOpen } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { quranService } from '@/service/quran.service';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+type ContentType = 'quran' | 'hadith';
+
+interface DailyContent {
+    type: ContentType;
+    verse?: Verse & { surahNumber: number; surahName: string };
+    hadith?: Hadith & { collectionId: string; collectionName: string };
+    dayOfYear: number;
+}
+
+const STORAGE_KEY = '@daily_reflection_cache';
+
+export default function DailyReflection() {
+    const router = useRouter();
+    const { loadCollection, loadedData } = useHadithStore();
+    const { setDraft } = useReflectStore();
+
+    const [content, setContent] = useState<DailyContent | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    useEffect(() => {
+        loadDailyContent();
+    }, []);
+
+    const getDayOfYear = (): number => {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), 0, 0);
+        const diff = now.getTime() - start.getTime();
+        const oneDay = 1000 * 60 * 60 * 24;
+        return Math.floor(diff / oneDay);
+    };
+
+    const loadDailyContent = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            const dayOfYear = getDayOfYear();
+
+            // Try to load cached content first
+            const cachedContent = await loadCachedContent(dayOfYear);
+            if (cachedContent) {
+                console.log('✅ Using cached daily content');
+                setContent(cachedContent);
+                setIsLoading(false);
+                return;
+            }
+
+            // Alternate between Qur'an (even days) and Hadith (odd days)
+            const contentType: ContentType = dayOfYear % 2 === 0 ? 'quran' : 'hadith';
+
+            let newContent: DailyContent | null = null;
+
+            if (contentType === 'quran') {
+                newContent = await loadDailyQuran(dayOfYear);
+            } else {
+                newContent = await loadDailyHadith(dayOfYear);
+            }
+
+            if (newContent) {
+                await cacheContent(newContent);
+                setContent(newContent);
+            }
+
+            setIsLoading(false);
+        } catch (err) {
+            console.error('Error loading daily content:', err);
+            setError('Failed to load content');
+            setIsLoading(false);
+        }
+    };
+
+    const loadCachedContent = async (dayOfYear: number): Promise<DailyContent | null> => {
+        try {
+            const cached = await AsyncStorage.getItem(STORAGE_KEY);
+            if (cached) {
+                const parsedContent: DailyContent = JSON.parse(cached);
+                if (parsedContent.dayOfYear === dayOfYear) {
+                    return parsedContent;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading cached content:', error);
+        }
+        return null;
+    };
+
+    const cacheContent = async (content: DailyContent): Promise<void> => {
+        try {
+            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(content));
+        } catch (error) {
+            console.error('Error caching content:', error);
+        }
+    };
+
+    const loadDailyQuran = async (dayOfYear: number): Promise<DailyContent | null> => {
+        try {
+            await quranService.initialize();
+            const surahs = await quranService.getAllSurahs();
+
+            if (!surahs || surahs.length === 0) {
+                setError('No Qur\'an data available');
+                return null;
+            }
+
+            const surahIndex = dayOfYear % surahs.length;
+            const selectedSurah = surahs[surahIndex];
+
+            const verses = await quranService.getSurahVerses(selectedSurah.number);
+
+            if (!verses || verses.length === 0) {
+                setError('No verses available for this surah');
+                return null;
+            }
+
+            const verseIndex = Math.floor((dayOfYear * 17) % verses.length);
+            const selectedVerse = verses[verseIndex];
+
+            if (selectedVerse) {
+                return {
+                    type: 'quran',
+                    verse: {
+                        ...selectedVerse,
+                        surahNumber: selectedSurah.number,
+                        surahName: selectedSurah.englishName,
+                    },
+                    dayOfYear,
+                };
+            }
+        } catch (err) {
+            console.error('Error loading daily Qur\'an:', err);
+            setError('Failed to load Qur\'an verse');
+        }
+        return null;
+    };
+
+    const loadDailyHadith = async (dayOfYear: number): Promise<DailyContent | null> => {
+        try {
+            const collections = [
+                { id: 'bukhari' as const, name: 'Sahih al-Bukhari' },
+                { id: 'muslim' as const, name: 'Sahih Muslim' },
+                { id: 'abudawud' as const, name: 'Sunan Abi Dawud' },
+                { id: 'tirmidhi' as const, name: "Jami' at-Tirmidhi" },
+            ];
+
+            const collectionIndex = dayOfYear % collections.length;
+            const selectedCollection = collections[collectionIndex];
+
+            await loadCollection(selectedCollection.id);
+
+            const collectionData = useHadithStore.getState().loadedData[selectedCollection.id];
+
+            if (!collectionData || !collectionData.english) {
+                setError('Failed to load hadith collection');
+                return null;
+            }
+
+            const hadiths = collectionData.english.hadiths;
+
+            if (!hadiths || hadiths.length === 0) {
+                setError('No hadiths available');
+                return null;
+            }
+
+            const hadithIndex = Math.floor((dayOfYear * 17) % hadiths.length);
+            const selectedHadith = hadiths[hadithIndex];
+
+            if (selectedHadith) {
+                return {
+                    type: 'hadith',
+                    hadith: {
+                        ...selectedHadith,
+                        collectionId: selectedCollection.id,
+                        collectionName: selectedCollection.name,
+                    },
+                    dayOfYear,
+                };
+            }
+        } catch (err) {
+            console.error('Error loading daily hadith:', err);
+            setError('Failed to load hadith');
+        }
+        return null;
+    };
+
+    const handleReflect = () => {
+        if (!content) return;
+
+        if (content.type === 'quran' && content.verse) {
+            const verse = content.verse;
+
+            setDraft({
+                surahNumber: verse.surahNumber,
+                verseNumber: verse.number,
+                arabicText: verse.arabic,
+                translation: verse.translation,
+                surahName: verse.surahName,
+            });
+
+            router.push({
+                pathname: '/(tabs)/(reflect)/reflect-verse',
+                params: {
+                    surahNumber: verse.surahNumber.toString(),
+                    startAyah: verse.number.toString(),
+                    verseText: verse.translation,
+                    surahName: verse.surahName,
+                },
+            } as any);
+        } else if (content.type === 'hadith' && content.hadith) {
+            const hadith = content.hadith;
+
+            setDraft({
+                surahNumber: hadith.hadithnumber,
+                verseNumber: hadith.reference.book,
+                arabicText: hadith.arabic || '',
+                translation: hadith.text,
+                surahName: hadith.collectionName,
+            });
+
+            router.push({
+                pathname: '/(tabs)/(reflect)/reflect-verse',
+                params: {
+                    surahNumber: hadith.hadithnumber.toString(),
+                    startAyah: hadith.reference.book.toString(),
+                    verseText: hadith.text,
+                    surahName: hadith.collectionName,
+                },
+            } as any);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.title}>Today&apos;s Reflection</Text>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={theme.color.brand} />
+                </View>
+            </View>
+        );
+    }
+
+    if (error || !content) {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.title}>Today&apos;s Reflection</Text>
+                <View style={styles.errorContainer}>
+                    <Text style={styles.errorText}>
+                        {error || 'No content available'}
+                    </Text>
+                </View>
+            </View>
+        );
+    }
+
+    const isQuran = content.type === 'quran';
+    const displayText = isQuran
+        ? content.verse?.translation
+        : content.hadith?.text;
+    const sourceInfo = isQuran
+        ? `${content.verse?.surahName} - Verse ${content.verse?.number}`
+        : content.hadith?.collectionName;
+
+    // Truncate text for display
+    const MAX_LENGTH = 250;
+    const shouldTruncate = (displayText?.length || 0) > MAX_LENGTH;
+    const truncatedText = shouldTruncate && !isExpanded
+        ? displayText?.substring(0, MAX_LENGTH).trim() + '...'
+        : displayText;
+
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>Today&apos;s Reflection</Text>
+
+            <View style={styles.card}>
+                <View style={styles.contentContainer}>
+                    <Text style={styles.text}>
+                        {truncatedText || ''}
+                    </Text>
+
+                    {shouldTruncate && (
+                        <TouchableOpacity
+                            onPress={() => setIsExpanded(!isExpanded)}
+                            style={styles.readMoreButton}
+                        >
+                            <Text style={styles.readMoreText}>
+                                {isExpanded ? 'Read less' : 'Read more'}
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+
+                    <View style={styles.referenceContainer}>
+                        <Text style={styles.referenceText}>
+                            ({sourceInfo})
+                        </Text>
+                    </View>
+                </View>
+            </View>
+
+            <TouchableOpacity
+                style={styles.reflectButton}
+                onPress={handleReflect}
+                activeOpacity={0.8}
+            >
+                <Text style={styles.reflectButtonText}>
+                    Reflect on this {isQuran ? 'verse' : 'hadith'}
+                </Text>
+            </TouchableOpacity>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        marginVertical: 8,
+    },
+    title: {
+        fontSize: 20,
+        fontFamily: theme.font.bold,
+        color: '#000',
+        marginBottom: 16,
+    },
+    loadingContainer: {
+        backgroundColor: '#FFF',
+        borderRadius: 16,
+        padding: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: 200,
+    },
+    errorContainer: {
+        backgroundColor: '#FFF',
+        borderRadius: 16,
+        padding: 24,
+        borderWidth: 1,
+        borderColor: '#ebebebff',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: 150,
+    },
+    errorText: {
+        fontSize: 16,
+        color: '#999',
+        fontFamily: theme.font.regular,
+        textAlign: 'center',
+    },
+    card: {
+        backgroundColor: '#FFF',
+        borderRadius: 16,
+        padding: 24,
+        borderWidth: 1,
+        borderColor: '#ebebebff',
+    },
+    contentContainer: {
+        marginBottom: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    text: {
+        fontSize: 16,
+        lineHeight: 26,
+        color: '#333',
+        marginBottom: 12,
+        textAlign: 'center',
+        fontFamily: theme.font.semiBold,
+    },
+    readMoreButton: {
+        alignSelf: 'center',
+        marginBottom: 8,
+    },
+    readMoreText: {
+        fontSize: 14,
+        color: theme.color.brand,
+        fontFamily: theme.font.semiBold,
+    },
+    referenceContainer: {
+        alignSelf: 'center',
+    },
+    referenceText: {
+        fontSize: 16,
+        color: '#666',
+        fontFamily: theme.font.bold,
+        textAlign: 'center',
+    },
+    reflectButton: {
+        backgroundColor: theme.color.brand,
+        borderRadius: 12,
+        padding: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 12,
+        shadowColor: theme.color.brand,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 4,
+        marginTop: 12,
+    },
+    reflectButtonText: {
+        fontSize: 16,
+        fontFamily: theme.font.semiBold,
+        color: '#FFF',
+    },
+});

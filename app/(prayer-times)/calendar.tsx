@@ -1,415 +1,339 @@
-import React, { useMemo } from "react";
+// app/(prayer-times)/calendar.tsx
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React, { useState } from 'react';
 import {
-  View,
-  Text,
   ScrollView,
-  Pressable,
-  Image,
   StyleSheet,
-  Dimensions,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { usePrayerStore, usePrayerTimes } from "@/store/prayerStore";
-import {
-  generateCalendarGrid,
-  getHijriDateString,
-  getISOWeekNumber,
-} from "@/utils/calendarLogic";
-import { theme } from "@/styles/theme";
-
-const { width: screenWidth } = Dimensions.get("window");
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { usePrayerTimes } from '../../hooks/usePrayerTimes';
 
 export default function CalendarScreen() {
-  const router = useRouter();
-  const { currentDate, setDate, nextMonth, prevMonth } = usePrayerStore();
+  const {
+    prayerTimes,
+    selectedDate,
+    hijriDate,
+    changeDate,
+    goToToday,
+    formatTime,
+  } = usePrayerTimes();
 
-  const prayerTimes = usePrayerTimes() as Record<string, string>;
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  const calendarWeeks = useMemo(
-    () => generateCalendarGrid(currentDate),
-    [currentDate]
-  );
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
 
-  const weekNumbers = useMemo(
-    () =>
-      calendarWeeks.map((week) => {
-        const firstRealDay = week.find((d) => d !== null) as Date;
-        return getISOWeekNumber(firstRealDay);
-      }),
-    [calendarWeeks]
-  );
+    return { daysInMonth, startingDayOfWeek };
+  };
 
-  const hijriString = useMemo(
-    () => getHijriDateString(currentDate),
-    [currentDate]
-  );
+  const previousMonth = () => {
+    const newDate = new Date(currentMonth);
+    newDate.setMonth(newDate.getMonth() - 1);
+    setCurrentMonth(newDate);
+  };
 
-  const dayHeaders = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+  const nextMonth = () => {
+    const newDate = new Date(currentMonth);
+    newDate.setMonth(newDate.getMonth() + 1);
+    setCurrentMonth(newDate);
+  };
 
-  const prayerOrder = ["Subh", "Dhuhr", "Asr", "Maghrib", "Isha", "Tahajjud"];
+  const selectDate = (day: number) => {
+    const newDate = new Date(currentMonth);
+    newDate.setDate(day);
+    changeDate(newDate);
+    router.back();
+  };
 
-  const handleDatePress = (dateObj: Date | null) => {
-    if (dateObj) {
-      setDate(dateObj);
+  const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentMonth);
+  const today = new Date();
+  const isCurrentMonth = currentMonth.getMonth() === today.getMonth() &&
+    currentMonth.getFullYear() === today.getFullYear();
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+
+  const renderCalendarDays = () => {
+    const days = [];
+
+    // Empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(<View key={`empty-${i}`} style={styles.emptyDay} />);
     }
-  };
 
-  const handleNextMonth = () => {
-    nextMonth();
-  };
+    // Days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const isToday = isCurrentMonth && day === today.getDate();
+      const isSelected = selectedDate.getDate() === day &&
+        selectedDate.getMonth() === currentMonth.getMonth() &&
+        selectedDate.getFullYear() === currentMonth.getFullYear();
 
-  const handlePrevMonth = () => {
-    prevMonth();
+      days.push(
+        <TouchableOpacity
+          key={day}
+          style={[
+            styles.dayCell,
+            isToday && styles.todayCell,
+            isSelected && styles.selectedCell,
+          ]}
+          onPress={() => selectDate(day)}
+        >
+          <Text style={[
+            styles.dayText,
+            isToday && styles.todayText,
+            isSelected && styles.selectedText,
+          ]}>
+            {day}
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+
+    return days;
   };
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.iconButton}>
-          <Image
-            source={require("@/assets/images/prayerTimes-icons/arrow-left.png")}
-            style={styles.backIcon}
-          />
-        </Pressable>
-
-        <View style={styles.calendarHeader}>
-          <View style={styles.monthYearContainer}>
-            <Pressable
-              onPress={handlePrevMonth}
-              hitSlop={10}
-              style={styles.navButton}
-            >
-              <Text style={styles.navButtonText}>‹</Text>
-            </Pressable>
-            <Text style={styles.monthYearText}>
-              {currentDate.toLocaleDateString("en-US", {
-                month: "long",
-                year: "numeric",
-              })}
-            </Text>
-            <Pressable
-              onPress={handleNextMonth}
-              hitSlop={10}
-              style={styles.navButton}
-            >
-              <Text style={styles.navButtonText}>›</Text>
-            </Pressable>
-          </View>
-          <Text style={styles.islamicMonthText}>{hijriString}</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#333" />
+        </TouchableOpacity>
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>
+            {monthNames[currentMonth.getMonth()]}, {currentMonth.getFullYear()}
+          </Text>
+          <Text style={styles.headerSubtitle}>
+            Jumada I - Jumada II, {hijriDate?.year || 1447}
+          </Text>
         </View>
+        <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.calendarTable}>
-          <View style={styles.tableHeaderRow}>
-            {dayHeaders.map((day, index) => (
-              <View
-                key={day}
-                style={[
-                  styles.dayHeader,
-                  index === dayHeaders.length - 1 && styles.lastDayHeader,
-                ]}
-              >
-                <Text style={styles.tableHeaderText}>{day}</Text>
+      <ScrollView style={styles.scrollView}>
+        {/* Month Navigation */}
+        <View style={styles.monthNav}>
+          <TouchableOpacity onPress={previousMonth} style={styles.monthButton}>
+            <Ionicons name="chevron-back" size={24} color="#8B4513" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={goToToday} style={styles.todayButton}>
+            <Text style={styles.todayButtonText}>Today</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={nextMonth} style={styles.monthButton}>
+            <Ionicons name="chevron-forward" size={24} color="#8B4513" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Calendar */}
+        <View style={styles.calendarContainer}>
+          {/* Day Names Header */}
+          <View style={styles.dayNamesRow}>
+            {dayNames.map((day) => (
+              <View key={day} style={styles.dayNameCell}>
+                <Text style={styles.dayNameText}>{day}</Text>
               </View>
             ))}
           </View>
 
-          {calendarWeeks.map((week, weekIndex) => {
-            const isLastWeek = weekIndex === calendarWeeks.length - 1;
-            const hasNextMonthDates = week.some(
-              (dateObj) =>
-                dateObj && dateObj.getMonth() !== currentDate.getMonth()
-            );
-
-            return (
-              <View
-                key={weekIndex}
-                style={[
-                  styles.tableRow,
-                  isLastWeek && hasNextMonthDates && styles.lastWeekRow,
-                ]}
-              >
-                {week.map((dateObj, dayIndex) => {
-                  const isSelected =
-                    dateObj &&
-                    dateObj.getDate() === currentDate.getDate() &&
-                    dateObj.getMonth() === currentDate.getMonth() &&
-                    dateObj.getFullYear() === currentDate.getFullYear();
-
-                  const isCurrentMonth =
-                    dateObj && dateObj.getMonth() === currentDate.getMonth();
-
-                  const isLastCell = dayIndex === 6;
-
-                  return (
-                    <Pressable
-                      key={dayIndex}
-                      style={[
-                        styles.dateCell,
-                        isSelected && styles.selectedDateCell,
-                        isLastCell && styles.lastCell,
-                      ]}
-                      onPress={() => handleDatePress(dateObj)}
-                      disabled={!dateObj}
-                    >
-                      <Text
-                        style={[
-                          styles.dateText,
-                          !isCurrentMonth && styles.otherMonthText,
-                          isSelected && styles.selectedDateText,
-                          !dateObj && styles.emptyDateText,
-                        ]}
-                      >
-                        {dateObj ? dateObj.getDate() : ""}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            );
-          })}
-          <View style={styles.weekNumberRow}>
-            {weekNumbers.map((wn, i) => (
-              <View key={i} style={styles.weekNumberCell}>
-                <Text style={styles.weekNumberText}>{wn}</Text>
-              </View>
-            ))}
+          {/* Calendar Grid */}
+          <View style={styles.calendarGrid}>
+            {renderCalendarDays()}
           </View>
         </View>
 
-        <View style={styles.prayerSection}>
-          {prayerOrder.map((prayer) => {
-            const time = prayerTimes[prayer];
-            if (!time) return null;
-            const timeParts = time.match(/^(.+?)(\s*[AP]M)$/i);
-            const timeValue = timeParts ? timeParts[1] : time;
-            const period = timeParts ? timeParts[2].trim() : "";
+        {/* Prayer Times for Selected Date */}
+        {prayerTimes && (
+          <View style={styles.prayerTimesContainer}>
+            <Text style={styles.prayerTimesTitle}>
+              Prayer Times - {selectedDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long'
+              })}
+            </Text>
 
-            return (
-              <View key={prayer} style={styles.prayerItem}>
-                <View style={styles.prayerLeft}>
-                  <Image
-                    source={require("@/assets/images/prayerTimes-icons/speakerIcon.png")}
-                    style={styles.speakerIcon}
-                  />
-                  <Text style={styles.prayerName}>{prayer}</Text>
-                </View>
-                <View style={styles.prayerTimeContainer}>
-                  <Text style={styles.prayerTime}>{timeValue}</Text>
-                  <Text style={styles.prayerPeriod}>{period}</Text>
-                </View>
-              </View>
-            );
-          })}
-        </View>
-
-        <View style={styles.bottomSpace} />
+            <View style={styles.prayerTimesList}>
+              <PrayerTimeRow icon="sunny-outline" name="Subh" time={formatTime(prayerTimes.fajr)} />
+              <PrayerTimeRow icon="partly-sunny-outline" name="Dhuhr" time={formatTime(prayerTimes.dhuhr)} />
+              <PrayerTimeRow icon="cloudy-outline" name="Asr" time={formatTime(prayerTimes.asr)} />
+              <PrayerTimeRow icon="moon-outline" name="Maghrib" time={formatTime(prayerTimes.maghrib)} />
+              <PrayerTimeRow icon="moon" name="Isha" time={formatTime(prayerTimes.isha)} />
+              <PrayerTimeRow icon="star-outline" name="Tahajjud" time={formatTime(prayerTimes.fajr)} />
+            </View>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
 }
 
-const responsiveSize = (size: number) =>
-  Math.round(size * Math.min(screenWidth / 375, 1.2));
+const PrayerTimeRow = ({ icon, name, time }: { icon: any, name: string, time: string }) => (
+  <View style={styles.prayerTimeRow}>
+    <View style={styles.prayerTimeLeft}>
+      <Ionicons name={icon} size={20} color="#8B4513" />
+      <Text style={styles.prayerTimeName}>{name}</Text>
+    </View>
+    <Text style={styles.prayerTimeValue}>{time}</Text>
+  </View>
+);
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
-    paddingTop: 40,
+    backgroundColor: '#F5F5F5',
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: responsiveSize(20),
-    paddingVertical: responsiveSize(16),
-    backgroundColor: "#FFFFFF",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
+    backgroundColor: '#FFFFFF',
   },
-  iconButton: {
-    padding: responsiveSize(8),
+  headerCenter: {
+    alignItems: 'center',
   },
-  backIcon: {
-    width: responsiveSize(24),
-    height: responsiveSize(24),
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
   },
-  calendarHeader: {
-    flex: 1,
-    alignItems: "center",
-    marginRight: responsiveSize(32),
-  },
-  monthYearContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: responsiveSize(4),
-    gap: responsiveSize(12),
-  },
-  monthYearText: {
-    fontSize: responsiveSize(18),
-    fontWeight: "600",
-    color: "#964B00",
-    fontFamily: theme.font.semiBold,
-  },
-  navButton: {
-    padding: responsiveSize(4),
-  },
-  navButtonText: {
-    fontSize: responsiveSize(20),
-    color: "#964B00",
-    fontWeight: "600",
-    fontFamily: theme.font.semiBold,
-  },
-  islamicMonthText: {
-    fontSize: responsiveSize(12),
-    color: "#666666",
-    textAlign: "center",
-    fontFamily: theme.font.regular,
+  headerSubtitle: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
   },
   scrollView: {
     flex: 1,
   },
-  scrollContent: {
-    paddingHorizontal: responsiveSize(16),
-    paddingTop: responsiveSize(20),
+  monthNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    marginTop: 1,
   },
-  calendarTable: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: responsiveSize(16),
-    overflow: "hidden",
-    marginBottom: responsiveSize(24),
+  monthButton: {
+    padding: 8,
   },
-  tableHeaderRow: {
-    flexDirection: "row",
-    backgroundColor: "#964B00",
-    borderTopLeftRadius: responsiveSize(16),
-    borderTopRightRadius: responsiveSize(16),
+  todayButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    backgroundColor: '#8B4513',
+    borderRadius: 8,
   },
-  tableRow: {
-    flexDirection: "row",
+  todayButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  calendarContainer: {
+    backgroundColor: '#FFFFFF',
+    marginTop: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+  },
+  dayNamesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 16,
+    paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#D5D4DF",
+    borderBottomColor: '#8B4513',
   },
-  lastWeekRow: {
-    backgroundColor: "#D5D4DF",
+  dayNameCell: {
+    width: 40,
+    alignItems: 'center',
   },
-  dayHeader: {
-    flex: 1,
-    paddingVertical: responsiveSize(14),
-    alignItems: "center",
-    justifyContent: "center",
+  dayNameText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8B4513',
   },
-  lastDayHeader: {
-    borderRightWidth: 0,
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
-  tableHeaderText: {
-    fontSize: responsiveSize(13),
-    fontWeight: "600",
-    color: "#FFFFFF",
-    fontFamily: theme.font.semiBold,
+  emptyDay: {
+    width: '14.28%',
+    aspectRatio: 1,
   },
-  dateCell: {
-    flex: 1,
-    paddingVertical: responsiveSize(18),
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: responsiveSize(52),
-    borderRightWidth: 1,
-    borderRightColor: "#E8E8E8",
+  dayCell: {
+    width: '14.28%',
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
   },
-  selectedDateCell: {
-    backgroundColor: "#964B00",
+  todayCell: {
+    backgroundColor: '#FFF5E6',
   },
-  lastCell: {
-    borderRightWidth: 0,
+  selectedCell: {
+    backgroundColor: '#8B4513',
   },
-  dateText: {
-    fontSize: responsiveSize(15),
-    fontWeight: "500",
-    color: "#3C3A35",
-    fontFamily: theme.font.regular,
+  dayText: {
+    fontSize: 16,
+    color: '#333',
   },
-  otherMonthText: {
-    color: "#CCCCCC",
+  todayText: {
+    fontWeight: '600',
+    color: '#8B4513',
   },
-  selectedDateText: {
-    color: "#FFFFFF",
-    fontWeight: "700",
-    fontFamily: theme.font.bold,
+  selectedText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
-  emptyDateText: {
-    color: "transparent",
+  prayerTimesContainer: {
+    backgroundColor: '#FFFFFF',
+    marginTop: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
   },
-  prayerSection: {
-    marginBottom: responsiveSize(24),
+  prayerTimesTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 16,
   },
-  prayerItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#FFFFFF",
-    borderRadius: responsiveSize(12),
-    padding: responsiveSize(16),
-    marginBottom: responsiveSize(12),
+  prayerTimesList: {
+    gap: 12,
   },
-  prayerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
+  prayerTimeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#F9F9F9',
+    borderRadius: 8,
   },
-  speakerIcon: {
-    width: responsiveSize(24),
-    height: responsiveSize(24),
+  prayerTimeLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  prayerName: {
-    fontSize: responsiveSize(16),
-    color: "#3C3A35",
-    fontWeight: "500",
-    marginLeft: responsiveSize(12),
-    fontFamily: theme.font.regular,
+  prayerTimeName: {
+    fontSize: 16,
+    color: '#333',
   },
-  prayerTime: {
-    fontSize: responsiveSize(16),
-    color: "#3C3A35",
-    fontWeight: "600",
-    fontFamily: theme.font.semiBold,
-  },
-  bottomSpace: {
-    height: responsiveSize(40),
-  },
-
-  weekNumberRow: {
-    flexDirection: "row",
-    backgroundColor: "#F2F2F2",
-    borderTopWidth: 1,
-    borderTopColor: "#E5E5E5",
-    borderBottomLeftRadius: responsiveSize(16),
-    borderBottomRightRadius: responsiveSize(16),
-  },
-  weekNumberCell: {
-    flex: 1,
-    paddingVertical: responsiveSize(10),
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  weekNumberText: {
-    fontSize: responsiveSize(14),
-    color: "#666",
-    fontWeight: "500",
-    fontFamily: theme.font.regular,
-  },
-  prayerTimeContainer: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    gap: responsiveSize(4),
-  },
-  prayerPeriod: {
-    fontSize: responsiveSize(11),
-    color: "#3C3A35",
-    fontWeight: "500",
-    fontFamily: theme.font.regular,
+  prayerTimeValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#8B4513',
   },
 });

@@ -1,19 +1,27 @@
+// components/home/UpcomingSolat.tsx
+import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { theme } from '@/styles/theme';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { ArrowRight} from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { ArrowRight } from 'lucide-react-native';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function UpcomingSolat() {
     const router = useRouter();
+    const { nextPrayer, locationName, formatTime, formatDate } = usePrayerTimes();
+
     const handleSeeAll = () => {
-        router.push('/(tabs)/(prayer-times)/prayerTimes');
+        router.push('/(prayer-times)/prayerTimes');
     };
 
     const handlePrayerPress = () => {
-        router.push('/(tabs)/(prayer-times)/prayerDetails');
+        router.push('/(prayer-times)/prayerTimes');
     };
+
+    if (!nextPrayer) {
+        return null;
+    }
 
     return (
         <View style={styles.container}>
@@ -36,23 +44,22 @@ export default function UpcomingSolat() {
                     <View style={styles.iconContainer}>
                         <Image
                             source={require('../../assets/images/pTime.png')}
-                            // style={styles.cardIcon}
                             resizeMode="contain"
                         />
                     </View>
 
                     <View style={styles.prayerInfo}>
                         <Text style={styles.prayerTime}>
-                            Nov, 19 2025 • 12:30pm
+                            {formatDate(nextPrayer.time)} • {formatTime(nextPrayer.time)}
                         </Text>
-                        <Text style={styles.prayerName}>Dhuhr Prayer</Text>
+                        <Text style={styles.prayerName}>{nextPrayer.name} Prayer</Text>
                         <View style={styles.locationContainer}>
                             <MaterialIcons
                                 name="location-on"
                                 size={14}
                                 color="rgba(255, 255, 255, 0.8)"
                             />
-                            <Text style={styles.locationText}>Lagos, Nigeria</Text>
+                            <Text style={styles.locationText}>{locationName}</Text>
                         </View>
                     </View>
                 </View>
@@ -104,14 +111,13 @@ const styles = StyleSheet.create({
     prayerContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 16,
+        gap: 6,
         flex: 1,
     },
     iconContainer: {
         width: 64,
         height: 64,
         borderRadius: 32,
-        // backgroundColor: 'rgba(255, 255, 255, 0.15)',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -128,7 +134,6 @@ const styles = StyleSheet.create({
     },
     prayerInfo: {
         flex: 1,
-        // gap: 2,
     },
     prayerTime: {
         fontSize: 13,

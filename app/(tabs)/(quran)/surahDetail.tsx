@@ -1,6 +1,4 @@
-// app/(tabs)/(quran)/surahDetail.tsx
-
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -122,7 +120,6 @@ export default function SurahDetail() {
       <View style={{ paddingLeft: 20 }}>
         <ScreenHeader title={surah.englishName} showBackButton={true} />
       </View>
-      <SurahInfoCard />
       <SurahInfoCard />
     </>
   );

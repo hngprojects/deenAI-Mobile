@@ -1,234 +1,338 @@
-import { useLocation } from '@/hooks/useLocation';
-import prayerService from '@/service/prayer.service';
-import { usePrayerStore } from '@/store/prayer-store';
-import { useRouter } from 'expo-router';
+import UpcomingSolatCard from '@/components/UpcomingSolatCard';
+import { theme } from '@/styles/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import LocationPermissionModal from '../../components/LocationPermissionModal';
+import { usePrayerTimes } from '../../hooks/usePrayerTimes';
 
 export default function PrayerTimesScreen() {
-  const router = useRouter();
-  const { location: userLocation, getCurrentLocation, checkPermission } = useLocation();
   const {
     prayerTimes,
-    currentDate,
-    islamicDate,
-    location,
-    isLoading,
+    selectedDate,
+    hijriDate,
+    nextPrayer,
+    loading,
     error,
-    setPrayerTimes,
-    setCurrentDate,
-    setIslamicDate,
-    setLocation,
-    setLoading,
-    setError,
-  } = usePrayerStore();
+    locationName,
+    savedLocation,
+    refreshLocation,
+    nextDay,
+    previousDay,
+    formatTime,
+    formatDate,
+  } = usePrayerTimes();
 
-  const [initializing, setInitializing] = useState(true);
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
+  const [permissionLoading, setPermissionLoading] = useState(false);
+  const [permissionError, setPermissionError] = useState<string | null>(null);
 
-  // Initialize location and prayer times
   useEffect(() => {
-    initializePrayerTimes();
-  }, []);
+    // Check if location exists, if not show modal
+    const checkLocation = async () => {
+      // Wait a moment for the hook to initialize
+      setTimeout(() => {
+        if (savedLocation === null && !loading) {
+          setShowPermissionModal(true);
+        }
+      }, 500);
+    };
 
-  // Mock forbidden times data (not implemented yet)
-  const forbiddenTimesData = [
-    { period: 'Sunrise', start: '06:34 AM', end: '06:49 AM', icon: 'sunrise' },
-    { period: 'Noon', start: '12:22 PM', end: '12:30 PM', icon: 'noon' },
-    { period: 'Sunset', start: '06:10 PM', end: '06:25 PM', icon: 'sunset' }
-  ];
+    checkLocation();
+  }, [savedLocation, loading]);
 
-  // Update prayer times when date or location changes
-  useEffect(() => {
-    if (location) {
-      updatePrayerTimes(location, currentDate);
-    }
-  }, [currentDate, location]);
-
-  const initializePrayerTimes = async () => {
+  const handleRequestPermission = async () => {
     try {
-      setLoading(true);
-      setError(null);
+      setPermissionLoading(true);
+      setPermissionError(null);
 
-      // Check if we have permission
-      const hasPermission = await checkPermission();
-      
-      let coords = userLocation;
-      
-      if (!coords && hasPermission) {
-        coords = await getCurrentLocation();
+      await refreshLocation();
+
+      // Check if location was successfully obtained after a delay
+      setTimeout(() => {
+        if (savedLocation) {
+          setShowPermissionModal(false);
+          setPermissionError(null);
+        } else if (error) {
+          setPermissionError(error);
+        } else {
+          // Even if there's no savedLocation yet, close modal
+          // as the location service will use default location
+          setShowPermissionModal(false);
+        }
+        setPermissionLoading(false);
+      }, 1500);
+    } catch (err: any) {
+      // Don't show error, just close modal as we have fallback location
+      console.log('Location request completed with fallback');
+      setShowPermissionModal(false);
+      setPermissionLoading(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowPermissionModal(false);
+    // Navigate back if no location is set
+    if (!savedLocation) {
+      router.back();
+    }
+  };
+
+  const isToday = selectedDate.toDateString() === new Date().toDateString();
+
+  // Calculate which prayer is next for today or tomorrow
+  const getNextPrayerForDisplay = () => {
+    const now = new Date();
+    const todayString = now.toDateString();
+
+    // If viewing today, find next prayer
+    if (isToday && prayerTimes) {
+      const prayersList = [
+        { name: 'Fajr', time: new Date(prayerTimes.fajr) },
+        { name: 'Dhuhr', time: new Date(prayerTimes.dhuhr) },
+        { name: 'Asr', time: new Date(prayerTimes.asr) },
+        { name: 'Maghrib', time: new Date(prayerTimes.maghrib) },
+        { name: 'Isha', time: new Date(prayerTimes.isha) },
+      ];
+
+      // Find first prayer that hasn't passed yet
+      for (const prayer of prayersList) {
+        if (now < prayer.time) {
+          return prayer;
+        }
       }
 
-      if (coords) {
-        setLocation(coords);
-        updatePrayerTimes(coords, currentDate);
-      } else {
-        setError('Unable to get location. Please enable location services.');
-      }
-    } catch (err) {
-      console.error('Initialization error:', err);
-      setError('Failed to initialize prayer times');
-    } finally {
-      setLoading(false);
-      setInitializing(false);
+      // All prayers done for today, return Fajr as next (tomorrow)
+      return { name: 'Fajr', time: new Date(prayerTimes.fajr), isNextDay: true };
     }
+
+    return nextPrayer;
   };
 
-  const updatePrayerTimes = (coords: any, date: Date) => {
-    try {
-      // Get prayer times
-      const times = prayerService.getFormattedPrayerTimes(coords, date);
-      setPrayerTimes(times);
+  const renderPrayerItem = (name: string, time: Date, isNext: boolean = false) => {
+    const isPast = new Date() > time && isToday;
 
-      // Get Islamic date
-      const hijriDate = prayerService.getIslamicDate(date);
-      setIslamicDate(hijriDate);
-    } catch (err) {
-      console.error('Error updating prayer times:', err);
-      setError('Failed to calculate prayer times');
+    // Don't render if prayer has passed or if it's the next prayer (shown in upcoming card)
+    if (isPast || isNext) {
+      return null;
     }
-  };
 
-  const formatGregorianDate = (date: Date) => {
-    const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long' };
-    return date.toLocaleDateString('en-US', options);
-  };
-
-  const navigateToPreviousDay = () => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() - 1);
-    setCurrentDate(newDate);
-  };
-
-  const navigateToNextDay = () => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() + 1);
-    setCurrentDate(newDate);
-  };
-
-  // Show loading state
-  if (initializing || isLoading) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#9C7630" />
-        <Text style={styles.loadingText}>Loading prayer times...</Text>
+      <TouchableOpacity
+        key={name}
+        style={[
+          styles.prayerItem,
+          isNext && styles.nextPrayerItem,
+        ]}
+        activeOpacity={0.7}
+      >
+        <View style={styles.prayerInfo}>
+          <Ionicons
+            name="volume-medium-outline"
+            size={24}
+            color={isNext ? '#FFFFFF' : '#8B4513'}
+          />
+          <Text style={[
+            styles.prayerName,
+            isNext && styles.nextPrayerText,
+          ]}>
+            {name}
+          </Text>
+        </View>
+        <Text style={[
+          styles.prayerTime,
+          isNext && styles.nextPrayerText,
+        ]}>
+          {formatTime(time)}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const getForbiddenTimeImage = (label: string) => {
+    switch (label) {
+      case 'Sunrise':
+        return require('../../assets/images/material-symbols-light_prayer-times.png');
+      case 'Noon':
+        return require('../../assets/images/material-symbols-light_prayer-times-sun.png');
+      case 'Sunset':
+        return require('../../assets/images/material-symbols-light_prayer-times-nig.png');
+      default:
+        return require('../../assets/images/material-symbols-light_prayer-times.png');
+    }
+  };
+
+  const renderForbiddenTime = (label: string, startTime: Date, endTime: Date) => {
+    return (
+      <View key={label} style={styles.forbiddenItem}>
+        <View style={styles.forbiddenIcon}>
+          <Image
+            source={getForbiddenTimeImage(label)}
+            style={styles.forbiddenImage}
+            resizeMode="contain"
+          />
+        </View>
+        <View style={styles.forbiddenInfo}>
+          <Text style={styles.forbiddenLabel}>{label}</Text>
+          <View style={styles.forbiddenTimes}>
+            <Text style={styles.forbiddenTime}>{formatTime(startTime)}</Text>
+            <View style={styles.timeSeparator} />
+            <Text style={styles.forbiddenTime}>{formatTime(endTime)}</Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  // Show loading while initial data loads
+  if (loading && !prayerTimes) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#333" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Prayer Times</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#8B4513" />
+          <Text style={styles.loadingText}>Loading prayer times...</Text>
+        </View>
       </View>
     );
   }
 
-  // Show error state
-  if (error && !prayerTimes) {
+  // Show empty state if no prayer times
+  if (!prayerTimes) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <Text style={styles.errorText}>{error}</Text>
-        <Pressable onPress={initializePrayerTimes} style={styles.retryButton}>
-          <Text style={styles.retryButtonText}>Retry</Text>
-        </Pressable>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#333" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Prayer Times</Text>
+          <View style={{ width: 24 }} />
+        </View>
+
+        <LocationPermissionModal
+          visible={showPermissionModal}
+          loading={permissionLoading}
+          error={permissionError}
+          onRequestPermission={handleRequestPermission}
+          onClose={handleCloseModal}
+        />
+
+        <View style={styles.emptyContainer}>
+          <Ionicons name="location-outline" size={80} color="#CCC" />
+          <Text style={styles.emptyText}>No prayer times available</Text>
+          <Text style={styles.emptySubtext}>Please enable location access</Text>
+          <TouchableOpacity
+            style={styles.enableButton}
+            onPress={() => setShowPermissionModal(true)}
+          >
+            <Text style={styles.enableButtonText}>Enable Location</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
+
+  // Calculate forbidden times
+  const sunriseEnd = new Date(prayerTimes.sunrise);
+  sunriseEnd.setMinutes(sunriseEnd.getMinutes() + 15);
+
+  const noonStart = new Date(prayerTimes.dhuhr);
+  noonStart.setMinutes(noonStart.getMinutes() - 8);
+  const noonEnd = new Date(prayerTimes.dhuhr);
+  noonEnd.setMinutes(noonEnd.getMinutes() + 8);
+
+  const sunsetStart = new Date(prayerTimes.maghrib);
+  sunsetStart.setMinutes(sunsetStart.getMinutes() - 15);
 
   return (
-    <View style={[styles.container, { paddingTop: 30 }]}>
+    <View style={styles.container}>
+      <LocationPermissionModal
+        visible={showPermissionModal}
+        loading={permissionLoading}
+        error={permissionError}
+        onRequestPermission={handleRequestPermission}
+        onClose={handleCloseModal}
+      />
+
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.iconButton}>
-          <Image 
-            source={require('@/assets/images/prayerTimes-icons/arrow-left.png')}
-            style={styles.backIcon}
-          />
-        </Pressable>
-        
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={20} color="#000" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Prayer Times</Text>
-
-        <Pressable 
-          style={styles.iconButton}
-          onPress={() => router.push('/(tabs)/(prayer-times)/calendar')}
-        >
-          <Image 
-            source={require('@/assets/images/prayerTimes-icons/calendar.png')}
-            style={styles.calendarIcon}
-          />
-        </Pressable>
+        <TouchableOpacity onPress={() => router.push('/(prayer-times)/calendar')}>
+          <Ionicons name="calendar-outline" size={20} color="#000" />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={refreshLocation}
+            tintColor="#8B4513"
+          />
+        }
+      >
         {/* Date Navigation */}
-        <View style={styles.dateNavigation}>
-          <Pressable onPress={navigateToPreviousDay} style={styles.iconButton}>
-            <Image 
-              source={require('@/assets/images/prayerTimes-icons/lessthan.png')}
-              style={styles.navIcon}
-            />
-          </Pressable>
-
-          <View style={styles.dateContainer}>
-            <Text style={styles.gregorianDate}>
-              {formatGregorianDate(currentDate)}
-            </Text>
-            <Text style={styles.islamicDate}>
-              {islamicDate || 'Loading...'}
-            </Text>
+        <View style={styles.dateContainer}>
+          <TouchableOpacity onPress={previousDay}>
+            <Ionicons name="chevron-back" size={20} color="#3C3A35" />
+          </TouchableOpacity>
+          <View style={styles.dateInfo}>
+            <Text style={styles.dateText}>{formatDate(selectedDate)}</Text>
+            <Text style={styles.hijriText}>{hijriDate?.formatted}</Text>
           </View>
-
-          <Pressable onPress={navigateToNextDay} style={styles.iconButton}>
-            <Image 
-              source={require('@/assets/images/prayerTimes-icons/greaterthan.png')}
-              style={styles.navIcon}
-            />
-          </Pressable>
+          <TouchableOpacity onPress={nextDay}>
+            <Ionicons name="chevron-forward" size={20} color="#3C3A35" />
+          </TouchableOpacity>
         </View>
 
-        {/* Prayer Times */}
-        {prayerTimes && (
-          <View style={styles.section}>
-            {Object.entries(prayerTimes).map(([prayer, time]) => (
-              <View key={prayer} style={styles.prayerItemContainer}>
-                <View style={styles.prayerItem}>
-                  <View style={styles.prayerLeft}>
-                    <Image 
-                      source={require('@/assets/images/speakerIcon.png')}
-                      style={styles.speakerIcon}
-                    />
-                    <Text style={styles.prayerName}>{prayer}</Text>
-                  </View>
-                  <Text style={styles.prayerTime}>{time}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
+        {/* Next Prayer Highlight */}
+        {isToday && getNextPrayerForDisplay() && (
+          <UpcomingSolatCard
+            prayerName={getNextPrayerForDisplay().name}
+            prayerTime={getNextPrayerForDisplay().time}
+            formattedDate={formatDate(getNextPrayerForDisplay().time)}
+            formattedTime={formatTime(getNextPrayerForDisplay().time)}
+            locationName={locationName}
+          />
         )}
 
-        {/* Forbidden Times (Mock data - not yet implemented) */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Forbidden Salat Times</Text>
-          {forbiddenTimesData.map((item, index) => (
-            <View key={index} style={styles.forbiddenItemContainer}>
-              <View style={styles.forbiddenItem}>
-                <Image 
-                  source={
-                    item.period === 'Sunrise' 
-                      ? require('@/assets/images/prayerTimes-icons/sunrise.png')
-                      : item.period === 'Noon'
-                      ? require('@/assets/images/prayerTimes-icons/noon.png')
-                      : require('@/assets/images/prayerTimes-icons/sunset-icon.png')
-                  }
-                  style={styles.forbiddenIcon}
-                />
-                <View style={styles.forbiddenTextContainer}>
-                  <Text style={styles.forbiddenPeriod}>{item.period}</Text>
-                  <View style={styles.forbiddenTimeContainer}>
-                    <Text style={styles.forbiddenTime}>{item.start}</Text>
-                    <View style={styles.timeSeparatorLine} />
-                    <Text style={[styles.forbiddenTime, styles.endTime]}>{item.end}</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-          ))}
+        {/* Prayer Times List */}
+        <View style={styles.prayerListContainer}>
+          {renderPrayerItem('Subh', prayerTimes.fajr, isToday && getNextPrayerForDisplay()?.name === 'Fajr')}
+          {renderPrayerItem('Dhuhr', prayerTimes.dhuhr, isToday && getNextPrayerForDisplay()?.name === 'Dhuhr')}
+          {renderPrayerItem('Asr', prayerTimes.asr, isToday && getNextPrayerForDisplay()?.name === 'Asr')}
+          {renderPrayerItem('Maghrib', prayerTimes.maghrib, isToday && getNextPrayerForDisplay()?.name === 'Maghrib')}
+          {renderPrayerItem('Isha', prayerTimes.isha, isToday && getNextPrayerForDisplay()?.name === 'Isha')}
+          {renderPrayerItem('Tahajjud', prayerTimes.fajr, false)}
         </View>
 
-        {/* Extra space at bottom */}
-        <View style={styles.bottomSpace} />
+        {/* Forbidden Prayer Times */}
+        <View style={styles.forbiddenContainer}>
+          <Text style={styles.forbiddenTitle}>Forbidden Salat Times</Text>
+          {renderForbiddenTime('Sunrise', prayerTimes.sunrise, sunriseEnd)}
+          {renderForbiddenTime('Noon', noonStart, noonEnd)}
+          {renderForbiddenTime('Sunset', sunsetStart, prayerTimes.maghrib)}
+        </View>
       </ScrollView>
     </View>
   );
@@ -237,174 +341,247 @@ export default function PrayerTimesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fafafa',
-  },
-  centerContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666666',
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  retryButton: {
-    backgroundColor: '#9C7630',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
+    backgroundColor: '#F5F5F5',
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
-    color: '#000000',
-  },
-  iconButton: {
-    padding: 8,
-  },
-  backIcon: {
-    width: 24,
-    height: 24,
-  },
-  calendarIcon: {
-    width: 35,
-    height: 35,
+    color: '#333',
   },
   scrollView: {
     flex: 1,
   },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 24,
-  },
-  dateNavigation: {
-    flexDirection: 'row',
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 24,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  emptyText: {
+    marginTop: 24,
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
+  },
+  emptySubtext: {
+    marginTop: 8,
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+  },
+  enableButton: {
+    marginTop: 24,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    backgroundColor: '#8B4513',
+    borderRadius: 12,
+  },
+  enableButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: theme.font.regular,
   },
   dateContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    marginTop: 1,
+  },
+  dateInfo: {
+    alignItems: 'center',
+  },
+  dateText: {
+    fontSize: 18,
+    color: theme.color.brand,
+    marginBottom: 4,
+    fontFamily: theme.font.regular,
+
+  },
+  hijriText: {
+    fontSize: 14,
+    color: '#666',
+        fontFamily: theme.font.regular,
+
+  },
+  upcomingContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+  },
+  upcomingTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 12,
+  },
+  upcomingCard: {
+    backgroundColor: theme.color.brand,
+    borderRadius: 20,
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 10,
+  },
+  upcomingIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  upcomingInfo: {
     flex: 1,
   },
-  gregorianDate: {
+  upcomingDate: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    opacity: 0.9,
+        fontFamily: theme.font.regular,
+  },
+  upcomingPrayer: {
     fontSize: 20,
-    color: '#9C7630',
-    fontWeight: '600',
-    textAlign: 'center',
+    fontFamily: theme.font.regular,
+    color: '#FFFFFF',
+    marginBottom: 3,
   },
-  islamicDate: {
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationText: {
     fontSize: 14,
-    color: '#3C3A35',
-    marginTop: 4,
-    textAlign: 'center',
+    color: '#FFFFFF',
+    marginLeft: 4,
   },
-  navIcon: {
-    width: 24,
-    height: 24,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 12,
-  },
-  prayerItemContainer: {
-    marginBottom: 12,
+  prayerListContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
   },
   prayerItem: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E3E3E3',
   },
-  prayerLeft: {
+  nextPrayerItem: {
+    backgroundColor: '#8B4513',
+  },
+  prayerInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   prayerName: {
     fontSize: 16,
-    color: '#000000',
     fontWeight: '500',
+    color: '#333',
     marginLeft: 12,
+    fontFamily: theme.font.regular,
   },
   prayerTime: {
     fontSize: 16,
-    color: '#000000',
-    fontWeight: '500',
+    fontWeight: '600',
+    color: '#333',
+    fontFamily: theme.font.regular,
   },
-  speakerIcon: {
-    width: 24,
-    height: 24,
+  nextPrayerText: {
+    color: '#FFFFFF',
   },
-  forbiddenItemContainer: {
+  pastPrayerText: {
+    color: '#999',
+        fontFamily: theme.font.regular,
+
+  },
+  forbiddenContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 40,
+  },
+  forbiddenTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
     marginBottom: 12,
   },
   forbiddenItem: {
     flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 12,
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
   },
   forbiddenIcon: {
-    width: 55,
-    height: 55,
+    borderRadius: 28,
+    // backgroundColor: '#FFF5E6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
   },
-  forbiddenTextContainer: {
+  forbiddenImage: {
+    width: 50,
+    height: 50,
+  },
+  forbiddenInfo: {
     flex: 1,
-    marginLeft: 12,
   },
-  forbiddenPeriod: {
+  forbiddenLabel: {
     fontSize: 16,
-    color: '#000000',
     fontWeight: '500',
-    marginBottom: 4,
+    color: '#333',
+    marginBottom: 8,
+        fontFamily: theme.font.regular,
+
   },
-  forbiddenTimeContainer: {
+  forbiddenTimes: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
   },
   forbiddenTime: {
-    fontSize: 14,
-    color: '#666666',
+    fontSize: 16,
+    color: '#666',
+        fontFamily: theme.font.semiBold,
+
   },
-  timeSeparatorLine: {
-    flex: 1,
+  timeSeparator: {
+    width: 40,
     height: 1,
-    backgroundColor: '#666666',
+    backgroundColor: '#DDD',
     marginHorizontal: 8,
-    opacity: 0.5,
   },
-  endTime: {},
-  bottomSpace: {
-    height: 20,
+  iconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

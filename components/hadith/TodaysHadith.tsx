@@ -53,8 +53,10 @@ export default function TodaysHadith() {
             // Load the collection
             await loadCollection(selectedCollection.id);
 
-            // Get actual hadith count from loaded data
-            const data = loadedData[selectedCollection.id];
+            // Use getState to get fresh data after loading
+            const currentState = useHadithStore.getState();
+            const data = currentState.loadedData[selectedCollection.id];
+
             if (!data) {
                 setIsLoading(false);
                 return;
@@ -63,7 +65,7 @@ export default function TodaysHadith() {
             const actualCount = data.english.hadiths.length;
 
             // Generate consistent random hadith number for today
-            const hadithIndex = Math.floor((dayOfYear * 17) % actualCount); // Use prime number for better distribution
+            const hadithIndex = Math.floor((dayOfYear * 17) % actualCount);
             const hadith = data.english.hadiths[hadithIndex];
 
             if (hadith) {
@@ -131,17 +133,14 @@ export default function TodaysHadith() {
                     </View>
                 </View>
 
-                <TouchableOpacity
-                    style={styles.reflectButton}
-                    onPress={handleReflectOnHadith}
-                    activeOpacity={0.8}
-                >
-                    <View style={styles.iconCircle}>
-                        <BookOpen size={24} color="#FFF" strokeWidth={2} />
-                    </View>
-                    <Text style={styles.reflectButtonText}>Reflect on this hadith</Text>
-                </TouchableOpacity>
             </View>
+            <TouchableOpacity
+                style={styles.reflectButton}
+                onPress={handleReflectOnHadith}
+                activeOpacity={0.8}
+            >
+                <Text style={styles.reflectButtonText}>Reflect on this hadith</Text>
+            </TouchableOpacity>
         </View>
     );
 }
@@ -149,6 +148,7 @@ export default function TodaysHadith() {
 const styles = StyleSheet.create({
     container: {
         marginVertical: 8,
+        // gap: 10,
     },
     title: {
         fontSize: 20,
@@ -169,32 +169,29 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         padding: 24,
         borderWidth: 1,
-        borderColor: '#E3E3E3',
-        // shadowColor: '#000',
-        // shadowOffset: { width: 2, height: 2 },
-        // shadowOpacity: 0.1,
-        // shadowRadius: 1,
-        // elevation: 1,
+        borderColor: '#ebebebff',
     },
     hadithContent: {
         marginBottom: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     hadithText: {
         fontSize: 16,
         lineHeight: 26,
         color: '#333',
-        fontFamily: theme.font.regular,
-        textAlign: 'left',
         marginBottom: 12,
+        textAlign: 'center',
+        fontFamily: theme.font.semiBold,
     },
     referenceContainer: {
         alignSelf: 'flex-end',
     },
     referenceText: {
-        fontSize: 14,
+        fontSize: 16,
         color: '#666',
-        fontFamily: theme.font.semiBold,
-        fontStyle: 'italic',
+        fontFamily: theme.font.bold,
+        textAlign: 'center',
     },
     reflectButton: {
         backgroundColor: theme.color.brand,
@@ -209,6 +206,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 4,
+        marginTop: 12,
     },
     iconCircle: {
         width: 40,
@@ -220,7 +218,7 @@ const styles = StyleSheet.create({
     },
     reflectButtonText: {
         fontSize: 16,
-        fontFamily: theme.font.bold,
+        fontFamily: theme.font.semiBold,
         color: '#FFF',
     },
 });
