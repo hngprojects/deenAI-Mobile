@@ -154,15 +154,7 @@ class PrayerService {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
 
-  /**
-   * Calculate Hijri date
-   */
-  /**
-   * Calculate Hijri date
-   */
-  /**
-   * Calculate Hijri date
-   */
+  
   getHijriDate(date: Date = new Date()): HijriDate {
     const gY = date.getFullYear();
     const gM = date.getMonth() + 1;
