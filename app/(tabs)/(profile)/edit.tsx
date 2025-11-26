@@ -1,4 +1,4 @@
-import EditProfileScreen from '@/components/profile/EditProfileScreen';
+import EditProfileScreen from "@/app/(tabs)/(profile)/EditProfileScreen";
 
 export default function EditProfilePage() {
   return <EditProfileScreen />;

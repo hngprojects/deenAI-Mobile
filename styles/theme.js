@@ -8,6 +8,7 @@ export const lightTheme = {
     secondary: "#000000ff",
     background: "#ffffff",
     background2: "#F9F9F9",
+    background3: "#E3E3E333",
     brand: "#964B00",
     brandLight: "#CFA963",
     white: "#ffffff",

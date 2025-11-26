@@ -1,5 +1,5 @@
-import DeleteWarningAccount from "@/components/profile/DeleteWarning";
+import DeleteWarningAccount from "@/app/(tabs)/(profile)/delete/deletewarning";
 
 export default function DeleteWarning() {
-    return < DeleteWarningAccount/>
+  return <DeleteWarningAccount />;
 }

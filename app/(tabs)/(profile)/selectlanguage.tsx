@@ -1,7 +1,5 @@
-import SelectLanguageScreen from '@/components/profile/SelectLanguageScreen';
+import SelectLanguageScreen from "@/app/(tabs)/(profile)/SelectLanguageScreen";
 
 export default function SelectLanguage() {
   return <SelectLanguageScreen />;
 }
-
-

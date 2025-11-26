@@ -1,5 +1,5 @@
-import PrivacyScreen from "@/components/profile/PrivacyScreen";
+import PrivacyScreen from "@/app/(tabs)/(profile)/support/FAQPrivacyScreen";
 
 export default function Privacypage() {
-    return < PrivacyScreen />
+  return <PrivacyScreen />;
 }

@@ -1,11 +1,11 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { theme } from '@/styles/theme';
-import { useRouter } from 'expo-router';
-import ScreenHeader from '@/components/screenHeader';
-import ScreenContainer from '@/components/ScreenContainer';
-import { Check } from 'lucide-react-native';
-import { useLanguageStore } from '@/store/language-store';
+import ScreenContainer from "@/components/ScreenContainer";
+import ScreenHeader from "@/components/screenHeader";
+import { useLanguageStore } from "@/store/language-store";
+import { theme } from "@/styles/theme";
+import { useRouter } from "expo-router";
+import { Check } from "lucide-react-native";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function SelectLanguage() {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function SelectLanguage() {
 
   const onSelect = (lang: string) => {
     setLanguage(lang);
-    router.push('/(tabs)/(profile)/AppLanguageScreen');
+    router.push("/(tabs)/(profile)/AppLanguageScreen");
   };
 
   return (
@@ -44,7 +44,6 @@ export default function SelectLanguage() {
             {language === lang.key && (
               <Check size={28} color={theme.color.brand} />
             )}
-
           </TouchableOpacity>
         ))}
       </View>
@@ -52,11 +51,9 @@ export default function SelectLanguage() {
   );
 }
 
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.color.background },
   list: { marginTop: 20, paddingHorizontal: 16 },
-<<<<<<< HEAD:components/profile/SelectLanguageScreen.tsx
   item: {
     padding: 16,
     backgroundColor: "#F4F4F4",
@@ -65,27 +62,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-=======
-  item: { 
-    padding: 16, 
-    backgroundColor: '#F4F4F4', 
-    borderRadius: 12, 
-    marginBottom: 14, 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center' ,
     borderWidth: 1,
-    borderColor: '#C7C5CC'
->>>>>>> 61c9f02 (feat: Update Profile):app/(tabs)/(profile)/SelectLanguageScreen.tsx
+    borderColor: "#C7C5CC",
   },
 
   textWrapper: {
-    flexDirection: 'column',
+    flexDirection: "column",
     flex: 1,
   },
 
-  text: { fontSize: 18, color: theme.color.black, fontFamily:theme.font.semiBold  },
-  subtitle: { fontSize: 14, fontWeight: '500', color: '#555', marginTop: 4, fontFamily:theme.font.regular },
+  text: {
+    fontSize: 18,
+    color: theme.color.black,
+    fontFamily: theme.font.semiBold,
+  },
+  subtitle: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#555",
+    marginTop: 4,
+    fontFamily: theme.font.regular,
+  },
 
   arrowImage: {
     width: 24,

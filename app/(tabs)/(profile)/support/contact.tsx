@@ -1,5 +1,5 @@
-import ContactScreen from "@/components/profile/ContactScreen";
+import ContactScreen from "@/app/(tabs)/(profile)/support/ContactScreen";
 
 export default function Privacypage() {
-    return < ContactScreen/>
+  return <ContactScreen />;
 }

@@ -1,5 +1,5 @@
-import DeletecheckScreen from "@/components/profile/DeleteChecked";
+import DeletecheckScreen from "@/app/(tabs)/(profile)/DeleteAccountScreen";
 
 export default function DeleteCheck() {
-    return < DeletecheckScreen/>
+  return <DeletecheckScreen />;
 }

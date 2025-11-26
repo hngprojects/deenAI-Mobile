@@ -1,5 +1,5 @@
-import ConfirmDeleteAccount from "@/components/profile/ConfirmDelete";
+import ConfirmDeleteAccount from "@/app/(tabs)/(profile)/delete/confirmdelete";
 
 export default function ConfirmDelete() {
-    return < ConfirmDeleteAccount/>
+  return <ConfirmDeleteAccount />;
 }
