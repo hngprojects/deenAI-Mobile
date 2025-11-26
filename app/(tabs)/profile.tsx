@@ -1,5 +1,11 @@
-import ProfileScreen from "../../components/profile/ProfileScreen";
+import ScreenContainer from "@/components/ScreenContainer";
+import { theme } from "@/styles/theme";
+import ProfileScreen from "./(profile)/ProfileScreen";
 
-export default function ProfilePage() {
-  return <ProfileScreen />;
+export default function ProfilePages() {
+  return (
+    <ScreenContainer backgroundColor={theme.color.background3}>
+      <ProfileScreen />
+    </ScreenContainer>
+  );
 }

@@ -35,8 +35,8 @@ class ProfileUpdateService {
     async editProfile(userData: EditProfileType): Promise<ApiResponse<EditProfileType>> {
         const { email, ...apiData } = userData as any;
 
-        return apiService.put<ApiResponse<EditProfileType>>(
-            '/api/v1/users/me/profile',
+        return apiService.patch<ApiResponse<EditProfileType>>(
+            '/users/me/profile',
             apiData
         );
     }
@@ -45,7 +45,7 @@ class ProfileUpdateService {
     const { ...apiData } = userData as any;
 
         return apiService.post<ApiResponse<ContactSupportType>>(
-            '/api/v1/contact',
+            '/contact',
             apiData
         );
     }
@@ -58,7 +58,7 @@ class ProfileUpdateService {
 
     
         async resendVerification(payload: RequestOtpPayload): Promise<OtpResponse> {
-            return this.apiCall<OtpResponse>('/api/v1/auth/verify-otp', {
+            return this.apiCall<OtpResponse>('/auth/verify-otp', {
                 method: 'POST',
                 body: JSON.stringify(payload),
             });
@@ -66,14 +66,14 @@ class ProfileUpdateService {
 
 
         async requestOtp(payload: RequestOtpPayload): Promise<OtpResponse> {
-            return this.apiCall<OtpResponse>('/api/v1/auth/forgot-password', {
+            return this.apiCall<OtpResponse>('/auth/forgot-password', {
                 method: 'POST',
                 body: JSON.stringify(payload),
             });
         }
     
         async verifyOtp(payload: VerifyOtpPayload): Promise<OtpResponse> {
-            return this.apiCall<OtpResponse>('/api/v1/auth/verify-otp', {
+            return this.apiCall<OtpResponse>('/auth/verify-otp', {
                 method: 'POST',
                 body: JSON.stringify(payload),
             });
