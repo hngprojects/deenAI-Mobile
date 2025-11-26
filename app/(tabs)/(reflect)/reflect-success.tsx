@@ -2,6 +2,16 @@ import ScreenContainer from "@/components/ScreenContainer";
 import { theme } from "@/styles/theme";
 import { Image, StyleSheet, Text, View } from "react-native";
 import PrimaryButton from "../../../components/primaryButton";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type ReflectStackParamList = {
+  'reflect-success': undefined;
+  'index': undefined;
+  'saved-reflection': undefined;
+};
+
+type ReflectSuccessProp = NativeStackNavigationProp<ReflectStackParamList, 'reflect-success'>;
 
 export default function ReflectSuccess() {
   const navigation = useNavigation<ReflectSuccessProp>();

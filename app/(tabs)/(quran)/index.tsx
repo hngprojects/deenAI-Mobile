@@ -18,7 +18,7 @@ import {
   Text,
   View,
 } from "react-native";
-import SearchBar from "../../components/searchBar";
+import SearchBar from "@/components/searchBar";
 
 export type RootStackParamList = {
   Quran: undefined;
