@@ -1,10 +1,9 @@
-import { useHadithStore } from '@/store/hadith-store';
+import { quranService } from '@/service/quran.service';
 import { useReflectStore } from '@/store/reflect-store';
 import { theme } from '@/styles/theme';
-import { Hadith } from '@/types/hadith.types';
 import { Verse } from '@/types/quran.types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import { BookOpen } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
@@ -13,15 +12,14 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { quranService } from '@/service/quran.service';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type ContentType = 'quran' | 'hadith';
+// type ContentType = 'quran' | 'hadith';
+type ContentType = 'quran'; // Only Quran for now
 
 interface DailyContent {
     type: ContentType;
     verse?: Verse & { surahNumber: number; surahName: string };
-    hadith?: Hadith & { collectionId: string; collectionName: string };
+    // hadith?: Hadith & { collectionId: string; collectionName: string };
     dayOfYear: number;
 }
 
@@ -29,7 +27,7 @@ const STORAGE_KEY = '@daily_reflection_cache';
 
 export default function DailyReflection() {
     const router = useRouter();
-    const { loadCollection, loadedData } = useHadithStore();
+    // const { loadCollection, loadedData } = useHadithStore();
     const { setDraft } = useReflectStore();
 
     const [content, setContent] = useState<DailyContent | null>(null);
@@ -65,16 +63,18 @@ export default function DailyReflection() {
                 return;
             }
 
-            // Alternate between Qur'an (even days) and Hadith (odd days)
-            const contentType: ContentType = dayOfYear % 2 === 0 ? 'quran' : 'hadith';
+            // Only show Quran verses now (removed Hadith alternation)
+            // const contentType: ContentType = dayOfYear % 2 === 0 ? 'quran' : 'hadith';
+            const contentType: ContentType = 'quran';
 
             let newContent: DailyContent | null = null;
 
-            if (contentType === 'quran') {
-                newContent = await loadDailyQuran(dayOfYear);
-            } else {
-                newContent = await loadDailyHadith(dayOfYear);
-            }
+            // Only load Quran content
+            // if (contentType === 'quran') {
+            newContent = await loadDailyQuran(dayOfYear);
+            // } else {
+            //     newContent = await loadDailyHadith(dayOfYear);
+            // }
 
             if (newContent) {
                 await cacheContent(newContent);
@@ -153,6 +153,8 @@ export default function DailyReflection() {
         return null;
     };
 
+    // Comment out Hadith loading function
+    /*
     const loadDailyHadith = async (dayOfYear: number): Promise<DailyContent | null> => {
         try {
             const collections = [
@@ -201,11 +203,14 @@ export default function DailyReflection() {
         }
         return null;
     };
+    */
 
     const handleReflect = () => {
         if (!content) return;
 
-        if (content.type === 'quran' && content.verse) {
+        // Only handle Quran content now
+        // if (content.type === 'quran' && content.verse) {
+        if (content.verse) {
             const verse = content.verse;
 
             setDraft({
@@ -225,7 +230,10 @@ export default function DailyReflection() {
                     surahName: verse.surahName,
                 },
             } as any);
-        } else if (content.type === 'hadith' && content.hadith) {
+        }
+        // Remove Hadith handling
+        /*
+        else if (content.type === 'hadith' && content.hadith) {
             const hadith = content.hadith;
 
             setDraft({
@@ -246,6 +254,7 @@ export default function DailyReflection() {
                 },
             } as any);
         }
+        */
     };
 
     if (isLoading) {
@@ -272,13 +281,11 @@ export default function DailyReflection() {
         );
     }
 
-    const isQuran = content.type === 'quran';
-    const displayText = isQuran
-        ? content.verse?.translation
-        : content.hadith?.text;
-    const sourceInfo = isQuran
-        ? `${content.verse?.surahName} - Verse ${content.verse?.number}`
-        : content.hadith?.collectionName;
+    // Always Quran now - remove conditional logic
+    // const isQuran = content.type === 'quran';
+    const isQuran = true;
+    const displayText = content.verse?.translation;
+    const sourceInfo = `${content.verse?.surahName} - Verse ${content.verse?.number}`;
 
     // Truncate text for display
     const MAX_LENGTH = 250;
@@ -322,7 +329,7 @@ export default function DailyReflection() {
                 activeOpacity={0.8}
             >
                 <Text style={styles.reflectButtonText}>
-                    Reflect on this {isQuran ? 'verse' : 'hadith'}
+                    Reflect on this verse
                 </Text>
             </TouchableOpacity>
         </View>
