@@ -1,6 +1,5 @@
-// hooks/usePrayerTimes.ts
-import { useState, useEffect, useCallback } from 'react';
-import prayerService, { PrayerTimesData, HijriDate, SavedLocation, PrayerSettings } from '../service/prayer.service';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import prayerService, { HijriDate, PrayerSettings, PrayerTimesData, SavedLocation } from '../service/prayer.service';
 import { useLocation } from './useLocation';
 
 export const usePrayerTimes = () => {
@@ -11,21 +10,25 @@ export const usePrayerTimes = () => {
   const [currentPrayer, setCurrentPrayer] = useState<string>('');
   const [nextPrayer, setNextPrayer] = useState<{ name: string; time: Date } | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<string>('00:00:00');
-  const [loading, setLoading] = useState(true); // Start as true while loading initial data
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [savedLocation, setSavedLocation] = useState<SavedLocation | null>(null);
   const [settings, setSettings] = useState<PrayerSettings | null>(null);
   const [locationName, setLocationName] = useState<string>('');
 
+  // Track if initial load is complete
+  const initialLoadComplete = useRef(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
   /**
-   * Load saved location and settings on mount
+   * Load saved location and settings on mount - OPTIMIZED
    */
   useEffect(() => {
     loadInitialData();
   }, []);
 
   /**
-   * Calculate prayer times when location or date changes
+   * Calculate prayer times when location or date changes - OPTIMIZED
    */
   useEffect(() => {
     if (savedLocation) {
@@ -34,71 +37,146 @@ export const usePrayerTimes = () => {
   }, [savedLocation, selectedDate, settings]);
 
   /**
-   * Update current prayer and countdown every second
+   * Update current prayer and countdown every second - OPTIMIZED
    */
   useEffect(() => {
-    if (!prayerTimes) return;
+    // Clear existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
 
-    const updateInterval = setInterval(() => {
+    if (!prayerTimes || !savedLocation) return;
+
+    // Update immediately first
+    updatePrayerInfo();
+
+    // Then set interval
+    intervalRef.current = setInterval(() => {
+      updatePrayerInfo();
+    }, 1000);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [prayerTimes, savedLocation, settings]);
+
+  /**
+   * Extract prayer update logic for reuse
+   */
+  const updatePrayerInfo = useCallback(() => {
+    if (!prayerTimes || !savedLocation) return;
+
+    try {
       const current = prayerService.getCurrentPrayer(prayerTimes);
       setCurrentPrayer(current);
 
-      const next = prayerService.getNextPrayer(prayerTimes);
+      const next = prayerService.getNextPrayer(
+        prayerTimes,
+        savedLocation.latitude,
+        savedLocation.longitude,
+        settings || undefined
+      );
       setNextPrayer(next);
 
       const remaining = prayerService.getTimeUntilNextPrayer(next.time);
       setTimeRemaining(remaining);
-    }, 1000);
-
-    return () => clearInterval(updateInterval);
-  }, [prayerTimes]);
+    } catch (err) {
+      console.error('Error updating prayer info:', err);
+    }
+  }, [prayerTimes, savedLocation, settings]);
 
   /**
-   * Load initial data (saved location and settings)
+   * Load initial data - OPTIMIZED with parallel loading
    */
   const loadInitialData = async () => {
     try {
       setLoading(true);
+      setError(null);
 
-      // Load saved location
-      const savedLoc = await prayerService.getSavedLocation();
+      // Load both in parallel for faster loading
+      const [savedLoc, savedSettings] = await Promise.all([
+        prayerService.getSavedLocation(),
+        prayerService.getSettings(),
+      ]);
+
+      // Set settings first (doesn't trigger re-render of times calculation)
+      setSettings(savedSettings);
+
+      // Then set location (this will trigger prayer times calculation)
       if (savedLoc) {
         setSavedLocation(savedLoc);
         setLocationName(savedLoc.city || 'Unknown Location');
+      } else {
+        // No saved location - try to get current location
+        console.log('No saved location found, attempting to get current location...');
+        // Don't block here - let the user see the UI while location loads
+        getCurrentLocation()
+          .then(async (coords) => {
+            if (coords) {
+              let address = 'Unknown Location';
+              try {
+                const reverseGeocode = await getAddress(coords.latitude, coords.longitude);
+                if (reverseGeocode) {
+                  address = reverseGeocode;
+                }
+              } catch (geoError) {
+                console.log('Reverse geocoding failed');
+              }
+
+              const newLocation: SavedLocation = {
+                latitude: coords.latitude,
+                longitude: coords.longitude,
+                city: address.split(',')[0],
+                country: address.split(',').pop()?.trim(),
+                timestamp: Date.now(),
+              };
+
+              await prayerService.saveLocation(newLocation);
+              setSavedLocation(newLocation);
+              setLocationName(address);
+            }
+          })
+          .catch((err) => {
+            console.error('Failed to get current location:', err);
+            setError('Location access required for prayer times');
+          });
       }
 
-      // Load settings
-      const savedSettings = await prayerService.getSettings();
-      setSettings(savedSettings);
-
+      initialLoadComplete.current = true;
     } catch (err: any) {
       console.error('Error loading initial data:', err);
       setError(err.message || 'Failed to load data');
     } finally {
-      setLoading(false);
+      // Set loading to false after a short delay to prevent flicker
+      setTimeout(() => setLoading(false), 100);
     }
   };
 
   /**
-   * Calculate prayer times for given coordinates and date
+   * Calculate prayer times - OPTIMIZED with immediate state update
    */
   const calculateTimes = useCallback(
     (latitude: number, longitude: number, date: Date) => {
       try {
+        // Calculate times synchronously (this is fast)
         const times = prayerService.calculatePrayerTimes(
           latitude,
           longitude,
           date,
           settings || undefined
         );
+
+        // Update state immediately
         setPrayerTimes(times);
 
         // Calculate Hijri date
         const hijri = prayerService.getHijriDate(date);
         setHijriDate(hijri);
 
-        // Cache the times
-        prayerService.cachePrayerTimes(date, times);
+        // Cache asynchronously (don't await)
+        prayerService.cachePrayerTimes(date, times).catch(console.error);
 
         setError(null);
       } catch (err: any) {
@@ -124,7 +202,7 @@ export const usePrayerTimes = () => {
       }
 
       // Get location name (will default to "Lagos, Nigeria" if reverse geocoding fails)
-      let address = 'Lagos, Nigeria';
+      let address = 'Unknown Location';
       try {
         const reverseGeocode = await getAddress(coords.latitude, coords.longitude);
         if (reverseGeocode) {
@@ -192,6 +270,7 @@ export const usePrayerTimes = () => {
       setLoading(false);
     }
   };
+
   const changeDate = (date: Date) => {
     setSelectedDate(date);
   };
@@ -272,6 +351,7 @@ export const usePrayerTimes = () => {
 
     // Actions
     refreshLocation,
+    setManualLocation,
     changeDate,
     nextDay,
     previousDay,

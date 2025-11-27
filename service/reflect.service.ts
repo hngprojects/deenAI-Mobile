@@ -87,6 +87,7 @@ class ReflectService {
                 surah: reflectionData.surah,
                 startAyah: reflectionData.startAyah || undefined,
                 endAyah: reflectionData.endAyah || undefined,
+                type: 'quran' // to be updated when hadith is available
             };
 
             console.log('📤 Final request data:', JSON.stringify(requestData, null, 2));
