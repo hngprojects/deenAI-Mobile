@@ -6,7 +6,7 @@ import { theme } from "@/styles/theme";
 import { IChat } from "@/types/chat.type";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from "react-native";
 
 const ChatHistory = () => {
   const [todayChats, setTodayChats] = useState<IChat[]>([]);
@@ -74,41 +74,48 @@ const ChatHistory = () => {
       contentContainerStyle={styles.contentContainer}
     >
       <ScreenHeader title="Chat History" onBackPress={handleBackPress} />
-      {loading ? (
-        <ActivityIndicator size={"small"} />
-      ) : (
-        <View style={styles.container}>
-          {/* Today Chats */}
-          {todayChats.length > 0 && (
-            <View>
-              <Text>Today</Text>
-              {todayChats.map((chat) => (
-                <ChatRoomItem key={chat.id} chat={chat} />
-              ))}
-            </View>
-          )}
 
-          {/* Yesterday Chats */}
-          {yesterdayChats.length > 0 && (
-            <View>
-              <Text>Yesterday</Text>
-              {yesterdayChats.map((chat) => (
-                <ChatRoomItem key={chat.id} chat={chat} />
-              ))}
-            </View>
-          )}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        {loading ? (
+          <ActivityIndicator size={"small"} />
+        ) : (
+          <View style={styles.container}>
+            {/* Today Chats */}
+            {todayChats.length > 0 && (
+              <View>
+                <Text>Today</Text>
+                {todayChats.map((chat) => (
+                  <ChatRoomItem key={chat.id} chat={chat} />
+                ))}
+              </View>
+            )}
 
-          {/* Earlier Chats */}
-          {earlierChats.length > 0 && (
-            <View>
-              <Text>Earlier</Text>
-              {earlierChats.map((chat) => (
-                <ChatRoomItem key={chat.id} chat={chat} />
-              ))}
-            </View>
-          )}
-        </View>
-      )}
+            {/* Yesterday Chats */}
+            {yesterdayChats.length > 0 && (
+              <View>
+                <Text>Yesterday</Text>
+                {yesterdayChats.map((chat) => (
+                  <ChatRoomItem key={chat.id} chat={chat} />
+                ))}
+              </View>
+            )}
+
+            {/* Earlier Chats */}
+            {earlierChats.length > 0 && (
+              <View>
+                <Text>Earlier</Text>
+                {earlierChats.map((chat) => (
+                  <ChatRoomItem key={chat.id} chat={chat} />
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+      </KeyboardAvoidingView>
     </ScreenContainer>
   );
 };
@@ -121,5 +128,8 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingInline: 20,
     flexGrow: 1,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
 });
