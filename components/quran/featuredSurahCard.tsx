@@ -1,19 +1,22 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { theme } from "@/styles/theme";
-import { BookText, ChevronRight } from "lucide-react-native";
+import { ChevronRight } from "lucide-react-native";
 import { Surah } from "@/types/quran.types";
+import { Image } from "expo-image";
 
 interface FeaturedSurahCardProps {
   surah: Surah;
   onPress: () => void;
   verseNumber?: number;
+  totalVerses?: number;
 }
 
 export default function FeaturedSurahCard({
   surah,
   onPress,
   verseNumber,
+  totalVerses,
 }: FeaturedSurahCardProps) {
   const actionText = verseNumber
     ? `Continue Reading • Verse ${verseNumber}`
@@ -25,7 +28,10 @@ export default function FeaturedSurahCard({
         <View style={styles.leftContent}>
           <View style={styles.iconRow}>
             <View style={styles.iconContainer}>
-              <BookText size={18} color={theme.color.brand} />
+              <Image
+                source={require("../../assets/images/bookicon.png")}
+                style={styles.iconImage}
+              />
             </View>
           </View>
 
@@ -33,6 +39,13 @@ export default function FeaturedSurahCard({
             <Text style={styles.featuredTitle}>
               {surah.englishName} ({surah.englishNameTranslation})
             </Text>
+
+            {verseNumber && totalVerses && (
+              <Text style={styles.verseInfo}>
+                {verseNumber}/{totalVerses}
+              </Text>
+            )}
+
             <Text style={styles.actionText}>{actionText}</Text>
           </View>
         </View>
@@ -87,5 +100,17 @@ const styles = StyleSheet.create({
     fontFamily: theme.font.regular,
     color: theme.color.white,
     opacity: 0.9,
+  },
+  iconImage: {
+    width: 55,
+    height: 55,
+    resizeMode: "contain",
+  },
+  verseInfo: {
+    fontSize: 14,
+    fontFamily: theme.font.regular,
+    color: theme.color.white,
+    opacity: 0.7,
+    marginBottom: 2,
   },
 });
