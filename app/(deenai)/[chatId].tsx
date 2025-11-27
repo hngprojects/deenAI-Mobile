@@ -229,7 +229,7 @@ export default function ChatRoom() {
   const handleHistoryPress = () => router.push("/(deenai)/chat-history");
 
   const handleBackPress = () => {
-    router.replace("/(deenai)/" as any);
+    router.dismissAll();
   };
 
   if (loadingMessages) {

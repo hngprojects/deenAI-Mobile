@@ -67,6 +67,9 @@ export default function DEENAI() {
     }
   };
 
+  const handleBackPress = () => {
+    router.dismissAll();
+  };
   const handleHistoryPress = () => router.push("/(deenai)/chat-history");
 
   return (
@@ -76,6 +79,7 @@ export default function DEENAI() {
         <ScreenHeader
           title="DEEN AI"
           titleAlign="center"
+          onBackPress={handleBackPress}
           rightComponent={
             <TouchableOpacity onPress={handleHistoryPress}>
               <View style={styles.historyButton}>
