@@ -100,6 +100,7 @@ export default function Quran() {
             surah={lastReadSurah}
             onPress={handleContinueReading}
             verseNumber={lastRead.verseNumber}
+            totalVerses={lastReadSurah.numberOfAyahs} // <-- add this
           />
         )}
 
@@ -112,6 +113,7 @@ export default function Quran() {
                 params: { surah: JSON.stringify(alFatihah) },
               })
             }
+            totalVerses={alFatihah.numberOfAyahs} // <-- add this
           />
         )}
 
