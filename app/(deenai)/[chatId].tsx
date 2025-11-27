@@ -9,6 +9,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  KeyboardAvoidingView,
   Platform,
   StatusBar,
   StyleSheet,
@@ -229,7 +230,7 @@ export default function ChatRoom() {
   const handleHistoryPress = () => router.push("/(deenai)/chat-history");
 
   const handleBackPress = () => {
-    router.replace("/(deenai)/" as any);
+    router.dismissAll();
   };
 
   if (loadingMessages) {
@@ -259,58 +260,65 @@ export default function ChatRoom() {
         />
       </View>
 
-      {/* Messages */}
-      <View style={{ flex: 1 }}>
-        {messages.length === 0 ? (
-          <View style={styles.centerContent}>
-            <Text style={styles.emptyText}>No messages yet</Text>
-          </View>
-        ) : (
-          <FlatList
-            ref={chatListRef}
-            style={{ flex: 1 }}
-            contentContainerStyle={{
-              paddingHorizontal: 20,
-              paddingTop: 20,
-              paddingBottom: 20,
-            }}
-            data={messages}
-            keyExtractor={(msg, index) => msg.id || `${msg.createdAt}-${index}`}
-            renderItem={(msg) => <MessageBubble message={msg.item} />}
-            ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
-          />
-        )}
-      </View>
-
-      {/* Input form */}
-      <View style={styles.inputWrapper}>
-        <View style={styles.inputContainer}>
-          <View style={styles.inputFieldContainer}>
-            <TextInput
-              style={{ flex: 1, height: "100%" }}
-              placeholder="Ask Deen AI"
-              value={prompt}
-              onChangeText={setPrompt}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        {/* Messages */}
+        <View style={{ flex: 1 }}>
+          {messages.length === 0 ? (
+            <View style={styles.centerContent}>
+              <Text style={styles.emptyText}>No messages yet</Text>
+            </View>
+          ) : (
+            <FlatList
+              ref={chatListRef}
+              style={{ flex: 1 }}
+              contentContainerStyle={{
+                paddingHorizontal: 20,
+                paddingTop: 20,
+                paddingBottom: 20,
+              }}
+              data={messages}
+              keyExtractor={(msg, index) => msg.id || `${msg.createdAt}-${index}`}
+              renderItem={(msg) => <MessageBubble message={msg.item} />}
+              ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
             />
+          )}
+        </View>
 
-            <TouchableOpacity>
-              <Mic color={theme.color.gray} />
+        {/* Input form */}
+        <View style={styles.inputWrapper}>
+          <View style={styles.inputContainer}>
+            <View style={styles.inputFieldContainer}>
+              <TextInput
+                style={{ flex: 1, height: "100%" }}
+                placeholder="Ask Deen AI"
+                value={prompt}
+                onChangeText={setPrompt}
+              />
+
+              <TouchableOpacity>
+                <Mic color={theme.color.gray} />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.sendButtonContainer}
+              disabled={loading || !prompt.trim()}
+              onPress={handleSend}
+            >
+              {loading ? (
+                <Loader fill={theme.color.primary} color={theme.color.gray} />
+              ) : (
+                <Send fill={theme.color.primary} color={theme.color.background} />
+              )}
             </TouchableOpacity>
           </View>
-
-          <TouchableOpacity
-            style={styles.sendButtonContainer}
-            disabled={loading || !prompt.trim()}
-            onPress={handleSend}
-          >
-            {loading ? (
-              <Loader fill={theme.color.primary} color={theme.color.gray} />
-            ) : (
-              <Send fill={theme.color.primary} color={theme.color.background} />
-            )}
-          </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
+
     </View>
   );
 }
@@ -319,6 +327,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.color.background2,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   centerContent: {
     flex: 1,

@@ -4,10 +4,15 @@ import HomeHeader from "@/components/home/HomeHeader";
 import QuickActions from "@/components/home/QuickActions";
 import UpcomingSolat from "@/components/home/UpcomingSolat";
 import { theme } from "@/styles/theme";
+import { router } from "expo-router";
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 
 export default function HomeScreen() {
+  const handleFabPress = () => {
+    router.push("/(deenai)");
+  };
+
   return (
     <ScreenContainer
       backgroundColor={theme.color.background}
@@ -31,6 +36,15 @@ export default function HomeScreen() {
                     </View> */}
         </View>
       </View>
+      {/* FAB to */}
+      <View style={styles.fabContainer}>
+        <TouchableOpacity style={styles.fabButton} onPress={handleFabPress}>
+          <Image
+            source={require("@/assets/deen.png")}
+            style={{ height: 65, width: 65, borderRadius: 30 }}
+          />
+        </TouchableOpacity>
+      </View>
     </ScreenContainer>
   );
 }
@@ -51,5 +65,20 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 1000,
     backgroundColor: theme.color.background,
+  },
+  fabContainer: {
+    // borderRadius: 100,
+    height: 65,
+    width: 65,
+    borderRadius: "100%",
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    elevation: 5,
+  },
+  fabButton: {
+    height: 65,
+    width: 65,
+    borderRadius: 100,
   },
 });

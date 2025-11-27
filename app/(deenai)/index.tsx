@@ -9,6 +9,7 @@ import { Book, Loader, Mic, Send } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
 import {
   FlatList,
+  KeyboardAvoidingView,
   Platform,
   StatusBar,
   StyleSheet,
@@ -67,6 +68,9 @@ export default function DEENAI() {
     }
   };
 
+  const handleBackPress = () => {
+    router.dismissAll();
+  };
   const handleHistoryPress = () => router.push("/(deenai)/chat-history");
 
   return (
@@ -76,6 +80,7 @@ export default function DEENAI() {
         <ScreenHeader
           title="DEEN AI"
           titleAlign="center"
+          onBackPress={handleBackPress}
           rightComponent={
             <TouchableOpacity onPress={handleHistoryPress}>
               <View style={styles.historyButton}>
@@ -86,68 +91,77 @@ export default function DEENAI() {
         />
       </View>
 
-      {/* Messages */}
-      <View style={{ flex: 1 }}>
-        {messages.length === 0 ? (
-          <ScreenContainer
-            backgroundColor={theme.color.background2}
-            scrollable={true}
-            showsVerticalScrollIndicator={false}
-            paddingHorizontal={0}
-            keyboardAvoiding={true}
-          >
-            <StarterPrompts setMessage={setPrompt} />
-          </ScreenContainer>
-        ) : (
-          <FlatList
-            style={{ flex: 1 }}
-            contentContainerStyle={{
-              paddingHorizontal: 20,
-              paddingTop: 20,
-              paddingBottom: 10,
-            }}
-            data={messages}
-            keyExtractor={(msg) => msg.createdAt}
-            renderItem={(msg) => <MessageBubble message={msg.item} />}
-            ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
-          />
-        )}
-      </View>
-
-      {/* Input form */}
-      <View style={styles.inputWrapper}>
-        <View style={styles.inputContainer}>
-          <View style={styles.inputFieldContainer}>
-            <TextInput
-              style={{ flex: 1, height: "100%" }}
-              placeholder="Ask Deen AI"
-              value={prompt}
-              onChangeText={setPrompt}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        {/* Messages */}
+        <View style={{ flex: 1 }}>
+          {messages.length === 0 ? (
+            <ScreenContainer
+              backgroundColor={theme.color.background2}
+              scrollable={true}
+              showsVerticalScrollIndicator={false}
+              paddingHorizontal={0}
+              keyboardAvoiding={true}
+            >
+              <StarterPrompts setMessage={setPrompt} />
+            </ScreenContainer>
+          ) : (
+            <FlatList
+              style={{ flex: 1 }}
+              contentContainerStyle={{
+                paddingHorizontal: 20,
+                paddingTop: 20,
+                paddingBottom: 10,
+              }}
+              data={messages}
+              keyExtractor={(msg) => msg.createdAt}
+              renderItem={(msg) => <MessageBubble message={msg.item} />}
+              ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
             />
+          )}
+        </View>
 
-            <TouchableOpacity>
-              <Mic color={theme.color.gray} />
+        {/* Input form */}
+        <View style={styles.inputWrapper}>
+          <View style={styles.inputContainer}>
+            <View style={styles.inputFieldContainer}>
+              <TextInput
+                style={{ flex: 1, height: "100%" }}
+                placeholder="Ask Deen AI"
+                value={prompt}
+                onChangeText={setPrompt}
+              />
+
+              <TouchableOpacity>
+                <Mic color={theme.color.gray} />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.sendButtonContainer}
+              onPress={handleSend}
+            >
+              {loading ? (
+                <Loader fill={theme.color.primary} color={theme.color.gray} />
+              ) : (
+                <Send fill={theme.color.primary} color={theme.color.background} />
+              )}
             </TouchableOpacity>
           </View>
-
-          <TouchableOpacity
-            style={styles.sendButtonContainer}
-            onPress={handleSend}
-          >
-            {loading ? (
-              <Loader fill={theme.color.primary} color={theme.color.gray} />
-            ) : (
-              <Send fill={theme.color.primary} color={theme.color.background} />
-            )}
-          </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  keyboardAvoidingView: {
     flex: 1,
   },
   headerContainer: {
