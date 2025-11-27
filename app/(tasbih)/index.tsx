@@ -125,7 +125,7 @@ export default function TasbihScreen() {
 
             <Text style={styles.modalTitle}>Are you sure to Reset?</Text>
             <Text style={styles.modalDesc}>
-              You've clicked {count} times today. Resetting will clear your
+              You&apos;ve clicked {count} times today. Resetting will clear your
               dhikr count.
             </Text>
 
