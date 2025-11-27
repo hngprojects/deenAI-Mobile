@@ -1,31 +1,34 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import ScreenHeader from '../screenHeader';
 import { theme } from '@/styles/theme';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import ScreenHeader from '../../../components/screenHeader';
+import ScreenContainer from '@/components/ScreenContainer';
+import { useLanguageStore } from '@/store/language-store';
 
 export default function AppLanguageScreen() {
   const router = useRouter();
+  const { language } = useLanguageStore();
 
   return (
-    <View style={styles.container}>
-      <ScreenHeader title="App Language" />
+    <ScreenContainer backgroundColor={theme.color.background3}>
+      <ScreenHeader title="App Language"  onBackPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}/>
 
       <TouchableOpacity 
         style={styles.languageContainer} 
-        onPress={() => router.push('/profile/selectlanguage')} 
+        onPress={() => router.push('/(tabs)/(profile)/SelectLanguageScreen')}
       >
         <View style={styles.languageTextWrapper}>
           <Text style={styles.languageHeading}>App Language</Text>
-          <Text style={styles.languageValue}>English</Text>
+          <Text style={styles.languageValue}>{language}</Text>
         </View>
 
         <Image 
-          source={require('../../assets/images/arrow-right.png')} 
+          source={require('@/assets/images/arrow-right.png')} 
           style={styles.arrowImage} 
         />
       </TouchableOpacity>
-    </View>
+    </ScreenContainer>
   );
 }
 
@@ -45,20 +48,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4F4F4',
     borderRadius: 12,
     marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#C7C5CC'
   },
   languageTextWrapper: {
     flexDirection: 'column',
   },
   languageHeading: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#333', 
+    fontSize: 18,
+    color: theme.color.black, 
+    fontFamily: theme.font.semiBold
+
   },
   languageValue: {
     fontSize: 14,
     fontWeight: '500',
     color: '#555', 
-    marginTop: 4,
+    marginTop: 3,
+    fontFamily: theme.font.regular
   },
   arrowImage: {
     width: 24,

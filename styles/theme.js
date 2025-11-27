@@ -8,6 +8,7 @@ export const lightTheme = {
     secondary: "#000000ff",
     background: "#ffffff",
     background2: "#F9F9F9",
+    background3: "#E3E3E333",
     brand: "#964B00",
     brandLight: "#CFA963",
     white: "#ffffff",
@@ -26,13 +27,13 @@ export const lightTheme = {
   //     xxlarge: width * 0.12,
   // },
   font: {
-    light: 'NunitoSans-Light',
-    regular: 'NunitoSans-Regular',
-    bold: 'NunitoSans-Bold',
-    semiBold: 'NunitoSans-SemiBold',
-    extraBold: 'NunitoSans-ExtraBold',
-    black: 'NunitoSans-Black',
-    digital: 'DigitalNumbers-Regular'
+    light: "NunitoSans-Light",
+    regular: "NunitoSans-Regular",
+    bold: "NunitoSans-Bold",
+    semiBold: "NunitoSans-SemiBold",
+    extraBold: "NunitoSans-ExtraBold",
+    black: "NunitoSans-Black",
+    digital: "DigitalNumbers-Regular",
   },
 };
 
@@ -58,13 +59,13 @@ export const darkTheme = {
 
   // },
   font: {
-    light: 'NunitoSans-Light',
-    regular: 'NunitoSans-Regular',
-    bold: 'NunitoSans-Bold',
-    semiBold: 'NunitoSans-SemiBold',
-    extraBold: 'NunitoSans-ExtraBold',
-    black: 'NunitoSans-Black',
-    digital: 'DigitalNumbers-Regular'
+    light: "NunitoSans-Light",
+    regular: "NunitoSans-Regular",
+    bold: "NunitoSans-Bold",
+    semiBold: "NunitoSans-SemiBold",
+    extraBold: "NunitoSans-ExtraBold",
+    black: "NunitoSans-Black",
+    digital: "DigitalNumbers-Regular",
   },
 };
 

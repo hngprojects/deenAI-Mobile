@@ -1,12 +1,15 @@
+import ScreenContainer from "@/components/ScreenContainer";
+import ScreenHeader from "@/components/screenHeader";
+import { useLanguageStore } from "@/store/language-store";
 import { theme } from "@/styles/theme";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import ScreenHeader from "../screenHeader";
+import { Check } from "lucide-react-native";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function SelectLanguage() {
   const router = useRouter();
-  const [_, setSelectedLanguage] = useState("English");
+  const { language, setLanguage } = useLanguageStore();
 
   const languages = [
     { key: "English", subtitle: "English" },
@@ -17,28 +20,34 @@ export default function SelectLanguage() {
     { key: "Swahili", subtitle: "Kiswahili" },
   ];
 
+  const onSelect = (lang: string) => {
+    setLanguage(lang);
+    router.push("/(tabs)/(profile)/AppLanguageScreen");
+  };
+
   return (
-    <View style={styles.container}>
+    <ScreenContainer backgroundColor={theme.color.background3}>
       <ScreenHeader title="Select Language" />
+
       <View style={styles.list}>
         {languages.map((lang) => (
           <TouchableOpacity
             key={lang.key}
             style={styles.item}
-            onPress={() => setSelectedLanguage(lang.key)}
+            onPress={() => onSelect(lang.key)}
           >
             <View style={styles.textWrapper}>
               <Text style={styles.text}>{lang.key}</Text>
               <Text style={styles.subtitle}>{lang.subtitle}</Text>
             </View>
-            <Image
-              source={require("../../assets/images/arrow-right.png")}
-              style={styles.arrowImage}
-            />
+
+            {language === lang.key && (
+              <Check size={28} color={theme.color.brand} />
+            )}
           </TouchableOpacity>
         ))}
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 
@@ -53,12 +62,28 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#C7C5CC",
   },
+
   textWrapper: {
     flexDirection: "column",
+    flex: 1,
   },
-  text: { fontSize: 16, fontWeight: "700", color: theme.color.secondary },
-  subtitle: { fontSize: 14, fontWeight: "500", color: "#555", marginTop: 4 },
+
+  text: {
+    fontSize: 18,
+    color: theme.color.black,
+    fontFamily: theme.font.semiBold,
+  },
+  subtitle: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#555",
+    marginTop: 4,
+    fontFamily: theme.font.regular,
+  },
+
   arrowImage: {
     width: 24,
     height: 24,

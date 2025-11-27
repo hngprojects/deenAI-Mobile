@@ -1,5 +1,5 @@
-import PauseDelete from "@/components/profile/PauseDelete";
+import PauseDelete from "@/app/(tabs)/(profile)/delete/pausedelete";
 
 export default function DeletePause() {
-    return < PauseDelete/>
+  return <PauseDelete />;
 }
