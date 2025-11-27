@@ -951,16 +951,6 @@ class QuranService {
     }
 
     try {
-      console.log("🚀 Initializing Quran data...");
-
-      // Debug the structure
-      console.log("📊 Arabic data structure:", {
-        type: typeof quranArabicRaw,
-        hasData: !!quranArabicRaw.data,
-        hasSurahs: !!quranArabicRaw.data?.surahs,
-        surahsCount: quranArabicRaw.data?.surahs?.length,
-      });
-
       const verses: { [surahNumber: number]: Verse[] } = {};
 
       // Process Arabic data
@@ -989,12 +979,6 @@ class QuranService {
 
       this.initialized = true;
       await AsyncStorage.setItem(STORAGE_KEYS.QURAN_DATA_LOADED, "true");
-
-      console.log("🎉 Quran data loaded successfully!", {
-        totalSurahs: Object.keys(verses).length,
-        firstSurahVerses: verses[1]?.length,
-        sampleVerse: verses[1]?.[0],
-      });
     } catch (error) {
       console.error("💥 Error initializing Quran data:", error);
       throw new Error("Failed to load Quran data");
@@ -1111,8 +1095,6 @@ class QuranService {
     return results;
   }
 
-  // ... keep all your existing bookmark, last read, and settings methods the same
-  // Bookmarks Management
   async getBookmarks(): Promise<BookmarkData[]> {
     try {
       const bookmarksJson = await AsyncStorage.getItem(STORAGE_KEYS.BOOKMARKS);
