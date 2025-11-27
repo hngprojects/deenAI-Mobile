@@ -114,8 +114,14 @@ class PrayerService {
 
   /**
    * Get the next prayer name and time
+   * FIXED: Now accepts coordinates to properly calculate tomorrow's Fajr
    */
-  getNextPrayer(prayerTimes: PrayerTimesData): { name: string; time: Date } {
+  getNextPrayer(
+    prayerTimes: PrayerTimesData,
+    latitude: number,
+    longitude: number,
+    settings?: PrayerSettings
+  ): { name: string; time: Date } {
     const now = new Date();
     const prayers: [string, Date][] = [
       ['Fajr', prayerTimes.fajr],
@@ -134,7 +140,7 @@ class PrayerService {
     // If all prayers have passed, return tomorrow's Fajr
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowTimes = this.calculatePrayerTimes(0, 0, tomorrow); // Will need actual coordinates
+    const tomorrowTimes = this.calculatePrayerTimes(latitude, longitude, tomorrow, settings);
     return { name: 'Fajr', time: tomorrowTimes.fajr };
   }
 
@@ -154,7 +160,7 @@ class PrayerService {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
 
-  
+
   getHijriDate(date: Date = new Date()): HijriDate {
     const gY = date.getFullYear();
     const gM = date.getMonth() + 1;
