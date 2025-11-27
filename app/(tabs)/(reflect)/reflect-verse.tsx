@@ -1,5 +1,6 @@
 import GuestWarningModal from '@/components/GuestModal';
 import PrimaryButton from '@/components/primaryButton';
+import ScreenContainer from '@/components/ScreenContainer';
 import ScreenHeader from '@/components/screenHeader';
 import SecondaryButton from '@/components/secondaryButton';
 import { useLogout } from '@/hooks/useAuth';
@@ -362,13 +363,21 @@ export default function ReflectVerseScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <ScreenHeader
-        title={editMode ? "Edit Reflection" : "Reflect on Verse"}
-        showBackButton={true}
-        onBackPress={handleCancel}
-        paddingTop={statusBarHeight + 10}
-      />
+    <ScreenContainer
+      backgroundColor={theme.color.white}
+      statusBarStyle="dark"
+      scrollable={false}
+      showsVerticalScrollIndicator={false}
+      keyboardAvoiding={false}
+    >
+      <View style={styles.fixedHeader}>
+        <ScreenHeader
+          title={editMode ? "Edit Reflection" : "Reflect on Verse"}
+          showBackButton={true}
+          onBackPress={handleCancel}
+
+        />
+      </View>
 
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
@@ -498,11 +507,19 @@ export default function ReflectVerseScreen() {
         onContinueReading={handleGuestContinueReading}
         verseText={verseData?.translation || draft.translation || verseTextFromParams}
       />
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
+  fixedHeader: {
+    paddingTop:
+      Platform.OS === "android" ? 
+      (StatusBar.currentHeight || 0) + 10 : 54,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    backgroundColor: theme.color.white,
+  },
   container: {
     flex: 1,
     backgroundColor: '#F9F9F9',

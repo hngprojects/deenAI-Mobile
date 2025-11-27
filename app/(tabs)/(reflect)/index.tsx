@@ -1,13 +1,13 @@
-import ScreenContainer from '@/components/ScreenContainer';
-import ScreenHeader from '@/components/screenHeader';
 import InputField from '@/components/InputField';
+import ScreenContainer from '@/components/ScreenContainer';
 import TodaysReflection from '@/components/home/TodaysReflection';
 import ReflectionQuote from '@/components/reflect/ReflectionQuote';
-import PrimaryButton from '../../../components/primaryButton';
-import { Search } from 'lucide-react-native';
+import ScreenHeader from '@/components/screenHeader';
+import { useReflectStore } from '@/store/reflect-store';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useReflectStore } from '@/store/reflect-store';
+import { Search } from 'lucide-react-native';
+import PrimaryButton from '../../../components/primaryButton';
 
 type ReflectStackParamList = {
   'index': undefined;
