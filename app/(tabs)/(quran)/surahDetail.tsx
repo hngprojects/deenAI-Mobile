@@ -1,5 +1,5 @@
-import { useLocalSearchParams, useNavigation } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Text,
   View,
+  ViewToken,
 } from "react-native";
 
 import VerseItem from "@/components/quran/verseItem";
@@ -16,26 +17,26 @@ import ScreenHeader from "@/components/screenHeader";
 import { quranService } from "@/service/quran.service";
 import { theme } from "@/styles/theme";
 import { Surah, Verse } from "@/types/quran.types";
-// import { styles } from '../../../app-example/styles/styles';
+import { useReadingStore } from "@/store/reading-store";
 
 export default function SurahDetail() {
-  const navigation = useNavigation();
   const params = useLocalSearchParams();
   const surah: Surah = JSON.parse(params.surah as string);
+  const scrollToVerse = params.scrollToVerse
+    ? Number(params.scrollToVerse)
+    : null;
+
+  const setLastRead = useReadingStore((state) => state.setLastRead);
 
   const [verses, setVerses] = useState<Verse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
 
-  useEffect(() => {
-    loadSurahData();
-    loadBookmarks();
-    saveLastRead();
-    console.log("SurahDetail", surah.number);
-  }, [surah.number]);
+  const currentVerseRef = useRef<number>(1);
+  const flatListRef = useRef<FlatList>(null);
 
-  const loadSurahData = async () => {
+  const loadSurahData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -47,9 +48,9 @@ export default function SurahDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [surah.number]);
 
-  const loadBookmarks = async () => {
+  const loadBookmarks = useCallback(async () => {
     try {
       const allBookmarks = await quranService.getBookmarks();
       const surahBookmarks = allBookmarks
@@ -59,15 +60,36 @@ export default function SurahDetail() {
     } catch (err) {
       console.error("Error loading bookmarks:", err);
     }
-  };
+  }, [surah.number]);
 
-  const saveLastRead = async () => {
-    try {
-      await quranService.setLastRead(surah.number, 1, surah.englishName);
-    } catch (err) {
-      console.error("Error saving last read:", err);
+  useEffect(() => {
+    loadSurahData();
+    loadBookmarks();
+
+    // Initial save when opening surah
+    setLastRead(surah.number, 1, surah.englishName);
+  }, [
+    surah.number,
+    surah.englishName,
+    setLastRead,
+    loadSurahData,
+    loadBookmarks,
+  ]);
+
+  useEffect(() => {
+    if (verses.length > 0 && scrollToVerse && flatListRef.current) {
+      const index = verses.findIndex((v) => v.number === scrollToVerse);
+      if (index !== -1) {
+        setTimeout(() => {
+          flatListRef.current?.scrollToIndex({
+            index,
+            animated: true,
+            viewPosition: 0.2,
+          });
+        }, 500);
+      }
     }
-  };
+  }, [verses, scrollToVerse]);
 
   const toggleBookmark = async (verseNumber: number) => {
     try {
@@ -92,6 +114,26 @@ export default function SurahDetail() {
       console.error("Error toggling bookmark:", err);
     }
   };
+
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      if (viewableItems.length > 0) {
+        const firstVisibleVerse = viewableItems[0].item as Verse;
+        const verseNumber = firstVisibleVerse.number;
+
+        if (currentVerseRef.current !== verseNumber) {
+          currentVerseRef.current = verseNumber;
+          setLastRead(surah.number, verseNumber, surah.englishName);
+        }
+      }
+    },
+    [surah.number, surah.englishName, setLastRead]
+  );
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50,
+    minimumViewTime: 500,
+  }).current;
 
   const renderItem = ({ item }: { item: Verse }) => (
     <VerseItem
@@ -148,11 +190,7 @@ export default function SurahDetail() {
         scrollable={false}
         keyboardAvoiding={false}
       >
-        <ScreenHeader
-          title={surah.englishName}
-          showBackButton={true}
-          // onBackPress={() => router.back()}
-        />
+        <ScreenHeader title={surah.englishName} showBackButton={true} />
         <View style={styles.centerContainer}>
           <Text style={styles.errorText}>{error}</Text>
         </View>
@@ -168,6 +206,7 @@ export default function SurahDetail() {
       keyboardAvoiding={false}
     >
       <FlatList
+        ref={flatListRef}
         data={verses}
         keyExtractor={(item) => item.number.toString()}
         renderItem={renderItem}
@@ -175,6 +214,16 @@ export default function SurahDetail() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         style={styles.flatList}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        onScrollToIndexFailed={(info) => {
+          setTimeout(() => {
+            flatListRef.current?.scrollToOffset({
+              offset: info.averageItemLength * info.index,
+              animated: true,
+            });
+          }, 100);
+        }}
       />
     </ScreenContainer>
   );
