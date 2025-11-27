@@ -157,15 +157,6 @@ export default function SurahDetail() {
     </View>
   );
 
-  const ListHeader = () => (
-    <>
-      <View style={{ paddingLeft: 20 }}>
-        <ScreenHeader title={surah.englishName} showBackButton={true} />
-      </View>
-      <SurahInfoCard />
-    </>
-  );
-
   if (loading) {
     return (
       <ScreenContainer
@@ -190,7 +181,9 @@ export default function SurahDetail() {
         scrollable={false}
         keyboardAvoiding={false}
       >
-        <ScreenHeader title={surah.englishName} showBackButton={true} />
+        <View style={styles.fixedHeaderContainer}>
+          <ScreenHeader title={surah.englishName} showBackButton={true} />
+        </View>
         <View style={styles.centerContainer}>
           <Text style={styles.errorText}>{error}</Text>
         </View>
@@ -205,12 +198,18 @@ export default function SurahDetail() {
       scrollable={false}
       keyboardAvoiding={false}
     >
+      {/* Fixed Header Section */}
+      <View style={styles.fixedHeaderContainer}>
+        <ScreenHeader title={surah.englishName} showBackButton={true} />
+        <SurahInfoCard />
+      </View>
+
+      {/* Scrollable Verses */}
       <FlatList
         ref={flatListRef}
         data={verses}
         keyExtractor={(item) => item.number.toString()}
         renderItem={renderItem}
-        ListHeaderComponent={ListHeader}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         style={styles.flatList}
@@ -230,12 +229,21 @@ export default function SurahDetail() {
 }
 
 const styles = StyleSheet.create({
+  fixedHeaderContainer: {
+    paddingTop:
+      Platform.OS === "android" ? (StatusBar.currentHeight || 0) + 10 : 54,
+    paddingHorizontal: 20,
+    backgroundColor: theme.color.white,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5E5",
+  },
   flatList: {
     flex: 1,
   },
   listContent: {
-    paddingTop:
-      Platform.OS === "android" ? (StatusBar.currentHeight || 0) + 10 : 54,
+    paddingHorizontal: 20,
+    paddingTop: 20, // Add spacing since header is now fixed
     paddingBottom: 40,
   },
   surahInfoCard: {
@@ -248,8 +256,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
-    marginHorizontal: 20,
-    marginBottom: 20,
+    marginTop: 10, // Space from ScreenHeader
   },
   surahNumberAndName: {
     fontSize: 16,
