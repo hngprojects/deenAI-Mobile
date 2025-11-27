@@ -1,14 +1,19 @@
-import { theme } from '@/styles/theme';
-import { Surah } from '@/types/quran.types';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { theme } from "@/styles/theme";
+import { Surah } from "@/types/quran.types";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface SurahListItemProps {
   surah: Surah;
   onPress: () => void;
+  lastReadVerse?: number;
 }
 
-const SurahListItem: React.FC<SurahListItemProps> = ({ surah, onPress }) => {
+const SurahListItem: React.FC<SurahListItemProps> = ({
+  surah,
+  onPress,
+  lastReadVerse,
+}) => {
   return (
     <TouchableOpacity
       style={styles.container}
@@ -24,7 +29,9 @@ const SurahListItem: React.FC<SurahListItemProps> = ({ surah, onPress }) => {
       {/* Right Side: Verses Count and Progress */}
       <View style={styles.rightContainer}>
         <Text style={styles.versesCount}>{surah.numberOfAyahs} verses</Text>
-        <Text style={styles.progress}>0/{surah.numberOfAyahs}</Text>
+        <Text style={styles.progress}>
+          {lastReadVerse ?? 0}/{surah.numberOfAyahs}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -32,13 +39,13 @@ const SurahListItem: React.FC<SurahListItemProps> = ({ surah, onPress }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#d8d8d8ff',
+    borderColor: "#d8d8d8ff",
     borderRadius: 12,
     marginBottom: 12,
   },
@@ -58,7 +65,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   rightContainer: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   versesCount: {
     fontSize: 14,
