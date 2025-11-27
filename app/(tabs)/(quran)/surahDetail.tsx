@@ -32,6 +32,7 @@ export default function SurahDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
+  const [currentVisibleVerse, setCurrentVisibleVerse] = useState<number>(1);
 
   const currentVerseRef = useRef<number>(1);
   const flatListRef = useRef<FlatList>(null);
@@ -80,6 +81,9 @@ export default function SurahDetail() {
     if (verses.length > 0 && scrollToVerse && flatListRef.current) {
       const index = verses.findIndex((v) => v.number === scrollToVerse);
       if (index !== -1) {
+        // Update the visible verse immediately
+        setCurrentVisibleVerse(scrollToVerse);
+
         setTimeout(() => {
           flatListRef.current?.scrollToIndex({
             index,
@@ -121,6 +125,9 @@ export default function SurahDetail() {
         const firstVisibleVerse = viewableItems[0].item as Verse;
         const verseNumber = firstVisibleVerse.number;
 
+        // Update the visible verse in the header
+        setCurrentVisibleVerse(verseNumber);
+
         if (currentVerseRef.current !== verseNumber) {
           currentVerseRef.current = verseNumber;
           setLastRead(surah.number, verseNumber, surah.englishName);
@@ -153,7 +160,9 @@ export default function SurahDetail() {
         {surah.number}. {surah.englishName} (&quot;
         {surah.englishNameTranslation}&quot;)
       </Text>
-      <Text style={styles.verseCount}>0/{surah.numberOfAyahs}</Text>
+      <Text style={styles.verseCount}>
+        {currentVisibleVerse}/{surah.numberOfAyahs}
+      </Text>
     </View>
   );
 
@@ -243,7 +252,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingTop: 20, // Add spacing since header is now fixed
+    paddingTop: 20,
     paddingBottom: 40,
   },
   surahInfoCard: {
@@ -256,7 +265,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
-    marginTop: 10, // Space from ScreenHeader
+    marginTop: 10,
   },
   surahNumberAndName: {
     fontSize: 16,
