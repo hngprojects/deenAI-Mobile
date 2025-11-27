@@ -6,8 +6,6 @@ import SearchBar from "@/components/searchBar";
 import { quranService } from "@/service/quran.service";
 import { theme } from "@/styles/theme";
 import { Surah } from "@/types/quran.types";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -19,20 +17,15 @@ import {
   Text,
   View,
 } from "react-native";
-
-export type RootStackParamList = {
-  Quran: undefined;
-  surahDetail: { surah: string };
-};
-
-type QuranScreenProp = NativeStackNavigationProp<RootStackParamList, "Quran">;
+import { useReadingStore } from "@/store/reading-store";
 
 export default function Quran() {
-  const navigation = useNavigation<QuranScreenProp>();
   const [searchText, setSearchText] = useState("");
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const lastRead = useReadingStore((state) => state.lastRead);
 
   useEffect(() => {
     loadQuranData();
@@ -55,13 +48,14 @@ export default function Quran() {
 
   const alFatihah = useMemo(() => surahs.find((s) => s.number === 1), [surahs]);
 
+  const lastReadSurah = useMemo(() => {
+    if (!lastRead) return null;
+    return surahs.find((s) => s.number === lastRead.surahNumber);
+  }, [lastRead, surahs]);
+
   const filteredSurahs = useMemo(() => {
-    if (!searchText) {
-      return surahs;
-    }
-
+    if (!searchText) return surahs;
     const lowerCaseSearch = searchText.toLowerCase();
-
     return surahs.filter(
       (s) =>
         s.englishName.toLowerCase().includes(lowerCaseSearch) ||
@@ -71,14 +65,17 @@ export default function Quran() {
     );
   }, [searchText, surahs]);
 
-  const handleNavigateToSurah = useCallback(
-    (surah: Surah) => {
-      navigation.navigate("surahDetail", {
-        surah: JSON.stringify(surah),
+  const handleContinueReading = useCallback(() => {
+    if (lastReadSurah) {
+      router.push({
+        pathname: "/(tabs)/(quran)/surahDetail",
+        params: {
+          surah: JSON.stringify(lastReadSurah),
+          scrollToVerse: lastRead?.verseNumber.toString(),
+        },
       });
-    },
-    [navigation]
-  );
+    }
+  }, [lastReadSurah, lastRead]);
 
   const renderSurahCard = useCallback(
     ({ item }: { item: Surah }) => (
@@ -98,7 +95,15 @@ export default function Quran() {
   const ListHeader = useCallback(
     () => (
       <>
-        {!searchText && alFatihah && (
+        {!searchText && lastReadSurah && lastRead && (
+          <FeaturedSurahCard
+            surah={lastReadSurah}
+            onPress={handleContinueReading}
+            verseNumber={lastRead.verseNumber}
+          />
+        )}
+
+        {!searchText && !lastReadSurah && alFatihah && (
           <FeaturedSurahCard
             surah={alFatihah}
             onPress={() =>
@@ -113,7 +118,7 @@ export default function Quran() {
         <Text style={styles.surahsSectionHeader}>Surahs</Text>
       </>
     ),
-    [searchText, alFatihah]
+    [searchText, alFatihah, lastReadSurah, lastRead, handleContinueReading]
   );
 
   if (loading) {
@@ -200,13 +205,6 @@ const styles = StyleSheet.create({
   },
   flatList: {
     flex: 1,
-  },
-  screenTitle: {
-    fontSize: 28,
-    fontFamily: theme.font.bold,
-    color: theme.color.secondary,
-    marginTop: 10,
-    marginBottom: 20,
   },
   surahsSectionHeader: {
     fontSize: 20,
