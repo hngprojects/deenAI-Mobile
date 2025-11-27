@@ -16,7 +16,7 @@ const ChatHistory = () => {
   const [loading, setLoading] = useState(false);
 
   const handleBackPress = () => {
-    router.replace("/(deenai)/" as any);
+    router.dismissAll();
   };
 
   useEffect(() => {

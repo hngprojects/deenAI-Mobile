@@ -90,12 +90,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     backgroundColor: theme.color.background,
-    backgroundColor: theme.color.background,
   },
   userInfo: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
     gap: 10,
   },
   avatar: {
@@ -129,14 +127,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     gap: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 12,
   },
   iconImage: {
-    width: 27,
-    height: 27,
     width: 27,
     height: 27,
     resizeMode: "contain",
