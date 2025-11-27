@@ -78,18 +78,24 @@ export default function Quran() {
   }, [lastReadSurah, lastRead]);
 
   const renderSurahCard = useCallback(
-    ({ item }: { item: Surah }) => (
-      <SurahListItem
-        surah={item}
-        onPress={() =>
-          router.push({
-            pathname: "/(tabs)/(quran)/surahDetail",
-            params: { surah: JSON.stringify(item) },
-          })
-        }
-      />
-    ),
-    []
+    ({ item }: { item: Surah }) => {
+      const lastReadVerse =
+        lastRead?.surahNumber === item.number ? lastRead.verseNumber : 0;
+
+      return (
+        <SurahListItem
+          surah={item}
+          lastReadVerse={lastReadVerse} // pass it here
+          onPress={() =>
+            router.push({
+              pathname: "/(tabs)/(quran)/surahDetail",
+              params: { surah: JSON.stringify(item) },
+            })
+          }
+        />
+      );
+    },
+    [lastRead]
   );
 
   const ListHeader = useCallback(
