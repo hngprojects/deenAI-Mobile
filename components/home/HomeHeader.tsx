@@ -3,7 +3,7 @@ import { theme } from "@/styles/theme";
 import { useRouter } from "expo-router";
 import { Bell } from "lucide-react-native";
 import React from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 export default function HomeHeader() {
   const { user, isGuest } = useAuth();
   const logoutMutation = useLogout();
@@ -53,7 +53,6 @@ export default function HomeHeader() {
           activeOpacity={0.7}
         >
           <Text style={styles.avatarText}>{getInitials(userName)}</Text>
-          <Text style={styles.avatarText}>{getInitials(userName)}</Text>
         </TouchableOpacity>
         <View style={styles.greeting}>
           <Text style={styles.greetingText}>Assalam Alaykum</Text>
@@ -65,11 +64,11 @@ export default function HomeHeader() {
           onPress={handleTasbihPress}
           style={styles.notificationButton}
         >
-          {/* <Image
+          <Image
             source={require("@/assets/images/tasbih.png")}
             style={styles.iconImage}
             resizeMode="contain"
-          /> */}
+          />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.notificationButton}
