@@ -1,45 +1,42 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { theme } from "@/styles/theme";
-// import { Surah } from "../app/(tabs)/quran";
 import { BookText, ChevronRight } from "lucide-react-native";
 import { Surah } from "@/types/quran.types";
 
 interface FeaturedSurahCardProps {
   surah: Surah;
   onPress: () => void;
+  verseNumber?: number;
 }
 
 export default function FeaturedSurahCard({
   surah,
   onPress,
+  verseNumber,
 }: FeaturedSurahCardProps) {
-  const actionText = "Continue Reading";
+  const actionText = verseNumber
+    ? `Continue Reading • Verse ${verseNumber}`
+    : "Start Reading";
 
   return (
     <TouchableOpacity style={styles.featuredCard} onPress={onPress}>
       <View style={styles.contentWrapper}>
-        {/* Left Side: Icon, Name, and Action Text */}
         <View style={styles.leftContent}>
-          {/* Icon Section */}
           <View style={styles.iconRow}>
             <View style={styles.iconContainer}>
               <BookText size={18} color={theme.color.brand} />
             </View>
           </View>
 
-          {/* Text Section */}
           <View style={styles.textColumn}>
-            {/* Surah Name (Transliteration) */}
             <Text style={styles.featuredTitle}>
-              {surah.englishName} ({surah.englishMeaning})
+              {surah.englishName} ({surah.englishNameTranslation})
             </Text>
-            {/* Action Text */}
             <Text style={styles.actionText}>{actionText}</Text>
           </View>
         </View>
 
-        {/* Right Side: Arrow Icon */}
         <ChevronRight size={24} color={theme.color.white} />
       </View>
     </TouchableOpacity>
