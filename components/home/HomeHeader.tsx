@@ -60,7 +60,7 @@ export default function HomeHeader() {
         </View>
       </View>
       <View style={styles.notifyButtons}>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={handleTasbihPress}
           style={styles.notificationButton}
         >
@@ -69,12 +69,12 @@ export default function HomeHeader() {
             style={styles.iconImage}
             resizeMode="contain"
           />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity
           style={styles.notificationButton}
           onPress={handleNotificationPress}
         >
-          <Bell size={24} color={theme.color.secondary} strokeWidth={2} />
+          <Bell size={20} color={theme.color.secondary} strokeWidth={2} />
           {!isGuest && <View style={styles.notificationBadge} />}
         </TouchableOpacity>
       </View>
@@ -133,8 +133,8 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   notificationButton: {
-    width: 48,
-    height: 48,
+    width: 42,
+    height: 42,
     borderRadius: 24,
     backgroundColor: theme.color.white,
     justifyContent: "center",

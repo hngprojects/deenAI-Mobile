@@ -50,6 +50,10 @@ export default function UpcomingSolat() {
     router.push("/(adhkar)");
   };
 
+   const handleCounterPress = () => {
+    router.push("/(tasbih)");
+  };
+
   if (!savedLocation) {
     return (
       <View style={styles.container}>
@@ -195,7 +199,7 @@ export default function UpcomingSolat() {
         <View style={styles.quickActionsBox}>
           <TouchableOpacity style={styles.actionItem}>
             <Image
-              source={require("../../assets/clarity_compass-line.png")}
+              source={require("../../assets/images/clarity_compass-line.png")}
               style={styles.actionIcon}
               resizeMode="contain"
             />
@@ -204,9 +208,11 @@ export default function UpcomingSolat() {
 
           <View style={styles.separator} />
 
-          <TouchableOpacity style={styles.actionItem}>
+          <TouchableOpacity style={styles.actionItem}
+            onPress={handleCounterPress}
+          >
             <Image
-              source={require("../../assets/tasbeeh.png")}
+              source={require("../../assets/images/tasbeeh.png")}
               style={styles.actionIcon}
               resizeMode="contain"
             />
@@ -220,7 +226,7 @@ export default function UpcomingSolat() {
             onPress={handleAzkarPress}
           >
             <Image
-              source={require("../../assets/adhkarr.png")}
+              source={require("../../assets/images/adhkarr.png")}
               style={styles.actionIcon}
               resizeMode="contain"
             />
@@ -231,7 +237,7 @@ export default function UpcomingSolat() {
 
           <TouchableOpacity style={styles.actionItem}>
             <Image
-              source={require("../../assets/streaks.png")}
+              source={require("../../assets/images/streaks.png")}
               style={styles.actionIcon}
               resizeMode="contain"
             />
@@ -323,7 +329,7 @@ const styles = StyleSheet.create({
   quickActionsBox: {
     backgroundColor: "#FFF4EA",
     borderRadius: 14,
-    paddingVertical: 16,
+    paddingVertical: 14,
     paddingHorizontal: 10,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -333,23 +339,21 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 5,
   },
   actionIcon: {
-    width: 28,
-    height: 28,
+    width: 25,
+    height: 25,
   },
-
-  // 👉 Made the text bold exactly as asked
   actionText: {
     fontSize: 14,
     color: theme.color.brand,
-    fontFamily: theme.font.bold,
+    fontFamily: theme.font.semiBold,
   },
 
   separator: {
     width: 1,
-    height: 40,
+    height: '100%',
     backgroundColor: "#CAAC8F",
   },
 
