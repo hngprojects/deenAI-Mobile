@@ -88,6 +88,12 @@ export default function TabLayout() {
                     }}
                 />
                 <Tabs.Screen
+                    name="(adhkar)"
+                    options={{
+                        href: null,
+                    }}
+                />
+                <Tabs.Screen
                     name="(profile)/edit"
                     options={{
                         href: null,
