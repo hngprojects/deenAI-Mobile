@@ -53,19 +53,26 @@ export default function OTPDeleteAccount() {
             ref={(ref) => {
               inputs.current[index] = ref;
             }}
-            style={styles.otpBox}
+            style={[styles.otpBox, digit ? styles.otpFilled : null]}
             value={digit}
             keyboardType="numeric"
             maxLength={1}
-            onChangeText={(text) => handleChange(text, index)}
+            secureTextEntry={true}
+            textContentType="oneTimeCode"
+            onChangeText={(text) =>
+              handleChange(text.replace(/[^0-9]/g, ""), index)
+            }
           />
         ))}
       </View>
 
-      {/* DELETE BUTTON */}
       <TouchableOpacity
         style={[styles.deleteButton, { opacity: isComplete ? 1 : 0.5 }]}
         disabled={!isComplete}
+        onPress={() => {
+          if (!isComplete) return;
+          router.push("/(tabs)/(profile)/delete/DeleteAccountSuccess");
+        }}
       >
         <Text style={styles.deleteButtonText}>Delete Account</Text>
       </TouchableOpacity>
@@ -101,6 +108,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 40,
     paddingHorizontal: 10,
+  },
+  otpFilled: {
+    backgroundColor: "#C7C5CC",
   },
 
   otpBox: {
