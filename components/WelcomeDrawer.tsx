@@ -2,8 +2,16 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { X } from "lucide-react-native";
 import { theme } from "@/styles/theme";
+import { useRouter } from "expo-router"; // ✅ add this
 
 export default function WelcomeDrawer({ onClose }) {
+  const router = useRouter(); // ✅ initialize router
+
+  const handleContinue = () => {
+    onClose?.(); // closes drawer
+    router.push("/AzkarStreakCalender"); // ✅ navigate to streak screen
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
@@ -30,7 +38,8 @@ export default function WelcomeDrawer({ onClose }) {
         ))}
       </View>
 
-      <TouchableOpacity style={styles.button}>
+      {/* Continue Button */}
+      <TouchableOpacity style={styles.button} onPress={handleContinue}>
         <Text style={styles.buttonText}>Continue</Text>
       </TouchableOpacity>
     </View>

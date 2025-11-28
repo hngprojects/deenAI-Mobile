@@ -24,6 +24,7 @@ export default function HomeHeader() {
   const [showDrawer, setShowDrawer] = React.useState(false);
 
   const userName = user?.name || (isGuest ? "Guest" : "User");
+  const streakCount = 3; // TEMP VALUE — replace with real user streak
 
   const getInitials = (name: string) => {
     const names = name.trim().split(" ");
@@ -35,10 +36,7 @@ export default function HomeHeader() {
 
   const handleAvatarPress = () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
+      { text: "Cancel", style: "cancel" },
       {
         text: "Logout",
         style: "destructive",
@@ -61,9 +59,12 @@ export default function HomeHeader() {
     router.push("/(tasbih)");
   };
 
+  const handleStreakPress = () => {
+    router.push("/(adhkar)/AzkarStreakCalender");
+  };
+
   return (
     <>
-      {/* HEADER UI */}
       <View style={styles.container}>
         <View style={styles.userInfo}>
           {/* AVATAR */}
@@ -75,16 +76,28 @@ export default function HomeHeader() {
             <Text style={styles.avatarText}>{getInitials(userName)}</Text>
           </TouchableOpacity>
 
-          {/* GREETING - OPEN DRAWER */}
-          <TouchableOpacity
-            onPress={() => setShowDrawer(true)}
-            activeOpacity={0.8}
-          >
-            <View style={styles.greeting}>
-              <Text style={styles.greetingText}>Assalam Alaykum</Text>
+          {/* GREETING + USERNAME */}
+          <View style={styles.greeting}>
+            <Text style={styles.greetingText}>Assalam Alaykum</Text>
+
+            {/* USERNAME opens drawer */}
+            <TouchableOpacity onPress={() => setShowDrawer(true)}>
               <Text style={styles.userName}>{userName}</Text>
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+
+            {/* STREAK BADGE */}
+            <TouchableOpacity
+              style={styles.streakBadge}
+              onPress={handleStreakPress}
+              activeOpacity={0.8}
+            >
+              <Image
+                source={require("@/assets/icons/flame.png")}
+                style={{ width: 14, height: 14 }}
+              />
+              <Text style={styles.streakText}>{streakCount} days</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* RIGHT BUTTONS */}
@@ -145,6 +158,7 @@ const styles = StyleSheet.create({
     fontFamily: theme.font.bold,
     color: theme.color.white,
   },
+
   greeting: {
     gap: 2,
   },
@@ -158,16 +172,32 @@ const styles = StyleSheet.create({
     fontFamily: theme.font.semiBold,
     color: theme.color.secondary,
   },
+
+  /* STREAK BADGE EXACT REPLICA */
+  streakBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F7F2EC",
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  streakText: {
+    marginLeft: 4,
+    fontSize: 12,
+    color: theme.color.brand,
+    fontFamily: theme.font.regular,
+  },
+
   notifyButtons: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
     gap: 12,
   },
   iconImage: {
     width: 27,
     height: 27,
-    resizeMode: "contain",
   },
   notificationButton: {
     width: 48,
@@ -176,10 +206,6 @@ const styles = StyleSheet.create({
     backgroundColor: theme.color.white,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
     elevation: 2,
   },
   notificationBadge: {
