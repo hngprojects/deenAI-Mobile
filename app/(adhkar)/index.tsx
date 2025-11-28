@@ -29,9 +29,25 @@ export default function AdhkarScreen() {
   ];
 
   const handleStartPress = (adhkarId: string, event: any) => {
-    // Prevent the card's onPress from firing
     event.stopPropagation();
-    router.push(`/adhkar/${adhkarId}`);
+    console.log('Navigating to:', adhkarId);
+
+    // Try this approach first - relative path
+    router.push(`./${adhkarId}`);
+
+    // If the above doesn't work, try this:
+    // router.push(`/(adhkar)/${adhkarId}`);
+
+    // Or this typed approach:
+    // router.push({
+    //   pathname: '/(adhkar)/[categoryId]',
+    //   params: { categoryId: adhkarId }
+    // });
+  };
+
+  const handleCardPress = (adhkarId: string) => {
+    console.log('Card pressed:', adhkarId);
+    router.push(`./${adhkarId}`);
   };
 
   return (
@@ -47,7 +63,7 @@ export default function AdhkarScreen() {
           <TouchableOpacity
             key={adhkar.id}
             style={styles.card}
-            onPress={() => router.push(`/adhkar/${adhkar.id}`)}
+            onPress={() => handleCardPress(adhkar.id)}
             activeOpacity={0.7}
           >
             <Image source={adhkar.image} style={styles.cardImage} />
