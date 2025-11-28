@@ -3,12 +3,28 @@ import { theme } from "@/styles/theme";
 import { useRouter } from "expo-router";
 import { Bell } from "lucide-react-native";
 import React from "react";
-import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+// Drawer + Modal UI
+import BottomDrawer from "@/components/BottomDrawer";
+import WelcomeDrawer from "@/components/WelcomeDrawer";
+
 export default function HomeHeader() {
   const { user, isGuest } = useAuth();
   const logoutMutation = useLogout();
   const router = useRouter();
+
+  const [showDrawer, setShowDrawer] = React.useState(false);
+
   const userName = user?.name || (isGuest ? "Guest" : "User");
+
   const getInitials = (name: string) => {
     const names = name.trim().split(" ");
     if (names.length >= 2) {
@@ -16,8 +32,8 @@ export default function HomeHeader() {
     }
     return name.substring(0, 2).toUpperCase();
   };
+
   const handleAvatarPress = () => {
-    console.log(":red_circle: Avatar pressed, showing alert");
     Alert.alert("Logout", "Are you sure you want to logout?", [
       {
         text: "Cancel",
@@ -36,51 +52,72 @@ export default function HomeHeader() {
       },
     ]);
   };
+
   const handleNotificationPress = () => {
-    // TODO: Navigate to notifications
     console.log("Notifications pressed");
   };
+
   const handleTasbihPress = () => {
-    console.log("Navigating to Tasbih...");
     router.push("/(tasbih)");
   };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.userInfo}>
-        <TouchableOpacity
-          style={styles.avatar}
-          onPress={handleAvatarPress}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.avatarText}>{getInitials(userName)}</Text>
-        </TouchableOpacity>
-        <View style={styles.greeting}>
-          <Text style={styles.greetingText}>Assalam Alaykum</Text>
-          <Text style={styles.userName}>{userName}</Text>
+    <>
+      {/* HEADER UI */}
+      <View style={styles.container}>
+        <View style={styles.userInfo}>
+          {/* AVATAR */}
+          <TouchableOpacity
+            style={styles.avatar}
+            onPress={handleAvatarPress}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.avatarText}>{getInitials(userName)}</Text>
+          </TouchableOpacity>
+
+          {/* GREETING - OPEN DRAWER */}
+          <TouchableOpacity
+            onPress={() => setShowDrawer(true)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.greeting}>
+              <Text style={styles.greetingText}>Assalam Alaykum</Text>
+              <Text style={styles.userName}>{userName}</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* RIGHT BUTTONS */}
+        <View style={styles.notifyButtons}>
+          <TouchableOpacity
+            onPress={handleTasbihPress}
+            style={styles.notificationButton}
+          >
+            <Image
+              source={require("@/assets/images/tasbih.png")}
+              style={styles.iconImage}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.notificationButton}
+            onPress={handleNotificationPress}
+          >
+            <Bell size={24} color={theme.color.secondary} strokeWidth={2} />
+            {!isGuest && <View style={styles.notificationBadge} />}
+          </TouchableOpacity>
         </View>
       </View>
-      <View style={styles.notifyButtons}>
-        <TouchableOpacity
-          onPress={handleTasbihPress}
-          style={styles.notificationButton}
-        >
-          <Image
-            source={require("@/assets/images/tasbih.png")}
-            style={styles.iconImage}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.notificationButton}
-          onPress={handleNotificationPress}
-        >
-          <Bell size={24} color={theme.color.secondary} strokeWidth={2} />
-          {!isGuest && <View style={styles.notificationBadge} />}
-        </TouchableOpacity>
-      </View>
-    </View>
+
+      {/* DRAWER MODAL */}
+      <BottomDrawer visible={showDrawer} onClose={() => setShowDrawer(false)}>
+        <WelcomeDrawer onClose={() => setShowDrawer(false)} />
+      </BottomDrawer>
+    </>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
