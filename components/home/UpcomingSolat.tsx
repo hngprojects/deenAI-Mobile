@@ -50,7 +50,7 @@ export default function UpcomingSolat() {
     router.push("/(adhkar)");
   };
 
-   const handleCounterPress = () => {
+  const handleCounterPress = () => {
     router.push("/(tasbih)");
   };
 
@@ -208,7 +208,8 @@ export default function UpcomingSolat() {
 
           <View style={styles.separator} />
 
-          <TouchableOpacity style={styles.actionItem}
+          <TouchableOpacity
+            style={styles.actionItem}
             onPress={handleCounterPress}
           >
             <Image
@@ -353,7 +354,7 @@ const styles = StyleSheet.create({
 
   separator: {
     width: 1,
-    height: '100%',
+    height: "100%",
     backgroundColor: "#CAAC8F",
   },
 
