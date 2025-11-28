@@ -32,9 +32,8 @@ export default function SurahDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
-  const [currentVisibleVerse, setCurrentVisibleVerse] = useState<number>(1);
+  const [currentVerseNumber, setCurrentVerseNumber] = useState(1);
 
-  const currentVerseRef = useRef<number>(1);
   const flatListRef = useRef<FlatList>(null);
 
   const loadSurahData = useCallback(async () => {
@@ -81,9 +80,6 @@ export default function SurahDetail() {
     if (verses.length > 0 && scrollToVerse && flatListRef.current) {
       const index = verses.findIndex((v) => v.number === scrollToVerse);
       if (index !== -1) {
-        // Update the visible verse immediately
-        setCurrentVisibleVerse(scrollToVerse);
-
         setTimeout(() => {
           flatListRef.current?.scrollToIndex({
             index,
@@ -125,13 +121,9 @@ export default function SurahDetail() {
         const firstVisibleVerse = viewableItems[0].item as Verse;
         const verseNumber = firstVisibleVerse.number;
 
-        // Update the visible verse in the header
-        setCurrentVisibleVerse(verseNumber);
-
-        if (currentVerseRef.current !== verseNumber) {
-          currentVerseRef.current = verseNumber;
-          setLastRead(surah.number, verseNumber, surah.englishName);
-        }
+        // Update the current verse number in state
+        setCurrentVerseNumber(verseNumber);
+        setLastRead(surah.number, verseNumber, surah.englishName);
       }
     },
     [surah.number, surah.englishName, setLastRead]
@@ -161,7 +153,7 @@ export default function SurahDetail() {
         {surah.englishNameTranslation}&quot;)
       </Text>
       <Text style={styles.verseCount}>
-        {currentVisibleVerse}/{surah.numberOfAyahs}
+        {currentVerseNumber}/{surah.numberOfAyahs}
       </Text>
     </View>
   );
@@ -190,7 +182,7 @@ export default function SurahDetail() {
         scrollable={false}
         keyboardAvoiding={false}
       >
-        <View style={styles.fixedHeaderContainer}>
+        <View style={styles.fixedHeader}>
           <ScreenHeader title={surah.englishName} showBackButton={true} />
         </View>
         <View style={styles.centerContainer}>
@@ -207,13 +199,13 @@ export default function SurahDetail() {
       scrollable={false}
       keyboardAvoiding={false}
     >
-      {/* Fixed Header Section */}
-      <View style={styles.fixedHeaderContainer}>
+      {/* FIXED HEADER - Always visible */}
+      <View style={styles.fixedHeader}>
         <ScreenHeader title={surah.englishName} showBackButton={true} />
         <SurahInfoCard />
       </View>
 
-      {/* Scrollable Verses */}
+      {/* SCROLLABLE CONTENT */}
       <FlatList
         ref={flatListRef}
         data={verses}
@@ -238,11 +230,11 @@ export default function SurahDetail() {
 }
 
 const styles = StyleSheet.create({
-  fixedHeaderContainer: {
+  fixedHeader: {
+    backgroundColor: theme.color.white,
     paddingTop:
       Platform.OS === "android" ? (StatusBar.currentHeight || 0) + 10 : 54,
     paddingHorizontal: 20,
-    backgroundColor: theme.color.white,
     paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E5E5",
@@ -251,7 +243,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 40,
   },
