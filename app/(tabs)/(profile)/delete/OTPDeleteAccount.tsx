@@ -15,7 +15,7 @@ import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 export default function OTPDeleteAccount() {
   const router = useRouter();
 
-  // ✅ GET EMAIL FROM PREVIOUS SCREEN
+  // GET EMAIL FROM PREVIOUS SCREEN
   const { email } = useLocalSearchParams();
 
   const [otp, setOtp] = useState(["", "", "", "", ""]);
@@ -46,7 +46,7 @@ export default function OTPDeleteAccount() {
 
     const code = otp.join("");
 
-    // ✅ Use the dynamic email instead of hardcoded email
+    // Use the dynamic email instead of hardcoded email
     verifyOtp(
       { email: String(email), otp: code },
       {
