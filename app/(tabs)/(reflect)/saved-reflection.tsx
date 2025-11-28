@@ -1,19 +1,21 @@
 import ScreenContainer from '@/components/ScreenContainer';
 import ScreenHeader from '@/components/screenHeader';
-import { reflectService } from '@/service/reflect.service';
 import { quranService } from '@/service/quran.service';
+import { reflectService } from '@/service/reflect.service';
 import { theme } from '@/styles/theme';
 import { Reflection } from '@/types/reflect.types';
 
-import { useNavigation , useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Edit2, Trash2 } from 'lucide-react-native';
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   FlatList,
   Modal,
+  Platform,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -210,10 +212,18 @@ export default function SavedReflectionsPage() {
   }
 
   return (
-    <ScreenContainer backgroundColor={theme.color.white}>
-      <ScreenHeader
-        title="Reflections"
-        showBackButton={true}
+    <ScreenContainer
+      backgroundColor={theme.color.white}
+      statusBarStyle="dark"
+      scrollable={false}
+      showsVerticalScrollIndicator={false}
+      keyboardAvoiding={false}
+    >
+      <View style={styles.fixedHeader}>
+        <ScreenHeader
+          title="Reflections"
+          showBackButton={true}
+
         // rightComponent={
         //   <TouchableOpacity
         //     onPress={() => navigation.navigate('index')}
@@ -222,7 +232,8 @@ export default function SavedReflectionsPage() {
         //     <Plus size={24} color={theme.color.white} />
         //   </TouchableOpacity>
         // }
-      />
+        />
+      </View>
 
       {reflections.length === 0 ? (
         <View style={styles.emptyState}>
@@ -245,6 +256,7 @@ export default function SavedReflectionsPage() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshing={refreshing}
+          style={styles.flatList}
           onRefresh={() => {
             setRefreshing(true);
             loadReflections();
@@ -290,6 +302,17 @@ export default function SavedReflectionsPage() {
 }
 
 const styles = StyleSheet.create({
+  fixedHeader: {
+    paddingTop:
+      Platform.OS === "android" ? 
+      (StatusBar.currentHeight || 0) + 10 : 54,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    backgroundColor: theme.color.white,
+  },
+  flatList: {
+    flex: 1,
+  },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -342,6 +365,9 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingVertical: 16,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   container: {
     gap: 16,
