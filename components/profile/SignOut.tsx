@@ -2,7 +2,7 @@ import ProfileScreen from "@/app/(tabs)/(profile)/ProfileScreen";
 import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-// eslint-disable-next-line import/no-unresolved
+ 
 import { BlurView } from "expo-blur";
 
 const ProfileSignOutOverlay: React.FC = () => {
