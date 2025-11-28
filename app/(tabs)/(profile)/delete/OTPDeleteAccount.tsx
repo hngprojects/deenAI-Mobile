@@ -1,6 +1,6 @@
 import ScreenTitle from "@/components/ScreenTitle";
 import { theme } from "@/styles/theme";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import React, { useState, useRef } from "react";
 import {
   StyleSheet,
@@ -9,12 +9,20 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useVerifyOtp } from "@/hooks/useUpdateProfile";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 export default function OTPDeleteAccount() {
   const router = useRouter();
 
+  // GET EMAIL FROM PREVIOUS SCREEN
+  const { email } = useLocalSearchParams();
+
   const [otp, setOtp] = useState(["", "", "", "", ""]);
   const inputs = useRef<any>([]);
+
+  const { mutate: verifyOtp, isPending } = useVerifyOtp();
+  const { isConnected, showNoConnectionToast } = useNetworkStatus();
 
   const handleChange = (text: string, index: number) => {
     if (text.length > 1) return;
@@ -30,6 +38,25 @@ export default function OTPDeleteAccount() {
 
   const isComplete = otp.every((digit) => digit.length === 1);
 
+  const handleVerify = () => {
+    if (!isConnected) {
+      showNoConnectionToast();
+      return;
+    }
+
+    const code = otp.join("");
+
+    // Use the dynamic email instead of hardcoded email
+    verifyOtp(
+      { email: String(email), otp: code },
+      {
+        onSuccess: () => {
+          router.push("/(tabs)/(profile)/delete/DeleteAccountSuccess");
+        },
+      }
+    );
+  };
+
   return (
     <View style={styles.container}>
       <ScreenTitle
@@ -40,12 +67,12 @@ export default function OTPDeleteAccount() {
       />
 
       <Text style={styles.confirmTitle}>Confirm Delete</Text>
+
       <Text style={styles.infoText}>
-        An 5-digit code has been sent to{" "}
-        <Text style={styles.boldEmail}>ismail123@gmail.com</Text>
+        A 5-digit code has been sent to{" "}
+        <Text style={styles.boldEmail}>{email}</Text>
       </Text>
 
-      {/* OTP BOXES */}
       <View style={styles.otpContainer}>
         {otp.map((digit, index) => (
           <TextInput
@@ -53,21 +80,30 @@ export default function OTPDeleteAccount() {
             ref={(ref) => {
               inputs.current[index] = ref;
             }}
-            style={styles.otpBox}
+            style={[styles.otpBox, digit ? styles.otpFilled : null]}
             value={digit}
+            secureTextEntry={true}
             keyboardType="numeric"
             maxLength={1}
-            onChangeText={(text) => handleChange(text, index)}
+            textContentType="oneTimeCode"
+            onChangeText={(text) =>
+              handleChange(text.replace(/[^0-9]/g, ""), index)
+            }
           />
         ))}
       </View>
 
-      {/* DELETE BUTTON */}
       <TouchableOpacity
-        style={[styles.deleteButton, { opacity: isComplete ? 1 : 0.5 }]}
-        disabled={!isComplete}
+        style={[
+          styles.deleteButton,
+          { opacity: isComplete && !isPending ? 1 : 0.5 },
+        ]}
+        disabled={!isComplete || isPending}
+        onPress={handleVerify}
       >
-        <Text style={styles.deleteButtonText}>Delete Account</Text>
+        <Text style={styles.deleteButtonText}>
+          {isPending ? "Verifying..." : "Delete Account"}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -75,14 +111,12 @@ export default function OTPDeleteAccount() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "white" },
-
   confirmTitle: {
     textAlign: "center",
     fontSize: 20,
     marginTop: 40,
     fontFamily: theme.font.semiBold,
   },
-
   infoText: {
     textAlign: "center",
     marginTop: 8,
@@ -90,19 +124,19 @@ const styles = StyleSheet.create({
     color: "#666",
     fontFamily: theme.font.regular,
   },
-
   boldEmail: {
     fontFamily: theme.font.semiBold,
     color: "#000",
   },
-
   otpContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 40,
     paddingHorizontal: 10,
   },
-
+  otpFilled: {
+    backgroundColor: "#C7C5CC",
+  },
   otpBox: {
     width: 55,
     height: 55,
@@ -114,7 +148,6 @@ const styles = StyleSheet.create({
     fontFamily: theme.font.semiBold,
     backgroundColor: "#fff",
   },
-
   deleteButton: {
     marginTop: 40,
     backgroundColor: "#E55153",
@@ -122,7 +155,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
   },
-
   deleteButtonText: {
     color: "#fff",
     fontSize: 16,
