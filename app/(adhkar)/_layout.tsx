@@ -14,7 +14,7 @@ export default function AdhkarLayout() {
         }}
       />
       <Stack.Screen
-        name="[id]"
+        name="[categoryId]"
         options={{
           title: "Prayer",
           presentation: "card",
