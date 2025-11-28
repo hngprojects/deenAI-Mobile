@@ -33,7 +33,7 @@ export default function CalendarScreen() {
     error,
     savedLocation,
     changeDate,
-    formatTime
+    formatTime,
   } = usePrayerTimes({ autoUpdate: false });
 
   const calendarWeeks = useMemo(
@@ -186,7 +186,8 @@ export default function CalendarScreen() {
                 ]}
               >
                 {week.map((dateObj, dayIndex) => {
-                  const isSelected = dateObj && isSameDate(dateObj, selectedDate);
+                  const isSelected =
+                    dateObj && isSameDate(dateObj, selectedDate);
                   const isTodayDate = dateObj && isToday(dateObj);
                   const isCurrentMonth =
                     dateObj && dateObj.getMonth() === currentMonth.getMonth();
@@ -396,7 +397,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginBottom: responsiveSize(20),
     borderWidth: 1,
-    borderColor: '#c3c3c6ff',
+    borderColor: "#c3c3c6ff",
 
     // shadowColor: "#000",
     // shadowOffset: { width: 0, height: 2 },
@@ -507,12 +508,12 @@ const styles = StyleSheet.create({
     fontFamily: theme.font.regular,
     marginBottom: responsiveSize(4),
   },
-  selectedDateText: {
-    fontSize: responsiveSize(16),
-    color: "#333",
-    fontFamily: theme.font.semiBold,
-    marginBottom: responsiveSize(4),
-  },
+  // selectedDateText: {
+  //   fontSize: responsiveSize(16),
+  //   color: "#333",
+  //   fontFamily: theme.font.semiBold,
+  //   marginBottom: responsiveSize(4),
+  // },
   selectedHijriText: {
     fontSize: responsiveSize(13),
     color: theme.color.brand,

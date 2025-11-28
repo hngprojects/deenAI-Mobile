@@ -1,28 +1,24 @@
 export interface EditProfileType {
-    username: string;
-    language?: string;
-    avatar?: string;
-    fullname: string;
-    email: string
+  username: string;
+  language?: string;
+  avatar?: string;
+  fullname: string;
+  email: string;
 }
-
 export interface ContactSupportType {
-    fullname: string;
-    email: string;
-    subject: string;
-    message: string
+  name: string;
+  email: string;
+  subject: string;
+  content: string;
 }
-
 export interface RequestOtpPayload {
-    email: string;
+  email: string;
 }
-
 export interface VerifyOtpPayload {
-    email: string;
-    otp: string;
+  email: string;
+  otp: string;
 }
-
 export interface OtpResponse {
-    success: boolean;
-    message: string;
+  success: boolean;
+  message: string;
 }

@@ -2,8 +2,16 @@ import ScreenTitle from "@/components/ScreenTitle";
 import { theme } from "@/styles/theme";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  TextInput,
+} from "react-native";
 import DeleteAccountModal from "./DeleteAccountModal";
+import Checkbox from "expo-checkbox";
 
 interface ReasonItem {
   id: number;
@@ -12,7 +20,17 @@ interface ReasonItem {
 
 export default function DeleteAccoutReasonScreen() {
   const router = useRouter();
-  const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
+  const [deleteAccountModalVisible, setDeleteAccountModalVisible] =
+    useState(false);
+
+  const [selectedReasons, setSelectedReasons] = useState<number[]>([]);
+  const [otherReason, setOtherReason] = useState(""); // NEW STATE
+
+  const toggleReason = (id: number) => {
+    setSelectedReasons((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
 
   const reasonsData: ReasonItem[] = [
     { id: 1, reason: "I’m taking a break from apps" },
@@ -25,59 +43,90 @@ export default function DeleteAccoutReasonScreen() {
   ];
 
   return (
-    <View style={styles.container}>
-      <ScreenTitle
-        title="Delete Account"
-        onBackPress={() => router.push("/(tabs)/(profile)/DeleteAccountScreen")}
-      />
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: 40 }}
+    >
+      <View style={styles.container}>
+        <ScreenTitle
+          title="Delete Account"
+          onBackPress={() =>
+            router.push("/(tabs)/(profile)/DeleteAccountScreen")
+          }
+        />
 
-      <View style={styles.textWrapper}>
-        <Text style={styles.boldText}>We&apos;re sorry to see you go.</Text>
+        <View style={styles.textWrapper}>
+          <Text style={styles.boldText}>We&apos;re sorry to see you go.</Text>
 
-        <Text style={styles.normalText}>
-          Every journey has its pauses. If you&apos;re thinking of leaving, please tell us why, your feedback will help us serve others better, in shā’ Allāh.
-          Remember, you can always return whenever your heart wishes to reflect again.
-        </Text>
+          <Text style={styles.normalText}>
+            Every journey has its pauses. If you&apos;re thinking of leaving,
+            please tell us why, your feedback will help us serve others better,
+            in shā’ Allāh. Remember, you can always return whenever your heart
+            wishes to reflect again.
+          </Text>
 
-        <Text style={styles.normalText}>
-          We&apos;re sad to see you go, but we understand that sometimes it&apos;s necessary. Please take a moment to consider the consequences before proceeding.
-        </Text>
-      </View>
+          <Text style={styles.normalText}>
+            We&apos;re sad to see you go, but we understand that sometimes
+            it&apos;s necessary. Please take a moment to consider the
+            consequences before proceeding.
+          </Text>
+        </View>
 
-      {/* REASONS LIST */}
-      <View>
-        {reasonsData.map((reason) => (
-          <View key={reason.id} style={styles.featureRow}>
-            <View style={styles.checkboxFilled}>
-              <Text style={styles.checkIcon}>✔</Text>
+        {/* Reasons List */}
+        <View>
+          {reasonsData.map((reason) => (
+            <View key={reason.id} style={styles.featureRow}>
+              <Checkbox
+                value={selectedReasons.includes(reason.id)}
+                onValueChange={() => toggleReason(reason.id)}
+                style={styles.checkbox}
+                color={
+                  selectedReasons.includes(reason.id) ? "#964B00" : undefined
+                }
+              />
+              <Text style={styles.textTitle}>{reason.reason}</Text>
             </View>
+          ))}
+        </View>
 
-            <Text style={styles.textTitle}>{reason.reason}</Text>
+        {/* Show text area if "Other" is selected */}
+        {selectedReasons.includes(7) && (
+          <View style={styles.otherBox}>
+            <Text style={styles.otherLabel}>Please specify:</Text>
+            <TextInput
+              value={otherReason}
+              onChangeText={setOtherReason}
+              placeholder="Type your reason..."
+              multiline
+              style={styles.textArea}
+            />
           </View>
-        ))}
-      </View>
-   
-      <View style={styles.screenButtons}>
-        <TouchableOpacity
-          style={[styles.screenButton, styles.cancelButton]}
-            onPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}
-        >
-          <Text style={styles.cancelButtonText}>Keep My Account</Text>
-        </TouchableOpacity>
+        )}
 
-        <TouchableOpacity
-          style={[styles.screenButton, styles.deleteButton]}
-          onPress={() => {setDeleteAccountModalVisible(true)
-          }}>
-          <Text style={styles.deleteButtonText}>Yes, Delete My Account</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Buttons */}
+        <View style={styles.screenButtons}>
+          <TouchableOpacity
+            style={[styles.screenButton, styles.cancelButton]}
+            onPress={() => router.push("/(tabs)/(profile)/ProfileScreen")}
+          >
+            <Text style={styles.cancelButtonText}>Keep My Account</Text>
+          </TouchableOpacity>
 
-      <DeleteAccountModal
+          <TouchableOpacity
+            style={[styles.screenButton, styles.deleteButton]}
+            onPress={() => setDeleteAccountModalVisible(true)}
+          >
+            <Text style={styles.deleteButtonText}>Yes, Delete My Account</Text>
+          </TouchableOpacity>
+        </View>
+
+        <DeleteAccountModal
           visible={deleteAccountModalVisible}
           setVisible={setDeleteAccountModalVisible}
-      /> 
-    </View>
+        />
+      </View>
+    </ScrollView>
   );
 }
 
@@ -86,18 +135,18 @@ const styles = StyleSheet.create({
 
   textWrapper: { marginTop: 20, marginBottom: 10 },
 
-  boldText: { 
-    fontSize: 24, 
-    color: "#000", 
-    marginBottom: 10, 
+  boldText: {
+    fontSize: 24,
+    color: "#000",
+    marginBottom: 10,
     fontFamily: theme.font.semiBold,
   },
 
-  normalText: { 
+  normalText: {
     fontSize: 18,
     fontWeight: "400",
     color: "#555",
-    marginBottom: 12, 
+    marginBottom: 12,
     fontFamily: theme.font.regular,
   },
 
@@ -114,21 +163,40 @@ const styles = StyleSheet.create({
     marginVertical: 9,
   },
 
-  checkboxFilled: {
+  checkbox: {
     width: 18,
     height: 18,
-    borderWidth: 1.5,
-    borderColor: "#964B00",
-    borderRadius: 4,
-    justifyContent: "center",
-    alignItems: "center",
     marginRight: 10,
   },
 
-  checkIcon: {
-    fontSize: 12,
-    color: "#964B00",
-    fontWeight: "bold",
+  /* OTHER TEXTBOX STYLES */
+  otherBox: {
+    marginTop: 10,
+    backgroundColor: "#f8f8f8",
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+
+  otherLabel: {
+    fontSize: 16,
+    color: "#333",
+    fontFamily: theme.font.semiBold,
+    marginBottom: 6,
+  },
+
+  textArea: {
+    minHeight: 90,
+    maxHeight: 130,
+    backgroundColor: "white",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    fontSize: 15,
+    fontFamily: theme.font.regular,
+    textAlignVertical: "top",
   },
 
   screenButtons: {
@@ -154,11 +222,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: theme.font.semiBold,
   },
+
   deleteButton: {
-    backgroundColor: '#E55153',
+    backgroundColor: "#E55153",
   },
   deleteButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
     fontFamily: theme.font.semiBold,
   },

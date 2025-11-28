@@ -8,12 +8,15 @@ interface ModalProps {
   setVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function DeleteAccountModal({ visible, setVisible }: ModalProps) {
+export default function DeleteAccountModal({
+  visible,
+  setVisible,
+}: ModalProps) {
   const router = useRouter();
 
   const handleSignOut = () => {
     setVisible(false);
-    router.push('/(tabs)/(profile)/delete/ConfirmDelete')
+    router.push("/(tabs)/(profile)/delete/OTPDeleteAccount");
   };
 
   return (
@@ -29,26 +32,31 @@ export default function DeleteAccountModal({ visible, setVisible }: ModalProps) 
           <Text style={styles.modalTitle}>Did you know?</Text>
 
           <Text style={styles.modalText}>
-            You can pause notifications or sign out temporarily instead of deleting your data.
-            You won&apos;t lose your saved reflections or chats if you choose to come back later.
+            You can pause notifications or sign out temporarily instead of
+            deleting your data. You won&apos;t lose your saved reflections or
+            chats if you choose to come back later.
           </Text>
 
           <View style={styles.modalButtons}>
             <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => {
-                    setVisible(false);
-                    router.push('/(tabs)/(profile)/ProfileScreen');
-                }}
-                >
-                <Text style={styles.cancelButtonText}>Pause My Account Instead</Text>
+              style={[styles.modalButton, styles.cancelButton]}
+              onPress={() => {
+                setVisible(false);
+                router.push("/(tabs)/(profile)/ProfileScreen");
+              }}
+            >
+              <Text style={styles.cancelButtonText}>
+                Pause My Account Instead
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.modalButton, styles.logOutButton]}
               onPress={handleSignOut}
             >
-              <Text style={styles.logOutButtonText}>Yes, Delete My Account</Text>
+              <Text style={styles.logOutButtonText}>
+                Yes, Delete My Account
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -60,12 +68,12 @@ export default function DeleteAccountModal({ visible, setVisible }: ModalProps) 
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: '#1a19194d',
-    justifyContent: 'center',
-    alignItems: 'center'
+    backgroundColor: "#1a19194d",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 20,
     padding: 30,
     gap: 18,
@@ -80,22 +88,22 @@ const styles = StyleSheet.create({
   modalText: {
     fontSize: 20,
     fontFamily: theme.font.regular,
-    textAlign: 'center',
-    lineHeight: 24
+    textAlign: "center",
+    lineHeight: 24,
   },
 
   modalButtons: {
-  flexDirection: "column",  
-  gap: 12,
-},
+    flexDirection: "column",
+    gap: 12,
+  },
 
-modalButton: {
-  width: "100%",  
-  padding: 16,
-  borderRadius: 16,
-  alignItems: "center",
-  justifyContent: "center",
-},
+  modalButton: {
+    width: "100%",
+    padding: 16,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
   cancelButton: {
     borderColor: theme.color.border,
@@ -106,10 +114,10 @@ modalButton: {
     fontFamily: theme.font.regular,
   },
   logOutButton: {
-    backgroundColor: '#E55153',
+    backgroundColor: "#E55153",
   },
   logOutButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
     fontFamily: theme.font.semiBold,
   },
