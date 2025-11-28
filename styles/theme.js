@@ -17,6 +17,7 @@ export const lightTheme = {
     paragraph: "#3C3A3599",
     gray: "#e3e3e3",
     actionIcon: "#B1A7BE",
+    gradientStart: "#F7EEDB",
   },
   // fontSize: {
   //     small: width * 0.03,
