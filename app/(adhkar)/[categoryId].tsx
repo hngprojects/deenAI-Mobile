@@ -1,12 +1,14 @@
 import ScreenContainer from "@/components/ScreenContainer";
 import AdhkarCounter from "@/components/adhkar/AdhkarCounter";
+import StreakCompleteModal from "@/components/adhkar/StreakCompleteModal";
 import { useAdhkarStore } from "@/store/adhkar-store";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { theme } from "@/styles/theme";
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
   Image,
@@ -22,11 +24,19 @@ export default function AdhkarDetailScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const categoryId = params.categoryId as "morning" | "evening";
+  const [isLoading, setIsLoading] = useState(true);
 
   // Use Zustand selectors for reactive state
   const currentIndex = useAdhkarStore((state) => state.currentIndex);
   const currentAdhkar = useAdhkarStore((state) => state.currentAdhkar);
   const completedCount = useAdhkarStore((state) => state.completedCount);
+  const showStreakCompleteModal = useAdhkarStore(
+    (state) => state.showStreakCompleteModal
+  );
+  const setShowStreakCompleteModal = useAdhkarStore(
+    (state) => state.setShowStreakCompleteModal
+  );
+  const getSessionDuration = useAdhkarStore((state) => state.getSessionDuration);
 
   const startAdhkarSession = useAdhkarStore(
     (state) => state.startAdhkarSession
@@ -38,12 +48,35 @@ export default function AdhkarDetailScreen() {
   const resetSession = useAdhkarStore((state) => state.resetSession);
 
   useEffect(() => {
-    startAdhkarSession(categoryId);
-    return () => resetSession();
-  }, [categoryId, startAdhkarSession, resetSession]);
+    if (categoryId === "morning" || categoryId === "evening") {
+      startAdhkarSession(categoryId);
+      setIsLoading(false);
+    } else {
+      console.error("Invalid category:", categoryId);
+      router.back();
+    }
+
+    return () => {
+      resetSession();
+    };
+  }, [categoryId, startAdhkarSession, resetSession, router]);
 
   const currentAdhkarItem = currentAdhkar[currentIndex];
   const currentCount = completedCount[currentIndex] || 0;
+
+  const handleCloseModal = () => {
+    setShowStreakCompleteModal(false);
+  };
+
+  if (isLoading) {
+    return (
+      <ScreenContainer>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#964B00" />
+        </View>
+      </ScreenContainer>
+    );
+  }
 
   if (!currentAdhkarItem) {
     return (
@@ -88,6 +121,11 @@ export default function AdhkarDetailScreen() {
     resetCount();
   };
 
+  const handleStreakPress = () => {
+    // Navigate to streak analytics
+    router.push("/(adhkar)/streak-analytics");
+  };
+
   //   fixed header component
   const fixedHeader = (
     <View style={styles.header}>
@@ -97,12 +135,7 @@ export default function AdhkarDetailScreen() {
       <Text style={styles.headerTitle}>
         {categoryId === "morning" ? "Morning Adhkar" : "Evening Adhkar"}
       </Text>
-      <TouchableOpacity
-        style={styles.streakButton}
-        onPress={() => {
-          console.log("Streak pressed");
-        }}
-      >
+      <TouchableOpacity style={styles.streakButton} onPress={handleStreakPress}>
         <Image
           source={require("@/assets/images/streaks.png")}
           style={styles.streakIcon}
@@ -180,23 +213,17 @@ export default function AdhkarDetailScreen() {
             </Text>
           </View>
           <TouchableOpacity style={styles.shareButton}>
-            <TouchableOpacity style={styles.shareButton}>
-              <Ionicons name="share-social-outline" size={22} color="#fff" />
-            </TouchableOpacity>
+            <Ionicons name="share-social-outline" size={22} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* {currentCount > 0 && (
-                    <TouchableOpacity
-                        style={styles.resetButton}
-                        onPress={handleReset}
-                        activeOpacity={0.7}
-                    >
-                        <Ionicons name="refresh" size={16} color="#964B00" />
-                        <Text style={styles.resetText}>Reset Count</Text>
-                    </TouchableOpacity>
-                )} */}
+      {/* Streak Complete Modal */}
+      <StreakCompleteModal
+        visible={showStreakCompleteModal}
+        onClose={handleCloseModal}
+        minutesSpent={getSessionDuration()}
+      />
     </ScreenContainer>
   );
 }
@@ -219,8 +246,13 @@ const styles = StyleSheet.create({
     color: "#1a1a1a",
     fontFamily: theme.font.bold,
   },
-  menuButton: {
+  streakButton: {
     padding: 4,
+  },
+  streakIcon: {
+    width: 25,
+    height: 25,
+    resizeMode: "contain",
   },
   loadingContainer: {
     flex: 1,
@@ -231,7 +263,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666",
   },
-
   heroImage: {
     width: width - 40,
     height: 200,
@@ -268,7 +299,6 @@ const styles = StyleSheet.create({
     width: 87,
     height: 49,
   },
-
   progressTextContainer: {
     flexDirection: "row",
     alignItems: "baseline",
@@ -332,7 +362,6 @@ const styles = StyleSheet.create({
     height: 20,
     resizeMode: "contain",
   },
-
   referenceLeft: {
     flexDirection: "row",
     alignItems: "center",
@@ -354,26 +383,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     overflow: "visible",
   },
-  benefitsCard: {
-    backgroundColor: "#FEF3E2",
-    marginHorizontal: 20,
-    marginTop: 16,
-    padding: 16,
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: "#964B00",
-  },
-  benefitsTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#964B00",
-    marginBottom: 8,
-  },
-  benefitsText: {
-    fontSize: 14,
-    lineHeight: 22,
-    color: "#555",
-  },
   bottomContainer: {
     backgroundColor: "#fff",
     paddingHorizontal: 20,
@@ -392,13 +401,5 @@ const styles = StyleSheet.create({
     color: "#964B00",
     fontSize: 14,
     fontWeight: "600",
-  },
-  streakButton: {
-    padding: 4,
-  },
-  streakIcon: {
-    width: 25,
-    height: 25,
-    resizeMode: "contain",
   },
 });
