@@ -1,5 +1,6 @@
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
+import { theme } from "@/styles/theme";
 import { useRouter } from "expo-router";
 import {
   Image,
@@ -16,43 +17,50 @@ export default function AdhkarScreen() {
   const adhkarTypes = [
     {
       id: "morning",
-      title: "Morning Adkar",
+      title: "Morning Adhkar",
       subtitle: "Start your day with the remembrance of Allah",
       image: require("@/assets/images/adhkar/morning.png"),
     },
     {
       id: "evening",
-      title: "Evening Adkar",
+      title: "Evening Adhkar",
       subtitle: "End your day with the remembrance of Allah",
       image: require("@/assets/images/adhkar/evening.png"),
     },
   ];
 
-  const handleStartPress = (adhkarId: string, event: any) => {
+  const handleStartPress = (adhkarId: any, event: any) => {
     event.stopPropagation();
-    console.log('Navigating to:', adhkarId);
-
-    // Try this approach first - relative path
     router.push(`./${adhkarId}`);
-
-    // If the above doesn't work, try this:
-    // router.push(`/(adhkar)/${adhkarId}`);
-
-    // Or this typed approach:
-    // router.push({
-    //   pathname: '/(adhkar)/[categoryId]',
-    //   params: { categoryId: adhkarId }
-    // });
   };
 
-  const handleCardPress = (adhkarId: string) => {
-    console.log('Card pressed:', adhkarId);
+  const handleCardPress = (adhkarId: any) => {
     router.push(`./${adhkarId}`);
+  };
+
+  const handleStreakPress = () => {
+    console.log("Streak icon pressed");
   };
 
   return (
     <ScreenContainer>
-      <ScreenHeader title="Azkar" showBackButton />
+      <ScreenHeader
+        title="Adhkar"
+        showBackButton
+        rightComponent={
+          <TouchableOpacity
+            onPress={handleStreakPress}
+            activeOpacity={0.7}
+            style={styles.streakButton}
+          >
+            <Image
+              source={require("@/assets/images/streaks.png")}
+              style={styles.streakIcon}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView
         style={styles.content}
@@ -62,15 +70,15 @@ export default function AdhkarScreen() {
         {adhkarTypes.map((adhkar) => (
           <TouchableOpacity
             key={adhkar.id}
-            style={styles.card}
+            style={styles.adhkarItemContainer}
             onPress={() => handleCardPress(adhkar.id)}
             activeOpacity={0.7}
           >
             <Image source={adhkar.image} style={styles.cardImage} />
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>{adhkar.title}</Text>
 
-              <View style={styles.subtitleRow}>
+            <View style={styles.rowContainer}>
+              <View style={styles.textContainer}>
+                <Text style={styles.cardTitle}>{adhkar.title}</Text>
                 <Text
                   style={styles.cardSubtitle}
                   numberOfLines={2}
@@ -78,14 +86,15 @@ export default function AdhkarScreen() {
                 >
                   {adhkar.subtitle}
                 </Text>
-                <TouchableOpacity
-                  style={styles.startButton}
-                  onPress={(e) => handleStartPress(adhkar.id, e)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.startButtonText}>Start</Text>
-                </TouchableOpacity>
               </View>
+
+              <TouchableOpacity
+                style={styles.startButton}
+                onPress={(e) => handleStartPress(adhkar.id, e)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.startButtonText}>Start</Text>
+              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         ))}
@@ -99,58 +108,59 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 20,
+    padding: 10,
   },
-  card: {
+  adhkarItemContainer: {
     marginBottom: 20,
-    borderRadius: 12,
-    overflow: "hidden",
-    backgroundColor: "#FFF",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   cardImage: {
     width: "100%",
-    height: 180,
+    height: 200,
     resizeMode: "cover",
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
-  cardContent: {
-    padding: 16,
+  rowContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    paddingVertical: 16,
+    gap: 12,
+  },
+  textContainer: {
+    flex: 1,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: "#0F0F0F",
     marginBottom: 8,
-  },
-  subtitleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 12,
+    fontFamily: theme.font.bold,
   },
   cardSubtitle: {
     fontSize: 14,
-    color: "#666",
-    lineHeight: 20,
-    flex: 1,
+    color: "#3C3A35",
+    fontFamily: theme.font.regular,
   },
   startButton: {
     backgroundColor: "#964B00",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    minWidth: 80,
+    borderRadius: 16,
     alignItems: "center",
+    justifyContent: "center",
+    width: 87,
+    height: 49,
   },
   startButtonText: {
     color: "#FFF",
     fontSize: 14,
     fontWeight: "600",
+    fontFamily: theme.font.regular,
+  },
+  streakButton: {
+    padding: 4,
+  },
+  streakIcon: {
+    width: 24,
+    height: 24,
   },
 });
