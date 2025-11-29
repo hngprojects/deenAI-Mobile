@@ -3,12 +3,29 @@ import { theme } from "@/styles/theme";
 import { useRouter } from "expo-router";
 import { Bell } from "lucide-react-native";
 import React from "react";
-import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+// Drawer + Modal UI
+import BottomDrawer from "@/components/BottomDrawer";
+import WelcomeDrawer from "@/components/WelcomeDrawer";
+
 export default function HomeHeader() {
   const { user, isGuest } = useAuth();
   const logoutMutation = useLogout();
   const router = useRouter();
+
+  const [showDrawer, setShowDrawer] = React.useState(false);
+
   const userName = user?.name || (isGuest ? "Guest" : "User");
+  const streakCount = 3; // TEMP VALUE — replace with real user streak
+
   const getInitials = (name: string) => {
     const names = name.trim().split(" ");
     if (names.length >= 2) {
@@ -16,13 +33,10 @@ export default function HomeHeader() {
     }
     return name.substring(0, 2).toUpperCase();
   };
+
   const handleAvatarPress = () => {
-    console.log(":red_circle: Avatar pressed, showing alert");
     Alert.alert("Logout", "Are you sure you want to logout?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
+      { text: "Cancel", style: "cancel" },
       {
         text: "Logout",
         style: "destructive",
@@ -36,51 +50,87 @@ export default function HomeHeader() {
       },
     ]);
   };
+
   const handleNotificationPress = () => {
-    // TODO: Navigate to notifications
     console.log("Notifications pressed");
   };
+
   const handleTasbihPress = () => {
-    console.log("Navigating to Tasbih...");
     router.push("/(tasbih)");
   };
+
+  const handleStreakPress = () => {
+    router.push("/(adhkar)/AzkarStreakCalender");
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.userInfo}>
-        <TouchableOpacity
-          style={styles.avatar}
-          onPress={handleAvatarPress}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.avatarText}>{getInitials(userName)}</Text>
-        </TouchableOpacity>
-        <View style={styles.greeting}>
-          <Text style={styles.greetingText}>Assalam Alaykum</Text>
-          <Text style={styles.userName}>{userName}</Text>
+    <>
+      <View style={styles.container}>
+        <View style={styles.userInfo}>
+          {/* AVATAR */}
+          <TouchableOpacity
+            style={styles.avatar}
+            onPress={handleAvatarPress}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.avatarText}>{getInitials(userName)}</Text>
+          </TouchableOpacity>
+
+          {/* GREETING + USERNAME */}
+          <View style={styles.greeting}>
+            <Text style={styles.greetingText}>Assalam Alaykum</Text>
+
+            {/* USERNAME opens drawer */}
+            <TouchableOpacity onPress={() => setShowDrawer(true)}>
+              <Text style={styles.userName}>{userName}</Text>
+            </TouchableOpacity>
+
+            {/* STREAK BADGE */}
+            <TouchableOpacity
+              style={styles.streakBadge}
+              onPress={handleStreakPress}
+              activeOpacity={0.8}
+            >
+              <Image
+                source={require("@/assets/icons/flame.png")}
+                style={{ width: 14, height: 14 }}
+              />
+              <Text style={styles.streakText}>{streakCount} days</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* RIGHT BUTTONS */}
+        <View style={styles.notifyButtons}>
+          <TouchableOpacity
+            onPress={handleTasbihPress}
+            style={styles.notificationButton}
+          >
+            <Image
+              source={require("@/assets/images/tasbih.png")}
+              style={styles.iconImage}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.notificationButton}
+            onPress={handleNotificationPress}
+          >
+            <Bell size={24} color={theme.color.secondary} strokeWidth={2} />
+            {!isGuest && <View style={styles.notificationBadge} />}
+          </TouchableOpacity>
         </View>
       </View>
-      <View style={styles.notifyButtons}>
-        {/* <TouchableOpacity
-          onPress={handleTasbihPress}
-          style={styles.notificationButton}
-        >
-          <Image
-            source={require("@/assets/images/tasbih.png")}
-            style={styles.iconImage}
-            resizeMode="contain"
-          />
-        </TouchableOpacity> */}
-        <TouchableOpacity
-          style={styles.notificationButton}
-          onPress={handleNotificationPress}
-        >
-          <Bell size={20} color={theme.color.secondary} strokeWidth={2} />
-          {!isGuest && <View style={styles.notificationBadge} />}
-        </TouchableOpacity>
-      </View>
-    </View>
+
+      {/* DRAWER MODAL */}
+      <BottomDrawer visible={showDrawer} onClose={() => setShowDrawer(false)}>
+        <WelcomeDrawer onClose={() => setShowDrawer(false)} />
+      </BottomDrawer>
+    </>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
@@ -108,6 +158,7 @@ const styles = StyleSheet.create({
     fontFamily: theme.font.bold,
     color: theme.color.white,
   },
+
   greeting: {
     gap: 2,
   },
@@ -121,28 +172,40 @@ const styles = StyleSheet.create({
     fontFamily: theme.font.semiBold,
     color: theme.color.secondary,
   },
+
+  /* STREAK BADGE EXACT REPLICA */
+  streakBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F7F2EC",
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  streakText: {
+    marginLeft: 4,
+    fontSize: 12,
+    color: theme.color.brand,
+    fontFamily: theme.font.regular,
+  },
+
   notifyButtons: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
     gap: 12,
   },
   iconImage: {
     width: 27,
     height: 27,
-    resizeMode: "contain",
   },
   notificationButton: {
-    width: 42,
-    height: 42,
+    width: 48,
+    height: 48,
     borderRadius: 24,
     backgroundColor: theme.color.white,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
     elevation: 2,
   },
   notificationBadge: {
