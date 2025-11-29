@@ -1,10 +1,12 @@
 import ScreenContainer from '@/components/ScreenContainer';
 import AdhkarCounter from '@/components/adhkar/AdhkarCounter';
+import StreakCompleteModal from '@/components/adhkar/StreakCompleteModal';
 import { useAdhkarStore } from '@/store/adhkar-store';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+    ActivityIndicator,
     Alert,
     Dimensions,
     Image,
@@ -22,11 +24,15 @@ export default function AdhkarDetailScreen() {
     const params = useLocalSearchParams();
     const router = useRouter();
     const categoryId = params.categoryId as 'morning' | 'evening';
+    const [isLoading, setIsLoading] = useState(true);
 
     // Use Zustand selectors for reactive state
     const currentIndex = useAdhkarStore((state) => state.currentIndex);
     const currentAdhkar = useAdhkarStore((state) => state.currentAdhkar);
     const completedCount = useAdhkarStore((state) => state.completedCount);
+    const showStreakCompleteModal = useAdhkarStore((state) => state.showStreakCompleteModal);
+    const setShowStreakCompleteModal = useAdhkarStore((state) => state.setShowStreakCompleteModal);
+    const getSessionDuration = useAdhkarStore((state) => state.getSessionDuration);
 
     // Get actions separately (these don't change, so no re-render needed)
     const startAdhkarSession = useAdhkarStore((state) => state.startAdhkarSession);
@@ -37,13 +43,35 @@ export default function AdhkarDetailScreen() {
     const resetSession = useAdhkarStore((state) => state.resetSession);
 
     useEffect(() => {
-        startAdhkarSession(categoryId);
-        return () => resetSession();
-    }, [categoryId, startAdhkarSession, resetSession]);
+        if (categoryId === 'morning' || categoryId === 'evening') {
+            startAdhkarSession(categoryId);
+            setIsLoading(false);
+        } else {
+            console.error('Invalid category:', categoryId);
+            router.back();
+        }
+
+        return () => {
+            resetSession();
+        };
+    }, [categoryId, startAdhkarSession, resetSession, router]);
 
     const currentAdhkarItem = currentAdhkar[currentIndex];
     const currentCount = completedCount[currentIndex] || 0;
 
+    const handleCloseModal = () => {
+        setShowStreakCompleteModal(false);
+    };
+
+    if (isLoading) {
+        return (
+            <ScreenContainer>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#964B00" />
+                </View>
+            </ScreenContainer>
+        );
+    }
 
     if (!currentAdhkarItem) {
         return (
@@ -176,6 +204,13 @@ export default function AdhkarDetailScreen() {
                     </TouchableOpacity>
                 )} */}
             </View>
+
+            {/* Streak Complete Modal */}
+            <StreakCompleteModal
+                visible={showStreakCompleteModal}
+                onClose={handleCloseModal}
+                minutesSpent={getSessionDuration()}
+            />
         </ScreenContainer>
     );
 }

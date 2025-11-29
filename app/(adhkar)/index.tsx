@@ -35,14 +35,6 @@ export default function AdhkarScreen() {
     // Try this approach first - relative path
     router.push(`./${adhkarId}`);
 
-    // If the above doesn't work, try this:
-    // router.push(`/(adhkar)/${adhkarId}`);
-
-    // Or this typed approach:
-    // router.push({
-    //   pathname: '/(adhkar)/[categoryId]',
-    //   params: { categoryId: adhkarId }
-    // });
   };
 
   const handleCardPress = (adhkarId: string) => {
