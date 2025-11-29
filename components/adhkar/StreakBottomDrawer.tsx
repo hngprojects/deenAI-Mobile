@@ -145,8 +145,8 @@ const StreakBottomDrawer: React.FC<StreakBottomDrawerProps> = ({
 
                     <Text style={styles.title}>Streak Lost</Text>
                     <Text style={styles.subtitle}>
-                        You missed yesterday's Azkar. Your 12-day streak has ended, but
-                        don't worry, you can start fresh today!
+                        You missed yesterday&apos;s Azkar. Your 12-day streak has ended, but
+                        don&apos;t worry, you can start fresh today!
                     </Text>
 
                     <View style={styles.statsContainer}>
@@ -182,7 +182,7 @@ const StreakBottomDrawer: React.FC<StreakBottomDrawerProps> = ({
                         style={styles.primaryButton}
                         onPress={handleReciteNow}
                     >
-                        <Text style={styles.primaryButtonText}>Begin Today's Azkar</Text>
+                        <Text style={styles.primaryButtonText}>Begin Today&apos;s Azkar</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.secondaryButton} onPress={onClose}>
@@ -199,7 +199,7 @@ const StreakBottomDrawer: React.FC<StreakBottomDrawerProps> = ({
                     <StreakIcon type="risk" />
 
                     <Text style={styles.title}>Streak at Risk!</Text>
-                    <Text style={styles.subtitle}>Don't lose your progress</Text>
+                    <Text style={styles.subtitle}>Don&apos;t lose your progress</Text>
 
                     <View style={styles.streakContainer}>
                         <Ionicons name="flame" size={32} color="#964B00" />
@@ -228,7 +228,7 @@ const StreakBottomDrawer: React.FC<StreakBottomDrawerProps> = ({
                     <View style={styles.warningBox}>
                         <Text style={styles.warningText}>
                             You have <Text style={styles.warningBold}>{hoursLeft} hours</Text>{" "}
-                            remaining to complete today's reading. Don't let your{" "}
+                            remaining to complete today&apos;s reading. Don&apos;t let your{" "}
                             {currentStreak}-day streak go to waste!
                         </Text>
                     </View>
@@ -283,7 +283,7 @@ const StreakBottomDrawer: React.FC<StreakBottomDrawerProps> = ({
                 </View>
 
                 <Text style={styles.motivationText}>
-                    Keep up your amazing progress! Complete today's reading to continue
+                    Keep up your amazing progress! Complete today&apos;s reading to continue
                     your streak.
                 </Text>
 

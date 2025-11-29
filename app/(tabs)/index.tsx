@@ -36,25 +36,32 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScreenContainer
-      backgroundColor={theme.color.background}
-      fixedHeader={<HomeHeader />}
-      scrollable={true}
-      showsVerticalScrollIndicator={false}
-      paddingHorizontal={0}
-      contentContainerStyle={styles.contentContainer}
-    >
-      <View>
-        <View style={styles.content}>
-          <UpcomingSolat />
-          <QuickActions />
+    <>
+      <ScreenContainer
+        backgroundColor={theme.color.background}
+        fixedHeader={<HomeHeader />}
+        scrollable={true}
+        showsVerticalScrollIndicator={false}
+        paddingHorizontal={0}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <View>
+          <View style={styles.content}>
+            <UpcomingSolat />
+            <QuickActions />
 
-          <View style={{ paddingHorizontal: 20 }}>
-            <DailyReflection />
+            <View style={{ paddingHorizontal: 20 }}>
+              <DailyReflection />
+            </View>
           </View>
         </View>
-      </View>
 
+        {/* Streak Bottom Drawer */}
+        <StreakBottomDrawer
+          visible={showStreakDrawer}
+          onClose={handleCloseDrawer}
+        />
+      </ScreenContainer>
       {/* FAB Button */}
       <View style={styles.fabContainer}>
         <TouchableOpacity style={styles.fabButton} onPress={handleFabPress}>
@@ -64,13 +71,7 @@ export default function HomeScreen() {
           />
         </TouchableOpacity>
       </View>
-
-      {/* Streak Bottom Drawer */}
-      <StreakBottomDrawer
-        visible={showStreakDrawer}
-        onClose={handleCloseDrawer}
-      />
-    </ScreenContainer>
+    </>
   );
 }
 
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
     width: 65,
     borderRadius: 100,
     position: "absolute",
-    bottom: 20,
+    bottom: 100,
     right: 20,
     elevation: 5,
   },
