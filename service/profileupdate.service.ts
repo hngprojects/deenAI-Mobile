@@ -1,4 +1,4 @@
-import { ContactSupportType, EditProfileType, OtpResponse, RequestOtpPayload, VerifyOtpPayload } from '@/types/profile.types';
+import { ContactSupportType, OtpResponse, RequestOtpPayload, VerifyOtpPayload } from '@/types/profile.types';
 import { apiService } from './api.service';
 
 interface ApiResponse<T> {
@@ -6,79 +6,93 @@ interface ApiResponse<T> {
     message: string;
     data?: T;
     errors?: Record<string, string[]>;
+    status_code?: number;
+}
+
+interface ProfileData {
+    id: string;
+    userId: string;
+    avatar?: string;
+    language?: string;
+    username: string;
+    timezone?: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
 class ProfileUpdateService {
-    async getProfile(): Promise<ApiResponse<any>> {
-        return apiService.get<ApiResponse<any>>('/users/me/profile');
+    /**
+     * Get current user profile
+     */
+    async getProfile(): Promise<ApiResponse<ProfileData>> {
+        return apiService.get<ApiResponse<ProfileData>>('/users/me/profile');
     }
 
-    async editProfile(userData: { username: string; name: string; avatarFile?: any }): Promise<ApiResponse<any>> {
+    /**
+     * Update user profile with optional avatar
+     * API accepts: username, name, language, timezone, avatar
+     */
+    async editProfile(userData: {
+        username?: string;
+        name?: string;
+        language?: string;
+        timezone?: string;
+        avatarFile?: any
+    }): Promise<ApiResponse<ProfileData>> {
         const formData = new FormData();
-        
-        if (userData.username) formData.append('username', userData.username);
-        if (userData.name) formData.append('name', userData.name);
-        
+
+        // ✅ Add fields only if they exist (partial update)
+        if (userData.username) {
+            formData.append('username', userData.username);
+        }
+        if (userData.name) {
+            formData.append('name', userData.name);
+        }
+        if (userData.language) {
+            formData.append('language', userData.language);
+        }
+        if (userData.timezone) {
+            formData.append('timezone', userData.timezone);
+        }
+
+        // ✅ Add avatar file if provided (JPEG/PNG/WebP/GIF)
         if (userData.avatarFile) {
             formData.append('avatar', {
                 uri: userData.avatarFile.uri,
-                type: 'image/jpeg',
-                name: 'avatar.jpg'
+                type: userData.avatarFile.type || 'image/jpeg',
+                name: userData.avatarFile.name || 'avatar.jpg'
             } as any);
         }
 
-        return apiService.patch<ApiResponse<any>>('/users/me/profile', formData);
+        return apiService.patch<ApiResponse<ProfileData>>('/users/me/profile', formData);
     }
 
+    /**
+     * Submit contact support request
+     */
     async contactSupport(userData: ContactSupportType): Promise<ApiResponse<ContactSupportType>> {
         return apiService.post<ApiResponse<ContactSupportType>>('/contact', userData);
     }
 
-    async updateProfile(id: string, content: string) {}
-
-    async deleteAccount(id: string) {}
-
+    /**
+     * Resend email verification OTP
+     */
     async resendVerification(payload: RequestOtpPayload): Promise<OtpResponse> {
-        return this.apiCall<OtpResponse>('/auth/verify-otp', {
-            method: 'POST',
-            body: JSON.stringify(payload),
-        });
+        return apiService.post<OtpResponse>('/auth/resend-verification', payload);
     }
 
+    /**
+     * Request password reset OTP
+     */
     async requestOtp(payload: RequestOtpPayload): Promise<OtpResponse> {
-        return this.apiCall<OtpResponse>('/auth/forgot-password', {
-            method: 'POST',
-            body: JSON.stringify(payload),
-        });
+        return apiService.post<OtpResponse>('/auth/forgot-password', payload);
     }
 
+    /**
+     * Verify OTP code
+     */
     async verifyOtp(payload: VerifyOtpPayload): Promise<OtpResponse> {
-        return this.apiCall<OtpResponse>('/auth/verify-otp', {
-            method: 'POST',
-            body: JSON.stringify(payload),
-        });
-    }
-
-    private async apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-        const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
-        const url = `${API_BASE_URL}${endpoint}`;
-
-        const config: RequestInit = {
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers,
-            },
-            ...options,
-        };
-
-        const response = await fetch(url, config);
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `Request failed with status ${response.status}`);
-        }
-
-        return await response.json();
+        return apiService.post<OtpResponse>('/auth/verify-otp', payload);
     }
 }
 
