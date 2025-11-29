@@ -34,6 +34,7 @@ function RootLayoutNav() {
     const inTasbihGroup = segments[0] === "(tasbih)";
     const inDeenAIGroup = segments[0] === "(deenai)";
     const inProfileGroup = segments[0] === "profile";
+    const inQiblaGroup = segments[0] === "(qibla)";
     const inHadithGroup = segments[0] === "(hadith)";
     const inAdhkarGroup = segments[0] === "(adhkar)";
     const inPrayerTimesGroup = segments[0] === "(prayer-times)";
@@ -60,6 +61,8 @@ function RootLayoutNav() {
         !inProfileGroup &&
         !inHadithGroup &&
         !inPrayerTimesGroup &&
+        !inAdhkarGroup &&
+        !inQiblaGroup
         !inAdhkarGroup
       ) {
         console.log("➡️ Redirecting to tabs");
@@ -74,6 +77,8 @@ function RootLayoutNav() {
         inProfileGroup ||
         inHadithGroup ||
         inPrayerTimesGroup ||
+        inAdhkarGroup ||
+        inQiblaGroup
         inAdhkarGroup
       ) {
         console.log("➡️ Redirecting to login");
@@ -92,6 +97,7 @@ function RootLayoutNav() {
       <Stack.Screen name="(deenai)" />
       <Stack.Screen name="(adhkar)" />
       <Stack.Screen name="profile" />
+      <Stack.Screen name="(qibla)" />
     </Stack>
   );
 }

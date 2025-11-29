@@ -35,6 +35,10 @@ export default function UpcomingSolat() {
     router.push("/(prayer-times)/prayerTimes");
   };
 
+  const handleQiblaPress = () => {
+    router.push("/(qibla)");
+  };
+
   const handleAllowLocation = async () => {
     setIsRequestingLocation(true);
     try {
@@ -50,7 +54,7 @@ export default function UpcomingSolat() {
     router.push("/(adhkar)");
   };
 
-   const handleCounterPress = () => {
+  const handleCounterPress = () => {
     router.push("/(tasbih)");
   };
 
@@ -197,7 +201,10 @@ export default function UpcomingSolat() {
 
         {/* Quick Actions Box */}
         <View style={styles.quickActionsBox}>
-          <TouchableOpacity style={styles.actionItem}>
+          <TouchableOpacity
+            onPress={handleQiblaPress}
+            style={styles.actionItem}
+          >
             <Image
               source={require("../../assets/images/clarity_compass-line.png")}
               style={styles.actionIcon}
@@ -208,7 +215,8 @@ export default function UpcomingSolat() {
 
           <View style={styles.separator} />
 
-          <TouchableOpacity style={styles.actionItem}
+          <TouchableOpacity
+            style={styles.actionItem}
             onPress={handleCounterPress}
           >
             <Image
@@ -353,7 +361,7 @@ const styles = StyleSheet.create({
 
   separator: {
     width: 1,
-    height: '100%',
+    height: "100%",
     backgroundColor: "#CAAC8F",
   },
 

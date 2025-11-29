@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import locationService, {
     LocationCoordinates,
     LocationPermissionResult
@@ -8,6 +8,20 @@ export const useLocation = () => {
     const [loading, setLoading] = useState(false);
     const [location, setLocation] = useState<LocationCoordinates | null>(null);
     const [error, setError] = useState<string | null>(null);
+    // Real-time location subscription
+    useEffect(() => {
+        let subscription: any = null;
+        (async () => {
+            subscription = await locationService.watchLocation((loc) => {
+                setLocation(loc);
+            });
+        })();
+        return () => {
+            if (subscription && typeof subscription.remove === 'function') {
+                subscription.remove();
+            }
+        };
+    }, []);
 
     const requestPermission = async (): Promise<LocationPermissionResult> => {
         try {
