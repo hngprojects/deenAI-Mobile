@@ -28,15 +28,15 @@ function RootLayoutNav() {
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
-    const inTabsGroup = segments[0] === '(tabs)';
-    const inOnboardingGroup = segments[0] === '(onboarding)';
-    const inTasbihGroup = segments[0] === '(tasbih)';
-    const inDeenAIGroup = segments[0] === '(deenai)';
-    const inProfileGroup = segments[0] === 'profile';
-    const inHadithGroup = segments[0] === '(hadith)';
-    const inAdhkarGroup = segments[0] === '(adhkar)';
-    const inPrayerTimesGroup = segments[0] === '(prayer-times)';
+    const inAuthGroup = segments[0] === "(auth)";
+    const inTabsGroup = segments[0] === "(tabs)";
+    const inOnboardingGroup = segments[0] === "(onboarding)";
+    const inTasbihGroup = segments[0] === "(tasbih)";
+    const inDeenAIGroup = segments[0] === "(deenai)";
+    const inProfileGroup = segments[0] === "profile";
+    const inHadithGroup = segments[0] === "(hadith)";
+    const inAdhkarGroup = segments[0] === "(adhkar)";
+    const inPrayerTimesGroup = segments[0] === "(prayer-times)";
     const inRoot = segments.length === 0;
 
     console.log("🧭 Navigation check:", {
@@ -52,16 +52,32 @@ function RootLayoutNav() {
 
     if (isAuthenticated || isGuest) {
       // Allow navigation to protected routes: tabs, onboarding, tasbih, deenai, profile
-      if (!inTabsGroup && !inOnboardingGroup && !inTasbihGroup && !inDeenAIGroup && !inProfileGroup && !inHadithGroup && !inPrayerTimesGroup && !inAdhkarGroup) {
-        console.log('➡️ Redirecting to tabs');
-        router.replace('/(tabs)');
+      if (
+        !inTabsGroup &&
+        !inOnboardingGroup &&
+        !inTasbihGroup &&
+        !inDeenAIGroup &&
+        !inProfileGroup &&
+        !inHadithGroup &&
+        !inPrayerTimesGroup &&
+        !inAdhkarGroup
+      ) {
+        console.log("➡️ Redirecting to tabs");
+        router.replace("/(tabs)");
       }
-    }
-    else {
+    } else {
       // Not authenticated - only allow auth routes
-      if (inTabsGroup || inTasbihGroup || inDeenAIGroup || inProfileGroup || inHadithGroup || inPrayerTimesGroup || inAdhkarGroup) {
-        console.log('➡️ Redirecting to login');
-        router.replace('/(auth)/login');
+      if (
+        inTabsGroup ||
+        inTasbihGroup ||
+        inDeenAIGroup ||
+        inProfileGroup ||
+        inHadithGroup ||
+        inPrayerTimesGroup ||
+        inAdhkarGroup
+      ) {
+        console.log("➡️ Redirecting to login");
+        router.replace("/(auth)/login");
       }
     }
   }, [isAuthenticated, isGuest, isLoading, router, segments]);
@@ -84,13 +100,14 @@ export default function RootLayout() {
   const [showCustomSplash, setShowCustomSplash] = useState(true);
 
   const [fontsLoaded] = useFonts({
-    'NunitoSans-SemiBold': require('../assets/fonts/NunitoSans-SemiBold.ttf'),
-    'NunitoSans-Bold': require('../assets/fonts/NunitoSans-Bold.ttf'),
-    'NunitoSans-Regular': require('../assets/fonts/NunitoSans-Regular.ttf'),
-    'NunitoSans-Light': require('../assets/fonts/NunitoSans-Light.ttf'),
-    'NunitoSans-ExtraBold': require('../assets/fonts/NunitoSans-ExtraBold.ttf'),
-    'NunitoSans-Black': require('../assets/fonts/NunitoSans-Black.ttf'),
-    'DigitalNumbers-Regular': require('../assets/fonts/DigitalNumbers-Regular.ttf'),
+    "NunitoSans-SemiBold": require("../assets/fonts/NunitoSans-SemiBold.ttf"),
+    "NunitoSans-Bold": require("../assets/fonts/NunitoSans-Bold.ttf"),
+    "NunitoSans-Regular": require("../assets/fonts/NunitoSans-Regular.ttf"),
+    "NunitoSans-Light": require("../assets/fonts/NunitoSans-Light.ttf"),
+    "NunitoSans-ExtraBold": require("../assets/fonts/NunitoSans-ExtraBold.ttf"),
+    "NunitoSans-Black": require("../assets/fonts/NunitoSans-Black.ttf"),
+    "DigitalNumbers-Regular": require("../assets/fonts/DigitalNumbers-Regular.ttf"),
+    "AmiriQuran-Regular": require("../assets/fonts/AmiriQuran-Regular.ttf"),
   });
 
   useEffect(() => {
