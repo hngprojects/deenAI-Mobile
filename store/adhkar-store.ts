@@ -1,6 +1,7 @@
 import { adhkarService } from '@/service/adhkar.service';
 import { Adhkar, AdhkarProgress } from '@/types/adhkar.types';
 import { create } from 'zustand';
+import { useStreakStore } from './streak-store';
 
 interface AdhkarStore {
     currentCategory: 'morning' | 'evening' | null;
@@ -10,6 +11,10 @@ interface AdhkarStore {
 
     morningProgress: AdhkarProgress | null;
     eveningProgress: AdhkarProgress | null;
+
+    // Streak-related
+    sessionStartTime: Date | null;
+    showStreakCompleteModal: boolean;
 
     startAdhkarSession: (category: 'morning' | 'evening') => void;
     nextAdhkar: () => void;
@@ -24,6 +29,10 @@ interface AdhkarStore {
     getCurrentCount: () => number;
     getTotalProgress: () => { completed: number; total: number };
     isCompleted: () => boolean;
+
+    // Streak methods
+    setShowStreakCompleteModal: (show: boolean) => void;
+    getSessionDuration: () => number;
 }
 
 export const useAdhkarStore = create<AdhkarStore>((set, get) => ({
@@ -33,6 +42,8 @@ export const useAdhkarStore = create<AdhkarStore>((set, get) => ({
     completedCount: {},
     morningProgress: null,
     eveningProgress: null,
+    sessionStartTime: null,
+    showStreakCompleteModal: false,
 
     startAdhkarSession: (category: 'morning' | 'evening') => {
         const adhkarList = adhkarService.getAdhkarByCategory(category);
@@ -42,7 +53,22 @@ export const useAdhkarStore = create<AdhkarStore>((set, get) => ({
             currentAdhkar: adhkarList,
             currentIndex: 0,
             completedCount: {},
+            sessionStartTime: new Date(),
         });
+
+        // Mark streak as complete when user opens adhkar
+        const streakStore = useStreakStore.getState();
+        const today = new Date().toISOString().split('T')[0];
+        const existingStreak = streakStore.getStreakForDate(today);
+
+        if (!existingStreak?.completed) {
+            streakStore.completeStreakForToday(category);
+
+            // Show success modal after a brief delay
+            setTimeout(() => {
+                set({ showStreakCompleteModal: true });
+            }, 1000);
+        }
     },
 
     nextAdhkar: () => {
@@ -73,7 +99,6 @@ export const useAdhkarStore = create<AdhkarStore>((set, get) => ({
 
         const currentCount = completedCount[currentIndex] || 0;
 
-
         if (currentCount < current.count) {
             const newCount = currentCount + 1;
 
@@ -81,7 +106,6 @@ export const useAdhkarStore = create<AdhkarStore>((set, get) => ({
                 ...completedCount,
                 [currentIndex]: newCount,
             };
-
 
             set({
                 completedCount: newCompletedCount,
@@ -114,6 +138,7 @@ export const useAdhkarStore = create<AdhkarStore>((set, get) => ({
             currentAdhkar: [],
             currentIndex: 0,
             completedCount: {},
+            sessionStartTime: null,
         });
     },
 
@@ -177,9 +202,21 @@ export const useAdhkarStore = create<AdhkarStore>((set, get) => ({
         // AsyncStorage.setItem(`adhkar_progress_${currentCategory}`, JSON.stringify(progress));
     },
 
-    // Load progress (implement with AsyncStorage if needed)
     loadProgress: () => {
         // TODO: Load from AsyncStorage
         // const morningProgress = await AsyncStorage.getItem('adhkar_progress_morning');
+    },
+
+    setShowStreakCompleteModal: (show: boolean) => {
+        set({ showStreakCompleteModal: show });
+    },
+
+    getSessionDuration: () => {
+        const { sessionStartTime } = get();
+        if (!sessionStartTime) return 0;
+        
+        const now = new Date();
+        const diff = now.getTime() - sessionStartTime.getTime();
+        return Math.floor(diff / 1000 / 60); // Convert to minutes
     },
 }));
