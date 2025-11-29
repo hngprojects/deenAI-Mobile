@@ -45,6 +45,7 @@ class ChatService {
       `/chats/${chatRoomId}`,
       {
         message,
+        stream: true,
       }
     );
 
