@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   streakIcon: {
-    width: 24,
-    height: 24,
+    width: 25,
+    height: 25,
   },
 });
