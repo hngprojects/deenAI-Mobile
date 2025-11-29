@@ -1,7 +1,7 @@
+import { quranService } from '@/service/quran.service';
 import { useReflectStore } from '@/store/reflect-store';
 import { theme } from '@/styles/theme';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useRouter } from 'expo-router';
 import { Bookmark, Edit } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -19,23 +19,6 @@ interface VerseItemProps {
   surahName?: string;
 }
 
-// Type definition for bottom tab navigator
-type BottomTabNavigatorParamList = {
-  index: undefined;
-  quran: undefined;
-  reflect: undefined;
-  profile: undefined;
-  '(tabs)': {
-    screen: '(reflect)' | '(quran)' | '(hadith)';
-    params?: {
-      screen: string;
-      params?: Record<string, any>;
-    };
-  };
-};
-
-type VerseItemNavigationProp = NativeStackNavigationProp<BottomTabNavigatorParamList>;
-
 const VerseItem: React.FC<VerseItemProps> = ({
   verseNumber,
   arabicText,
@@ -48,11 +31,10 @@ const VerseItem: React.FC<VerseItemProps> = ({
   surahNumber,
   surahName,
 }) => {
-  const navigation = useNavigation<VerseItemNavigationProp>();
   const { setDraft } = useReflectStore();
+  const router = useRouter();
 
   const handleReflectPress = () => {
-    // 1. Set the draft with verse data
     setDraft({
       surahNumber,
       verseNumber,
@@ -61,24 +43,29 @@ const VerseItem: React.FC<VerseItemProps> = ({
       surahName,
     });
 
-    console.log('📝 Reflect on verse:', {
-      surahNumber,
-      verseNumber,
-      surahName,
-      translation: translation.substring(0, 50) + '...',
-    });
-
-    // 2. Navigate to reflect tab and open reflect-verse screen
-    // This uses the tab navigator to switch to reflect tab
-    navigation.navigate('(reflect)', {
-      screen: 'reflect-verse',
+    router.push({
+      pathname: '/reflect-verse',
       params: {
         surahNumber: surahNumber?.toString(),
         startAyah: verseNumber?.toString(),
         verseText: translation,
         surahName: surahName,
       },
-    } as any);
+    });
+  };
+
+  const handleBookmarkLongPress = async () => {
+    try {
+      const allBookmarks = await quranService.getBookmarks();
+
+      if (allBookmarks.length === 0) {
+        router.push('/(tabs)/(bookmark)'); // No bookmarks
+      } else {
+        router.push('/(tabs)/(bookmark)/bookmarklistscreen'); // Bookmarks exist
+      }
+    } catch (err) {
+      console.log('Error fetching bookmarks:', err);
+    }
   };
 
   return (
@@ -103,17 +90,16 @@ const VerseItem: React.FC<VerseItemProps> = ({
             style={styles.reflectButton}
           >
             <Text style={styles.saurahActionsText}>Reflect</Text>
-            <Edit
-              size={16}
-              color={theme.color.secondary}
-            />
+            <Edit size={16} color={theme.color.secondary} />
           </TouchableOpacity>
 
           {onBookmarkPress && (
             <TouchableOpacity
-              onPress={onBookmarkPress}
               style={styles.bookmarkButton}
               activeOpacity={0.7}
+              onPress={onBookmarkPress} // Tap toggles bookmark
+              onLongPress={handleBookmarkLongPress} // Long press navigates based on bookmarks
+              delayLongPress={300}
             >
               <Bookmark
                 size={20}
