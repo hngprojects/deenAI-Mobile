@@ -98,6 +98,61 @@ export default function UpcomingSolat() {
             )}
           </TouchableOpacity>
         </View>
+
+        <View style={styles.quickActionsBox}>
+          <TouchableOpacity
+            onPress={handleQiblaPress}
+            style={styles.actionItem}
+          >
+            <Image
+              source={require("../../assets/images/clarity_compass-line.png")}
+              style={styles.actionIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.actionText}>Qibla</Text>
+          </TouchableOpacity>
+
+          <View style={styles.separator} />
+
+          <TouchableOpacity
+            style={styles.actionItem}
+            onPress={handleCounterPress}
+          >
+            <Image
+              source={require("../../assets/images/tasbeeh.png")}
+              style={styles.actionIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.actionText}>Counter</Text>
+          </TouchableOpacity>
+
+          <View style={styles.separator} />
+
+          <TouchableOpacity
+            style={styles.actionItem}
+            onPress={handleAzkarPress}
+          >
+            <Image
+              source={require("../../assets/images/adhkarr.png")}
+              style={styles.actionIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.actionText}>Azkar</Text>
+          </TouchableOpacity>
+
+          <View style={styles.separator} />
+
+          <TouchableOpacity style={styles.actionItem}
+            onPress={handleStreakPress}
+          >
+            <Image
+              source={require("../../assets/images/streaks.png")}
+              style={styles.actionIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.actionText}>Streaks</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -115,6 +170,61 @@ export default function UpcomingSolat() {
         <View style={styles.loadingCard}>
           <ActivityIndicator size="large" color={theme.color.brand} />
           <Text style={styles.loadingText}>Loading prayer times...</Text>
+        </View>
+
+        <View style={styles.quickActionsBox}>
+          <TouchableOpacity
+            onPress={handleQiblaPress}
+            style={styles.actionItem}
+          >
+            <Image
+              source={require("../../assets/images/clarity_compass-line.png")}
+              style={styles.actionIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.actionText}>Qibla</Text>
+          </TouchableOpacity>
+
+          <View style={styles.separator} />
+
+          <TouchableOpacity
+            style={styles.actionItem}
+            onPress={handleCounterPress}
+          >
+            <Image
+              source={require("../../assets/images/tasbeeh.png")}
+              style={styles.actionIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.actionText}>Counter</Text>
+          </TouchableOpacity>
+
+          <View style={styles.separator} />
+
+          <TouchableOpacity
+            style={styles.actionItem}
+            onPress={handleAzkarPress}
+          >
+            <Image
+              source={require("../../assets/images/adhkarr.png")}
+              style={styles.actionIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.actionText}>Azkar</Text>
+          </TouchableOpacity>
+
+          <View style={styles.separator} />
+
+          <TouchableOpacity style={styles.actionItem}
+            onPress={handleStreakPress}
+          >
+            <Image
+              source={require("../../assets/images/streaks.png")}
+              style={styles.actionIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.actionText}>Streaks</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -150,6 +260,61 @@ export default function UpcomingSolat() {
             <Text style={styles.errorRetry}>Tap to retry</Text>
           )}
         </TouchableOpacity>
+
+        <View style={styles.quickActionsBox}>
+          <TouchableOpacity
+            onPress={handleQiblaPress}
+            style={styles.actionItem}
+          >
+            <Image
+              source={require("../../assets/images/clarity_compass-line.png")}
+              style={styles.actionIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.actionText}>Qibla</Text>
+          </TouchableOpacity>
+
+          <View style={styles.separator} />
+
+          <TouchableOpacity
+            style={styles.actionItem}
+            onPress={handleCounterPress}
+          >
+            <Image
+              source={require("../../assets/images/tasbeeh.png")}
+              style={styles.actionIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.actionText}>Counter</Text>
+          </TouchableOpacity>
+
+          <View style={styles.separator} />
+
+          <TouchableOpacity
+            style={styles.actionItem}
+            onPress={handleAzkarPress}
+          >
+            <Image
+              source={require("../../assets/images/adhkarr.png")}
+              style={styles.actionIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.actionText}>Azkar</Text>
+          </TouchableOpacity>
+
+          <View style={styles.separator} />
+
+          <TouchableOpacity style={styles.actionItem}
+            onPress={handleStreakPress}
+          >
+            <Image
+              source={require("../../assets/images/streaks.png")}
+              style={styles.actionIcon}
+              resizeMode="contain"
+            />
+            <Text style={styles.actionText}>Streaks</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
