@@ -2,6 +2,8 @@ import React from "react";
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import { theme } from "@/styles/theme";
+import { useAuthStore } from "@/store/auth-store";
+import { requestAccountDeletion } from "@/service/accountDeletion";
 
 interface ModalProps {
   visible: boolean;
@@ -14,11 +16,19 @@ export default function DeleteAccountModal({
 }: ModalProps) {
   const router = useRouter();
 
-  const handleSignOut = () => {
-    setVisible(false);
-    router.push("/(tabs)/(profile)/delete/OTPDeleteAccount");
-  };
+  const handleSignOut = async () => {
+    try {
+      await requestAccountDeletion();
 
+      setVisible(false);
+
+      useAuthStore.getState().logout();
+
+      router.push("/(tabs)/(profile)/delete/OTPDeleteAccount");
+    } catch (err) {
+      console.log("Delete error:", err);
+    }
+  };
   return (
     <Modal
       transparent

@@ -32,7 +32,7 @@ const AzkarStreakCalender = () => {
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
           <Image
-            source={require("@/assets/images/adhkar/fire.svg")}
+            source={require("@/assets/images/adkhar/fire.png")}
             resizeMode="contain"
           />
           <Text style={styles.statCardNumber}>3</Text>
@@ -41,7 +41,7 @@ const AzkarStreakCalender = () => {
 
         <View style={styles.statCard}>
           <Image
-            source={require("@/assets/images/adhkar/badge.svg")}
+            source={require("@/assets/images/adhkar/badge.png")}
             resizeMode="contain"
           />
           <Text style={styles.statCardNumber}>28</Text>
@@ -50,7 +50,7 @@ const AzkarStreakCalender = () => {
 
         <View style={styles.statCard}>
           <Image
-            source={require("@/assets/images/adhkar/calender.svg")}
+            source={require("@/assets/images/adhkar/calender.png")}
             resizeMode="contain"
           />
           <Text style={styles.statCardNumber}>46</Text>
@@ -130,7 +130,7 @@ const AzkarStreakCalender = () => {
         {/* Locked Achievement */}
         <View style={styles.achievementCard}>
           <Image
-            source={require("@/assets/images/adhkar/small-fire-pit.svg")}
+            source={require("@/assets/images/adkhar/fire.png")}
             resizeMode="contain"
           />
           <Lock size={24} color="#BBB" />
@@ -154,7 +154,7 @@ const AzkarStreakCalender = () => {
       {/* QUOTE BOX */}
       <View style={styles.quoteBox}>
         <Image
-          source={require("@/assets/images/qoutes.svg")}
+          source={require("@/assets/images/adkhar/fire.png")}
           resizeMode="contain"
         />
         <Text style={styles.quoteText}>

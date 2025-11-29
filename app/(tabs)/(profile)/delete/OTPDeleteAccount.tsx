@@ -11,12 +11,11 @@ import {
 } from "react-native";
 import { useVerifyOtp } from "@/hooks/useUpdateProfile";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useAuthStore } from "@/store/auth-store";
 
 export default function OTPDeleteAccount() {
   const router = useRouter();
-
-  // GET EMAIL FROM PREVIOUS SCREEN
-  const { email } = useLocalSearchParams();
+  const email = useAuthStore((state) => state.user?.email);
 
   const [otp, setOtp] = useState(["", "", "", "", ""]);
   const inputs = useRef<any>([]);
