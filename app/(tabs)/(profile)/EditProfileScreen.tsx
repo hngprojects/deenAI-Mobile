@@ -15,7 +15,8 @@ import { EditProfileType } from '@/types/profile.types';
 import { EditProfileSchema } from '@/utils/validation';
 import { useEditProfile } from '@/hooks/useUpdateProfile';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-
+import { useUser } from '@/hooks/useUser';
+import { useAuthStore } from '@/store/auth-store';
 import ScreenHeader from '@/components/screenHeader';
 import { router } from 'expo-router';
 
@@ -23,9 +24,12 @@ const { width } = Dimensions.get('window');
 
 export default function EditProfileScreen() {
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<any>(null);
 
+  const { data: userData, refetch: refetchUser } = useUser();
   const { mutate: editProfile, isPending } = useEditProfile();
   const { isConnected, showNoConnectionToast } = useNetworkStatus();
+  const { user: authUser } = useAuthStore();
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -38,19 +42,25 @@ export default function EditProfileScreen() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 0.7,
-      base64: true
+      aspect: [1, 1],
+      base64: false
     });
 
     if (!result.canceled) {
       setAvatarUri(result.assets[0].uri);
-      // optionally send base64 later
+      // ✅ FIX: Proper file structure for FormData
+      setAvatarFile({
+        uri: result.assets[0].uri,
+        type: result.assets[0].type || 'image/jpeg',
+        name: 'avatar.jpg'
+      } as any);
     }
   };
 
   const initialValues: EditProfileType = {
-    fullname: '',
-    username: '',
-    email: '',
+    fullname: authUser?.name || '',
+    username: userData?.username || '',
+    email: authUser?.email || '',
     language: '',
     avatar: avatarUri ?? ''
   };
@@ -61,24 +71,35 @@ export default function EditProfileScreen() {
       return;
     }
 
+    // ✅ FIX: Update auth store immediately
+    const { user: currentUser, login } = useAuthStore.getState();
+    if (currentUser) {
+      login({
+        ...currentUser,
+        name: values.fullname,
+      }, useAuthStore.getState().token!);
+    }
+
     editProfile({
-      ...values,
-      avatar: avatarUri ?? ''
+      username: values.username,
+      name: values.fullname,
+      avatarFile: avatarFile
     });
   };
 
   return (
     <ScreenContainer>
-      <ScreenHeader title="Edit Profile"  onBackPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}/>
+      <ScreenHeader title="Edit Profile" onBackPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}/>
 
-      {/* Avatar */}
       <View style={styles.avatarWrapper}>
         <View style={styles.avatarContainer}>
           <Image
             source={
               avatarUri
                 ? { uri: avatarUri }
-                : require('@/assets/images/woman-in-hijab.png')
+                : userData?.avatar 
+                  ? { uri: userData.avatar }
+                  : require('@/assets/images/woman-in-hijab.png')
             }
             style={styles.avatar}
           />
@@ -92,13 +113,13 @@ export default function EditProfileScreen() {
         </View>
       </View>
 
-      {/* Form */}
       <Formik
         initialValues={initialValues}
         validationSchema={EditProfileSchema}
         validateOnChange
         validateOnBlur
         onSubmit={handleSave}
+        enableReinitialize
       >
         {({
           handleChange,
@@ -140,13 +161,13 @@ export default function EditProfileScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               error={touched.email ? errors.email : undefined}
-              editable={!isPending}
+              editable={false}
             />
 
             <PrimaryButton
               title={isPending ? 'Saving...' : 'Save Changes'}
               onPress={() => handleSubmit()}
-              disabled={!isValid || isPending}
+              disabled={!isValid || isPending || !dirty}
               loading={isPending}
               style={{ marginTop: 10 }}
             />
@@ -163,17 +184,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     gap: 6,
   },
-
   avatarWrapper: { alignItems: 'center', marginTop: 10 },
-
   avatarContainer: { position: 'relative' },
-
   avatar: {
     width: width * 0.32,
     height: width * 0.32,
     borderRadius: (width * 0.32) / 2
   },
-
   cameraIconWrapper: {
     position: 'absolute',
     bottom: 2,
@@ -185,7 +202,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
-
   cameraIconImage: {
     width: 44,
     height: 44,

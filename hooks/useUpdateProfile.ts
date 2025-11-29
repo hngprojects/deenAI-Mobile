@@ -8,10 +8,10 @@ import { router } from "expo-router";
 export const useEditProfile = () => {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const { setLoading } = useAuthStore.getState();
+  const { setLoading, user: currentUser, login } = useAuthStore.getState();
 
   return useMutation({
-    mutationFn: (userData: EditProfileType) => {
+    mutationFn: (userData: { username: string; name: string; avatarFile?: any }) => {
       return profileupdateService.editProfile(userData);
     },
 
@@ -19,10 +19,18 @@ export const useEditProfile = () => {
       setLoading(true);
     },
 
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       setLoading(false);
 
-      queryClient.invalidateQueries({ queryKey: ["user"] });
+      if (currentUser) {
+        const updatedUser = {
+          ...currentUser,
+          name: variables.name,
+        };
+        login(updatedUser, useAuthStore.getState().token!);
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['user'] });
 
       showToast("Profile updated successfully", "success");
 
@@ -52,19 +60,15 @@ export const useContactSupport = () => {
 
     onSuccess: () => {
       setLoading(false);
-
       queryClient.invalidateQueries({ queryKey: ["user"] });
-
       showToast("Thank you for contacting us", "success");
-
       router.push("/(tabs)/(profile)/ProfileScreen");
     },
 
     onError: (error: any) => {
       setLoading(false);
       showToast(
-        error?.message ||
-          "Please ensure all required fields are correctly filled and try again.",
+        error?.message || "Please ensure all required fields are correctly filled and try again.",
         "error"
       );
     },
@@ -78,11 +82,9 @@ export const useVerifyEmail = () => {
     mutationFn: ({ email, otp }: { email: string; otp: string }) =>
       profileupdateService.verifyOtp({ email, otp }),
     onSuccess: () => {
-      console.log("Email verified successfully");
       showToast("Email verified successfully!", "success", 4000);
     },
     onError: (error: any) => {
-      console.error("Verify email error:", error);
       showToast(error.message || "Invalid verification code", "error");
     },
   });
@@ -95,11 +97,9 @@ export const useResendVerification = () => {
     mutationFn: (email: string) =>
       profileupdateService.resendVerification({ email }),
     onSuccess: () => {
-      console.log("Verification OTP resent successfully");
       showToast("Verification code sent! Check your inbox.", "success");
     },
     onError: (error: any) => {
-      console.error("Resend verification error:", error);
       showToast(error.message || "Failed to resend code", "error");
     },
   });
@@ -111,16 +111,13 @@ export const useRequestOtp = () => {
   return useMutation({
     mutationFn: (email: string) => profileupdateService.requestOtp({ email }),
     onSuccess: (data, email) => {
-      console.log("OTP requested successfully");
       showToast("Password reset email sent! Check inbox.", "info");
-
       router.push({
         pathname: "/(auth)/reset-password",
         params: { email },
       });
     },
     onError: (error: any) => {
-      console.error("Request OTP error:", error);
       showToast(error.message || "Failed to send reset email", "error");
     },
   });
@@ -133,11 +130,9 @@ export const useVerifyOtp = () => {
     mutationFn: ({ email, otp }: { email: string; otp: string }) =>
       profileupdateService.verifyOtp({ email, otp }),
     onSuccess: () => {
-      console.log("OTP verified successfully");
       showToast("OTP verified successfully!", "success");
     },
     onError: (error: any) => {
-      console.error("Verify OTP error:", error);
       showToast(error.message || "Invalid OTP code", "error");
     },
   });

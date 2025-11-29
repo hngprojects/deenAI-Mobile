@@ -11,6 +11,8 @@ import {
   View,
 } from "react-native";
 import SignOutConfirmationModal from "./delete/SignOut";
+import { useUser } from "@/hooks/useUser";
+import { useAuthStore } from "@/store/auth-store";
 
 const { width } = Dimensions.get("window");
 
@@ -34,60 +36,64 @@ interface Option {
   iconKey: keyof typeof icons.left;
 }
 
-const profile: {
-  options: Option[];
-  avatar: any;
-  name: string;
-  greeting: string;
-  nameGreeting: string;
-} = {
-  avatar: require("@/assets/images/woman-in-hijab.png"),
-  name: "Aisha",
-  nameGreeting: "Asalam Alaykum Aisha,\n",
-  greeting: "May all your days be filled with Light.",
-  options: [
-    {
-      id: "1",
-      title: "Edit Profile",
-      route: "/(tabs)/(profile)/EditProfileScreen",
-      iconKey: "edit",
-    },
-    {
-      id: "2",
-      title: "Notifications",
-      route: "/(tabs)/(profile)/NotificationScreen",
-      iconKey: "notifications",
-    },
-    {
-      id: "3",
-      title: "Language",
-      route: "/(tabs)/(profile)/AppLanguageScreen",
-      iconKey: "language",
-    },
-    {
-      id: "4",
-      title: "Support",
-      route: "/(tabs)/(profile)/SupportScreen",
-      iconKey: "support",
-    },
-    {
-      id: "5",
-      title: "Log Out",
-      route: "/(tabs)/(profile)/delete/SignOut",
-      iconKey: "signout",
-    },
-    {
-      id: "6",
-      title: "Delete Account",
-      route: "/(tabs)/(profile)/DeleteAccountScreen",
-      iconKey: "delete",
-    },
-  ],
-};
-
 const ProfileScreen: React.FC = () => {
   const router = useRouter();
   const [signOutModalVisible, setSignOutModalVisible] = useState(false);
+  const { data: userData, isLoading, refetch } = useUser(); // ✅ Added refetch
+  const { user: authUser } = useAuthStore();
+
+  // ✅ FIX: Show selected avatar immediately if available
+  const getAvatarSource = () => {
+    if (userData?.avatar) {
+      return { uri: userData.avatar };
+    }
+    return require("@/assets/images/woman-in-hijab.png");
+  };
+
+  const profile = {
+    avatar: getAvatarSource(),
+    name: authUser?.name || "User",
+    nameGreeting: `Asalam Alaykum ${authUser?.name || "User"},\n`,
+    greeting: "May all your days be filled with Light.",
+    options: [
+      {
+        id: "1",
+        title: "Edit Profile",
+        route: "/(tabs)/(profile)/EditProfileScreen",
+        iconKey: "edit",
+      },
+      {
+        id: "2",
+        title: "Notifications",
+        route: "/(tabs)/(profile)/NotificationScreen",
+        iconKey: "notifications",
+      },
+      {
+        id: "3",
+        title: "Language",
+        route: "/(tabs)/(profile)/AppLanguageScreen",
+        iconKey: "language",
+      },
+      {
+        id: "4",
+        title: "Support",
+        route: "/(tabs)/(profile)/SupportScreen",
+        iconKey: "support",
+      },
+      {
+        id: "5",
+        title: "Log Out",
+        route: "/(tabs)/(profile)/delete/SignOut",
+        iconKey: "signout",
+      },
+      {
+        id: "6",
+        title: "Delete Account",
+        route: "/(tabs)/(profile)/DeleteAccountScreen",
+        iconKey: "delete",
+      },
+    ],
+  };
 
   const renderOption = ({ item }: { item: Option }) => (
     <TouchableOpacity
@@ -168,7 +174,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: theme.font.regular,
   },
-
   optionContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -178,12 +183,10 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     backgroundColor: theme.color.background,
   },
-
   leftIconImage: {
     width: 46,
     height: 46,
   },
-
   arrowIconImage: {
     marginLeft: "auto",
     width: 20,
@@ -196,70 +199,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     fontFamily: theme.font.regular,
     marginLeft: 5,
-  },
-  navbarImage: {
-    position: "absolute",
-    bottom: -32,
-    width: "100%",
-    height: 110,
-    zIndex: 1,
-    pointerEvents: "none",
-  },
-
-  // Modal styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "#0000004D",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 30,
-    width: width - 40,
-    gap: 16,
-  },
-  modalTitle: {
-    fontWeight: "700",
-    textAlign: "center",
-    fontSize: 18,
-    color: "#1a1a1a",
-    fontFamily: theme.font.bold,
-  },
-  modalText: {
-    fontSize: 14,
-    fontFamily: theme.font.semiBold,
-    color: "#1A1A1A",
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  modalButtons: {
-    flexDirection: "column",
-    gap: 12,
-  },
-  modalButton: {
-    padding: 16,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cancelButton: {
-    borderColor: "#1a1a1a",
-    borderWidth: 1,
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontFamily: theme.font.semiBold,
-    color: "#1a1a1a",
-  },
-  deleteButton: {
-    backgroundColor: "#E55153",
-  },
-  deleteButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontFamily: theme.font.semiBold,
   },
 });
 
