@@ -1,6 +1,6 @@
 import { theme } from "@/styles/theme";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dimensions,
   FlatList,
@@ -9,10 +9,12 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
 import SignOutConfirmationModal from "./delete/SignOut";
 import { useUser } from "@/hooks/useUser";
 import { useAuthStore } from "@/store/auth-store";
+import { useFocusEffect } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
@@ -39,10 +41,17 @@ interface Option {
 const ProfileScreen: React.FC = () => {
   const router = useRouter();
   const [signOutModalVisible, setSignOutModalVisible] = useState(false);
-  const { data: userData, isLoading, refetch } = useUser(); // ✅ Added refetch
+  const { data: userData, isLoading, refetch } = useUser();
   const { user: authUser } = useAuthStore();
 
-  // ✅ FIX: Show selected avatar immediately if available
+  // ✅ FIX: Refetch user data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
+
+  // ✅ FIX: Prioritize userData over authUser for most up-to-date info
   const getAvatarSource = () => {
     if (userData?.avatar) {
       return { uri: userData.avatar };
@@ -52,8 +61,8 @@ const ProfileScreen: React.FC = () => {
 
   const profile = {
     avatar: getAvatarSource(),
-    name: authUser?.name || "User",
-    nameGreeting: `Asalam Alaykum ${authUser?.name || "User"},\n`,
+    name: userData?.name || authUser?.name || "User",
+    nameGreeting: `Asalam Alaykum ${userData?.name || authUser?.name || "User"},\n`,
     greeting: "May all your days be filled with Light.",
     options: [
       {
@@ -92,7 +101,7 @@ const ProfileScreen: React.FC = () => {
         route: "/(tabs)/(profile)/DeleteAccountScreen",
         iconKey: "delete",
       },
-    ],
+    ] as Option[],
   };
 
   const renderOption = ({ item }: { item: Option }) => (
@@ -103,7 +112,7 @@ const ProfileScreen: React.FC = () => {
         if (item.id === "5") {
           setSignOutModalVisible(true);
         } else if (item.route) {
-          router.push(item?.route);
+          router.push(item.route);
         }
       }}
     >
@@ -121,8 +130,17 @@ const ProfileScreen: React.FC = () => {
     </TouchableOpacity>
   );
 
+  // ✅ Show loading state while fetching profile
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.color.primary} />
+      </View>
+    );
+  }
+
   return (
-    <View>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Image source={profile.avatar} style={styles.avatar} />
         <Text style={[styles.nameGreeting, { color: theme.color.secondary }]}>
@@ -152,6 +170,14 @@ const ProfileScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   header: {
     alignItems: "center",
     marginTop: 36,

@@ -16,6 +16,8 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Share,
+  Platform,
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -66,6 +68,50 @@ export default function AdhkarDetailScreen() {
 
   const handleCloseModal = () => {
     setShowStreakCompleteModal(false);
+  };
+
+  // Share functionality
+  const handleShare = async () => {
+    if (!currentAdhkarItem) return;
+
+    try {
+      // Haptic feedback
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      // Construct share message
+      const shareMessage = `
+${currentAdhkarItem.content}
+
+${currentAdhkarItem.transliteration}
+
+${currentAdhkarItem.translation}
+
+📖 ${currentAdhkarItem.source}
+
+Shared from DeenAI - ${categoryId === "morning" ? "Morning" : "Evening"} Adhkar
+      `.trim();
+
+      const result = await Share.share({
+        message: shareMessage,
+        title: `${categoryId === "morning" ? "Morning" : "Evening"} Adhkar`,
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // Shared with activity type of result.activityType
+          console.log("Shared successfully with:", result.activityType);
+        } else {
+          // Shared
+          console.log("Shared successfully");
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // Dismissed
+        console.log("Share dismissed");
+      }
+    } catch (error) {
+      console.error("Error sharing:", error);
+      Alert.alert("Error", "Failed to share. Please try again.");
+    }
   };
 
   if (isLoading) {
@@ -212,7 +258,7 @@ export default function AdhkarDetailScreen() {
               {currentAdhkarItem.source.split("(")[0].trim() || "Reference"}
             </Text>
           </View>
-          <TouchableOpacity style={styles.shareButton}>
+          <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
             <Ionicons name="share-social-outline" size={22} color="#fff" />
           </TouchableOpacity>
         </View>
