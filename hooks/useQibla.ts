@@ -1,5 +1,6 @@
 import { Magnetometer } from "expo-sensors";
 import { useEffect, useState } from "react";
+import { Platform } from "react-native";
 import { useLocation } from "./useLocation";
 
 // Mecca coordinates (Al-Masjid al-Haram)
@@ -11,18 +12,19 @@ const MECCA_LNG = 39.8262;
 const CALIBRATION_OFFSET = 90; // degrees
 
 function getHeading({ x, y }: { x: number; y: number }) {
-  // Primary attempt: atan2(y, x)
-  let angle = Math.atan2(y, x) * (180 / Math.PI);
-  if (isNaN(angle)) angle = 0;
+  try {
+    // Primary attempt: atan2(y, x)
+    let angle = Math.atan2(y, x) * (180 / Math.PI);
+    if (isNaN(angle)) angle = 0;
 
-  // Normalize to 0..360
-  angle = (angle + 360) % 360;
+    // Normalize to 0..360
+    angle = (angle + 360) % 360;
 
-  // If your device axes are swapped, try the alternate formula:
-  // const alt = (Math.atan2(x, y) * (180 / Math.PI) + 360) % 360;
-  // Use alt if primary seems 90 degrees off.
-
-  return angle;
+    return angle;
+  } catch (error) {
+    console.error("Error calculating heading:", error);
+    return 0;
+  }
 }
 
 // Convert degrees to radians
@@ -80,82 +82,130 @@ const isValidCoordinates = (lat: number, lng: number): boolean => {
   );
 };
 
-// Alternative method using more precise formula
-const calculateQiblaDirectionAlt = (
-  userLat: number,
-  userLng: number
-): number => {
-  const φ1 = toRadians(userLat);
-  const λ1 = toRadians(userLng);
-  const φ2 = toRadians(MECCA_LAT);
-  const λ2 = toRadians(MECCA_LNG);
-
-  const Δλ = λ2 - λ1;
-
-  const x = Math.cos(φ2) * Math.sin(Δλ);
-  const y =
-    Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
-
-  let bearing = Math.atan2(x, y);
-  bearing = toDegrees(bearing);
-
-  return (bearing + 360) % 360;
-};
-
 export function useQibla() {
   const [heading, setHeading] = useState(0);
   const [qiblaDirection, setQiblaDirection] = useState<number | null>(null);
   const [distanceToMecca, setDistanceToMecca] = useState<number | null>(null);
+  const [sensorAvailable, setSensorAvailable] = useState<boolean | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { location } = useLocation();
 
+  // Check magnetometer availability and subscribe
   useEffect(() => {
-    const subscription = Magnetometer.addListener((data) => {
-      setHeading(getHeading(data));
-    });
-    Magnetometer.setUpdateInterval(10);
-    return () => subscription.remove();
+    let subscription: any = null;
+    let isMounted = true;
+
+    const setupMagnetometer = async () => {
+      try {
+        // Check if magnetometer is available
+        const isAvailable = await Magnetometer.isAvailableAsync();
+
+        if (!isMounted) return;
+
+        if (!isAvailable) {
+          console.warn("Magnetometer not available on this device");
+          setSensorAvailable(false);
+          setError("Compass sensor not available on this device");
+          return;
+        }
+
+        setSensorAvailable(true);
+
+        // Subscribe to magnetometer updates
+        subscription = Magnetometer.addListener((data) => {
+          if (isMounted) {
+            const calculatedHeading = getHeading(data);
+            setHeading(calculatedHeading);
+          }
+        });
+
+        // Set update interval (100ms = 10Hz)
+        Magnetometer.setUpdateInterval(100);
+
+        console.log("✅ Magnetometer initialized successfully");
+      } catch (err) {
+        console.error("Error setting up magnetometer:", err);
+        if (isMounted) {
+          setSensorAvailable(false);
+          setError("Failed to access compass sensor");
+        }
+      }
+    };
+
+    setupMagnetometer();
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+      if (subscription) {
+        try {
+          subscription.remove();
+          console.log("🧹 Magnetometer subscription cleaned up");
+        } catch (err) {
+          console.error("Error removing magnetometer subscription:", err);
+        }
+      }
+    };
   }, []);
 
+  // Calculate Qibla direction when location changes
   useEffect(() => {
-    if (location && location.latitude && location.longitude) {
-      if (!isValidCoordinates(location.latitude, location.longitude)) {
-        console.error("Invalid coordinates received");
+    if (!location?.latitude || !location?.longitude) {
+      return;
+    }
+
+    if (!isValidCoordinates(location.latitude, location.longitude)) {
+      console.error("Invalid coordinates received:", location);
+      setError("Invalid location coordinates");
+      return;
+    }
+
+    try {
+      const direction = calculateQiblaDirection(
+        location.latitude,
+        location.longitude
+      );
+      const distance = calculateDistanceToMecca(
+        location.latitude,
+        location.longitude
+      );
+
+      // Validate calculated values
+      if (isNaN(direction) || isNaN(distance)) {
+        console.error("Invalid Qibla calculation result");
+        setError("Failed to calculate Qibla direction");
         return;
       }
 
-      try {
-        const direction = calculateQiblaDirection(
-          location.latitude,
-          location.longitude
-        );
-        const distance = calculateDistanceToMecca(
-          location.latitude,
-          location.longitude
-        );
+      setQiblaDirection(direction);
+      setDistanceToMecca(distance);
+      setError(null);
 
-        setQiblaDirection(direction);
-        setDistanceToMecca(distance);
-
-        console.log("📍 Location:", {
-          lat: location.latitude.toFixed(4),
-          lng: location.longitude.toFixed(4),
-        });
-        console.log("🕋 Qibla:", direction.toFixed(2) + "°");
-        console.log("📏 Distance:", distance.toFixed(0) + " km");
-      } catch (error) {
-        console.error("Error in Qibla calculation:", error);
-      }
+      console.log("📍 Location:", {
+        lat: location.latitude.toFixed(4),
+        lng: location.longitude.toFixed(4),
+      });
+      console.log("🕋 Qibla:", direction.toFixed(2) + "°");
+      console.log("📏 Distance:", distance.toFixed(0) + " km");
+    } catch (err) {
+      console.error("Error in Qibla calculation:", err);
+      setError("Failed to calculate Qibla direction");
     }
   }, [location]);
 
+  // Calculate rotation for compass needle
   const rotation =
-    qiblaDirection !== null ? -((qiblaDirection - heading + 180) % 360) : 0;
+    qiblaDirection !== null && sensorAvailable
+      ? -((qiblaDirection - heading + 180) % 360)
+      : 0;
 
   return {
     heading,
     qiblaDirection,
     rotation,
     distanceToMecca,
+    sensorAvailable,
+    error,
     meccaCoordinates: { lat: MECCA_LAT, lng: MECCA_LNG },
   };
 }
