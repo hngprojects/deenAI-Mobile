@@ -1,11 +1,11 @@
-import { useAuthStore } from '@/store/auth-store';
 import { authService } from '@/service/auth.service';
-import { useToast } from './useToast';
+import { useAuthStore } from '@/store/auth-store';
 import * as Google from 'expo-auth-session/providers/google';
+import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
-import Constants from 'expo-constants';
+import { useToast } from './useToast';
 
 // This is required for web-based auth flows
 WebBrowser.maybeCompleteAuthSession();
