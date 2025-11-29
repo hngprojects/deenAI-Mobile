@@ -81,6 +81,9 @@ export default function DEENAI() {
           title="DEEN AI"
           titleAlign="center"
           onBackPress={handleBackPress}
+          headerStyle={{
+            paddingHorizontal: 0,
+          }}
           rightComponent={
             <TouchableOpacity onPress={handleHistoryPress}>
               <View style={styles.historyButton}>
@@ -93,8 +96,8 @@ export default function DEENAI() {
 
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         {/* Messages */}
         <View style={{ flex: 1 }}>
@@ -104,7 +107,6 @@ export default function DEENAI() {
               scrollable={true}
               showsVerticalScrollIndicator={false}
               paddingHorizontal={0}
-              keyboardAvoiding={true}
             >
               <StarterPrompts setMessage={setPrompt} />
             </ScreenContainer>
@@ -147,7 +149,10 @@ export default function DEENAI() {
               {loading ? (
                 <Loader fill={theme.color.primary} color={theme.color.gray} />
               ) : (
-                <Send fill={theme.color.primary} color={theme.color.background} />
+                <Send
+                  fill={theme.color.primary}
+                  color={theme.color.background}
+                />
               )}
             </TouchableOpacity>
           </View>
