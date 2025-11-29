@@ -63,6 +63,7 @@ function RootLayoutNav() {
         !inPrayerTimesGroup &&
         !inAdhkarGroup &&
         !inQiblaGroup
+        !inAdhkarGroup
       ) {
         console.log("➡️ Redirecting to tabs");
         router.replace("/(tabs)");
@@ -78,6 +79,7 @@ function RootLayoutNav() {
         inPrayerTimesGroup ||
         inAdhkarGroup ||
         inQiblaGroup
+        inAdhkarGroup
       ) {
         console.log("➡️ Redirecting to login");
         router.replace("/(auth)/login");
@@ -111,6 +113,7 @@ export default function RootLayout() {
     "NunitoSans-ExtraBold": require("../assets/fonts/NunitoSans-ExtraBold.ttf"),
     "NunitoSans-Black": require("../assets/fonts/NunitoSans-Black.ttf"),
     "DigitalNumbers-Regular": require("../assets/fonts/DigitalNumbers-Regular.ttf"),
+    "AmiriQuran-Regular": require("../assets/fonts/AmiriQuran-Regular.ttf"),
   });
 
   useEffect(() => {
