@@ -1,77 +1,97 @@
 import InputField from "@/components/InputField";
 import PrimaryButton from "@/components/primaryButton";
-import { router } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
+import ScreenContainer from "@/components/ScreenContainer";
+import ScreenHeader from "@/components/screenHeader";
+import { useRequestOtp } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
+import { theme } from "@/styles/theme";
+import { ForgotPasswordSchema } from "@/utils/validation";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function ForgotPassword() {
-  const [email, setEmail] = useState("");
+    const [email, setEmail] = useState("");
+    const [emailError, setEmailError] = useState("");
+    const requestOtpMutation = useRequestOtp();
+    const { showToast } = useToast();
 
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-        <ArrowLeft />
-      </TouchableOpacity>
+    const handleSendOtp = async () => {
+        try {
+            setEmailError("");
 
-      <Text style={styles.title}>Forgot Password</Text>
+            await ForgotPasswordSchema.validate({ email }, { abortEarly: false });
 
-      <Text style={styles.subtitle}>Enter your email address below and we&apos;ll send you a link to reset your password </Text>
+            await requestOtpMutation.mutateAsync(email.trim().toLowerCase());
+        } catch (error: any) {
+            if (error.name === "ValidationError") {
+                setEmailError(error.errors[0]);
+            } else {
+                showToast(
+                    error.message || "Failed to send verification code. Please try again.",
+                    'error'
+                );
+            }
+        }
+    };
 
-      <InputField
-        label="Email Address"
-        placeholder="Enter your email address"
-        value={email}
-        onChangeText={setEmail}
-      />
+    return (
+        <ScreenContainer>
+            <ScreenHeader title="Reset Password" />
 
-      <View style={{ marginTop: 10 }}>
-        <PrimaryButton
-          title="Send"
-          onPress={() => router.push("/forgot-password/ForgotPassword")}
-        />
-      </View>
+            <Text style={styles.subtitle}>
+                Enter your email address below and we&apos;ll send you a verification code to reset your password
+            </Text>
 
-      <Text style={styles.footerText}>
-        By using Deen AI, you agree to the{" "}
-        <Text style={styles.link}>Terms and Privacy Policy.</Text>
-      </Text>
-    </ScrollView>
-  );
+            <InputField
+                label="Email Address"
+                placeholder="Enter your email address"
+                value={email}
+                onChangeText={(text) => {
+                    setEmail(text);
+                    if (emailError) setEmailError("");
+                }}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                error={emailError}
+                editable={!requestOtpMutation.isPending}
+            />
+
+            <View style={{ marginTop: 10 }}>
+                <PrimaryButton
+                    title={requestOtpMutation.isPending ? "Sending..." : "Send"}
+                    onPress={handleSendOtp}
+                    disabled={requestOtpMutation.isPending}
+                />
+            </View>
+
+            <Text style={styles.footerText}>
+                By using Deen AI, you agree to the{" "}
+                <Text style={styles.link}>Terms and Privacy Policy.</Text>
+            </Text>
+        </ScreenContainer>
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 24,
-    paddingBottom: 80,
-  },
-  backBtn: {
-    marginBottom: 12,
-    width: 40,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 6,
-    color: "#222",
-  },
-  subtitle: {
-    fontSize: 14,
-    textAlign: "center",
-    color: "#555",
-    marginBottom: 26,
-    lineHeight: 20,
-  },
-  footerText: {
-    marginTop: 20,
-    fontSize: 13,
-    textAlign: "center",
-    color: "#777",
-    lineHeight: 18,
-  },
-  link: {
-    color: "#b86e00",
-    fontWeight: "600",
-  },
+    subtitle: {
+        fontSize: 16,
+        textAlign: "center",
+        marginTop: 20,
+        marginBottom: 26,
+        lineHeight: 22,
+        fontFamily: theme.font.regular,
+        color: "#333",
+    },
+    footerText: {
+        marginTop: 20,
+        fontSize: 13,
+        textAlign: "center",
+        color: "#777",
+        lineHeight: 18,
+        fontFamily: theme.font.regular,
+    },
+    link: {
+        color: theme.color.brand,
+        fontFamily: theme.font.semiBold,
+    },
 });

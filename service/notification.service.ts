@@ -95,7 +95,6 @@ class NotificationService {
                 });
             }
 
-            // Get the push notification token
             const token = await Notifications.getExpoPushTokenAsync({
                 projectId: 'your-project-id', // Replace with your Expo project ID
             });

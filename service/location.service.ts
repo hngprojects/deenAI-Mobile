@@ -1,5 +1,6 @@
 import * as Location from 'expo-location';
 import { Alert, Linking, Platform } from 'react-native';
+import * as Device from 'expo-device';
 
 export interface LocationCoordinates {
     latitude: number;
@@ -16,7 +17,30 @@ export interface LocationPermissionResult {
     servicesDisabled?: boolean;
 }
 
+const DEFAULT_LOCATION = {
+    latitude: 6.5244,
+    longitude: 3.3792,
+    altitude: null,
+    accuracy: 100,
+    timestamp: Date.now(),
+};
+
 class LocationService {
+    /**
+     * Check if running on emulator/simulator
+     */
+    private isEmulator(): boolean {
+        return !Device.isDevice;
+    }
+
+    /**
+     * Get default location for emulator
+     */
+    private getDefaultLocation(): LocationCoordinates {
+        console.log('📍 Using default location (Lagos, Nigeria) for emulator');
+        return DEFAULT_LOCATION;
+    }
+
     /**
      * Check if location services are enabled on the device
      */
@@ -57,7 +81,14 @@ class LocationService {
      */
     async requestPermission(): Promise<LocationPermissionResult> {
         try {
-            // First check if location services are enabled
+            // If emulator, return default location immediately
+            if (this.isEmulator()) {
+                return {
+                    granted: true,
+                    location: this.getDefaultLocation(),
+                };
+            }
+
             const servicesEnabled = await this.checkServicesEnabled();
 
             if (!servicesEnabled) {
@@ -72,7 +103,6 @@ class LocationService {
             const { status } = await Location.requestForegroundPermissionsAsync();
 
             if (status === 'granted') {
-                // Try to get current location
                 try {
                     const location = await this.getCurrentLocation();
                     return {
@@ -80,7 +110,6 @@ class LocationService {
                         location,
                     };
                 } catch (locationError) {
-                    // Permission granted but couldn't get location
                     console.log('Permission granted but could not get location:', locationError);
                     return {
                         granted: true,
@@ -107,18 +136,23 @@ class LocationService {
      */
     async getCurrentLocation(): Promise<LocationCoordinates> {
         try {
-            // Check if services are enabled
+            // If emulator, return default location
+            if (this.isEmulator()) {
+                return this.getDefaultLocation();
+            }
+
             const servicesEnabled = await this.checkServicesEnabled();
 
             if (!servicesEnabled) {
-                throw new Error('Location services are disabled. Please enable them in your device settings.');
+                console.log('⚠️ Location services disabled, using default location');
+                return this.getDefaultLocation();
             }
 
-            // Check if permission is granted
             const { status } = await Location.getForegroundPermissionsAsync();
 
             if (status !== 'granted') {
-                throw new Error('Location permission not granted');
+                console.log('⚠️ Location permission not granted, using default location');
+                return this.getDefaultLocation();
             }
 
             const location = await Location.getCurrentPositionAsync({
@@ -135,7 +169,9 @@ class LocationService {
             };
         } catch (error) {
             console.error('Get location error:', error);
-            throw error;
+            console.log('⚠️ Falling back to default location (Lagos, Nigeria)');
+            // Return default location instead of throwing error
+            return this.getDefaultLocation();
         }
     }
 
@@ -144,6 +180,11 @@ class LocationService {
      */
     async checkPermission(): Promise<boolean> {
         try {
+            // Always return true for emulator
+            if (this.isEmulator()) {
+                return true;
+            }
+
             const { status } = await Location.getForegroundPermissionsAsync();
             return status === 'granted';
         } catch (error) {
@@ -160,6 +201,11 @@ class LocationService {
         longitude: number
     ): Promise<string> {
         try {
+            // For emulator with default location, return Lagos
+            if (this.isEmulator() && latitude === DEFAULT_LOCATION.latitude && longitude === DEFAULT_LOCATION.longitude) {
+                return 'Lagos, Lagos, Nigeria';
+            }
+
             const addresses = await Location.reverseGeocodeAsync({
                 latitude,
                 longitude,
@@ -173,6 +219,10 @@ class LocationService {
             return 'Unknown location';
         } catch (error) {
             console.error('Reverse geocode error:', error);
+            // Fallback to Lagos if it's the default location
+            if (latitude === DEFAULT_LOCATION.latitude && longitude === DEFAULT_LOCATION.longitude) {
+                return 'Location...';
+            }
             return 'Unable to get address';
         }
     }
@@ -184,7 +234,12 @@ class LocationService {
         callback: (location: LocationCoordinates) => void
     ): Promise<Location.LocationSubscription | null> {
         try {
-            // Check services first
+            // For emulator, just call callback once with default location
+            if (this.isEmulator()) {
+                callback(this.getDefaultLocation());
+                return null;
+            }
+
             const servicesEnabled = await this.checkServicesEnabled();
 
             if (!servicesEnabled) {
@@ -200,8 +255,8 @@ class LocationService {
             return await Location.watchPositionAsync(
                 {
                     accuracy: Location.Accuracy.Balanced,
-                    timeInterval: 10000, // Update every 10 seconds
-                    distanceInterval: 100, // Update every 100 meters
+                    timeInterval: 10000,
+                    distanceInterval: 100,
                 },
                 (position) => {
                     callback({
@@ -224,6 +279,11 @@ class LocationService {
      */
     async getLastKnownLocation(): Promise<LocationCoordinates | null> {
         try {
+            // For emulator, return default location
+            if (this.isEmulator()) {
+                return this.getDefaultLocation();
+            }
+
             const servicesEnabled = await this.checkServicesEnabled();
 
             if (!servicesEnabled) {

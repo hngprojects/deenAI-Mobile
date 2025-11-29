@@ -15,6 +15,7 @@ interface InputFieldProps extends TextInputProps {
   error?: string;
   showPasswordToggle?: boolean;
   onTogglePassword?: () => void;
+  leftIcon?: React.ReactNode;
 }
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -23,17 +24,20 @@ const InputField: React.FC<InputFieldProps> = ({
   showPasswordToggle,
   onTogglePassword,
   secureTextEntry,
+  leftIcon,
   ...props
 }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.inputContainer}>
+        {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
         <TextInput
           style={[
             styles.input,
             error && styles.inputError,
             showPasswordToggle && styles.inputWithIcon,
+            leftIcon ? { paddingLeft: 45 } : {},
           ]}
           placeholderTextColor="#999"
           {...props}
@@ -70,6 +74,13 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     position: 'relative',
+    justifyContent: "center",
+  },
+  leftIcon: {
+    position: 'absolute',
+    left: 17,
+    top: 15,
+    zIndex: 10,
   },
   input: {
     backgroundColor: theme.color.white,

@@ -1,0 +1,358 @@
+// app/(tabs)/reflect/reflect-verse.tsx
+
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Save } from 'lucide-react-native';
+import { reflectService } from '@/service/reflect.service';
+import ScreenContainer from '@/components/ScreenContainer';
+import ScreenHeader from '@/components/screenHeader';
+import PrimaryButton from '@/components/primaryButton';
+import SecondaryButton from '@/components/secondaryButton';
+import { theme } from '@/styles/theme';
+import { quranService } from '@/service/quran.service';
+import { Surah } from '@/types/quran.types';
+
+export default function ReflectVerseScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+
+  // Route params from verse click
+  const surahNumber = params.surahNumber ? parseInt(params.surahNumber as string) : undefined;
+  const verseNumber = params.verseNumber ? parseInt(params.verseNumber as string) : undefined;
+  const arabicText = params.arabicText as string;
+  const translation = params.translation as string;
+  const surahName = params.surahName as string;
+
+  // Edit mode params
+  const reflectionId = params.reflectionId as string;
+  const editMode = params.editMode === 'true';
+  const existingContent = params.content as string;
+
+  const [content, setContent] = useState(existingContent || '');
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [surah, setSurah] = useState<Surah | null>(null);
+
+  // Load surah data if surahNumber is provided
+  useEffect(() => {
+    const loadSurahData = async () => {
+      if (surahNumber) {
+        try {
+          setLoading(true);
+          const surahData = await quranService.getSurah(surahNumber);
+          setSurah(surahData);
+        } catch (error) {
+          console.error('Error loading surah data:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadSurahData();
+  }, [surahNumber]);
+
+  const handleSaveReflection = async () => {
+    if (!content.trim()) {
+      Alert.alert('Validation Error', 'Please write your reflection before saving.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      if (editMode && reflectionId) {
+        // Update existing reflection
+        await reflectService.updateReflection(reflectionId, content);
+        Alert.alert('Success', 'Reflection updated successfully!', [
+          { text: 'OK', onPress: () => router.back() }
+        ]);
+      } else {
+        // Create new reflection
+        const reflectionData = {
+          content: content.trim(),
+          ...(surahNumber && { surah: surahNumber }),
+          ...(verseNumber && { startAyah: verseNumber, endAyah: verseNumber }),
+        };
+
+        await reflectService.createReflection(reflectionData);
+        Alert.alert('Success', 'Reflection saved successfully!', [
+          {
+            text: 'OK',
+            onPress: () => router.replace({
+              pathname: '/(tabs)/(reflect)/reflect-success',
+              params: {
+                surahNumber: surahNumber?.toString(),
+                verseNumber: verseNumber?.toString(),
+                surahName: surahName
+              }
+            })
+          }
+        ]);
+      }
+    } catch (error: any) {
+      console.error('Error saving reflection:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to save reflection. Please try again.';
+      Alert.alert('Error', errorMessage);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (content.trim() && content !== existingContent) {
+      Alert.alert(
+        'Unsaved Changes',
+        'You have unsaved changes. Are you sure you want to leave?',
+        [
+          { text: 'Stay', style: 'cancel' },
+          { text: 'Leave', style: 'destructive', onPress: () => router.back() }
+        ]
+      );
+    } else {
+      router.back();
+    }
+  };
+
+  const handleShare = () => {
+    // Implement share functionality here
+    Alert.alert('Share', 'Share functionality will be implemented soon!');
+  };
+
+  if (loading) {
+    return (
+      <ScreenContainer backgroundColor={theme.color.white}>
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={theme.color.brand} />
+          <Text style={styles.loadingText}>Loading verse...</Text>
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  return (
+    <ScreenContainer
+      backgroundColor={theme.color.white}
+      keyboardAvoiding={true}
+    >
+      <ScreenHeader
+        title={editMode ? "Edit Reflection" : "Reflect on Verse"}
+        showBackButton={true}
+        onBackPress={handleCancel}
+      />
+
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Verse Quote Section - Custom UI without ReflectionQuote component */}
+        {(surahNumber || arabicText) && (
+          <View style={styles.quoteCard}>
+            <Text style={styles.quoteText}>
+              {arabicText}
+            </Text>
+
+            <Text style={styles.quoteVerse}>
+              {surah && (
+                <Text>
+                  {surah.englishName} ({surah.name})
+                  {verseNumber && `, Verse ${verseNumber}`}
+                </Text>
+              )}
+              {!surah && surahName && (
+                <Text>
+                  {surahName}
+                  {verseNumber && `, Verse ${verseNumber}`}
+                </Text>
+              )}
+            </Text>
+
+            {translation && (
+              <Text style={styles.quoteTranslation}>
+                {translation}
+              </Text>
+            )}
+          </View>
+        )}
+
+        {/* Reflection Input Section */}
+        <View style={styles.reflectionSection}>
+          <Text style={styles.reflectionHeader}>Your Reflection</Text>
+          <Text style={styles.reflectionSubtitle}>
+            Write what this verse means to you...
+          </Text>
+
+          <TextInput
+            style={styles.textarea}
+            placeholder="Share your thoughts, insights, or personal reflections on this verse..."
+            placeholderTextColor={theme.color.black}
+            value={content}
+            onChangeText={setContent}
+            multiline={true}
+            numberOfLines={8}
+            textAlignVertical="top"
+            autoFocus={!editMode}
+            maxLength={2000}
+          />
+
+          <Text style={styles.charCount}>
+            {content.length}/2000 characters
+          </Text>
+        </View>
+
+        {/* Action Buttons */}
+        <View style={styles.buttonContainer}>
+          <PrimaryButton
+            title={saving ? "Saving..." : "Save reflection"}
+            onPress={handleSaveReflection}
+            disabled={saving || !content.trim()}
+            loading={saving}
+            style={styles.button}
+          />
+          <SecondaryButton
+            title="Share reflection"
+            onPress={handleShare}
+            style={styles.button}
+          />
+        </View>
+
+      </ScrollView>
+    </ScreenContainer>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontFamily: theme.font.regular,
+    color: theme.color.secondary,
+  },
+  // Quote Card Styles (replacing ReflectionQuote component)
+  quoteCard: {
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    borderWidth: 1,
+    backgroundColor: theme.color.background,
+    borderColor: '#E3E3E3',
+    gap: 13,
+    marginTop: 20,
+    marginBottom: 12,
+    borderRadius: 8,
+  },
+  quoteText: {
+    fontSize: 18,
+    fontFamily: 'Scheherazade-Regular',
+    color: theme.color.secondary,
+    textAlign: 'right',
+    lineHeight: 32,
+  },
+  quoteVerse: {
+    color: "#3C3A35",
+    fontSize: 16,
+    fontFamily: theme.font.bold,
+    textAlign: 'center',
+  },
+  quoteTranslation: {
+    fontSize: 14,
+    fontFamily: theme.font.regular,
+    color: theme.color.black,
+    textAlign: 'center',
+    lineHeight: 20,
+    fontStyle: 'italic',
+    marginTop: 8,
+  },
+  // Reflection Section
+  reflectionSection: {
+    gap: 8,
+  },
+  reflectionHeader: {
+    fontSize: 18,
+    fontFamily: theme.font.extraBold,
+    color: '#3C3A35',
+    lineHeight: 24,
+    marginTop: 24,
+  },
+  reflectionSubtitle: {
+    fontSize: 14,
+    fontFamily: theme.font.regular,
+    color: theme.color.black,
+    lineHeight: 20,
+  },
+  textarea: {
+    borderWidth: 1,
+    borderColor: '#C7C5CC',
+    borderRadius: 8,
+    padding: 16,
+    fontSize: 16,
+    fontFamily: theme.font.regular,
+    textAlignVertical: 'top',
+    marginTop: 12,
+    minHeight: 150,
+    color: theme.color.secondary,
+    backgroundColor: theme.color.white,
+  },
+  charCount: {
+    fontSize: 12,
+    fontFamily: theme.font.regular,
+    color: theme.color.black,
+    textAlign: 'right',
+    marginTop: 8,
+  },
+  // Button Section
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+    marginBottom: 30,
+  },
+  button: {
+    flex: 1,
+  },
+  // Tips Section
+  tipsSection: {
+    backgroundColor: '#F7F9FC',
+    padding: 16,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#E8F4FD',
+  },
+  tipsTitle: {
+    fontSize: 16,
+    fontFamily: theme.font.semiBold,
+    color: theme.color.secondary,
+    marginBottom: 8,
+  },
+  tip: {
+    fontSize: 14,
+    fontFamily: theme.font.regular,
+    color: theme.color.black,
+    marginBottom: 4,
+    lineHeight: 20,
+  },
+});
+
+
+
