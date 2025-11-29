@@ -35,6 +35,10 @@ export default function UpcomingSolat() {
     router.push("/(prayer-times)/prayerTimes");
   };
 
+  const handleQiblaPress = () => {
+    router.push("/(qibla)");
+  };
+
   const handleAllowLocation = async () => {
     setIsRequestingLocation(true);
     try {
@@ -197,7 +201,10 @@ export default function UpcomingSolat() {
 
         {/* Quick Actions Box */}
         <View style={styles.quickActionsBox}>
-          <TouchableOpacity style={styles.actionItem}>
+          <TouchableOpacity
+            onPress={handleQiblaPress}
+            style={styles.actionItem}
+          >
             <Image
               source={require("../../assets/images/clarity_compass-line.png")}
               style={styles.actionIcon}
