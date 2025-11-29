@@ -36,10 +36,10 @@ export default function HomeHeader() {
       },
     ]);
   };
-  const handleNotificationPress = () => {
-    // TODO: Navigate to notifications
-    console.log("Notifications pressed");
-  };
+  
+const handleNotificationPress = () => {
+  router.push('/streak-complete'); // Your streak complete screen route
+};
   const handleTasbihPress = () => {
     console.log("Navigating to Tasbih...");
     router.push("/(tasbih)");

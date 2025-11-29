@@ -2,11 +2,21 @@ import ProfileScreen from "@/app/(tabs)/(profile)/ProfileScreen";
 import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-// eslint-disable-next-line import/no-unresolved
 import { BlurView } from "expo-blur";
 
 const ProfileSignOutOverlay: React.FC = () => {
   const router = useRouter();
+
+  const handleSignOut = () => {
+    // Clear any authentication state here if needed
+    // For example:
+    // - Clear tokens from AsyncStorage
+    // - Reset auth context
+    // - Clear any user data
+    
+    // Navigate to login screen - using your exact route
+    router.replace('/(auth)/login');
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -18,7 +28,7 @@ const ProfileSignOutOverlay: React.FC = () => {
           <Text style={styles.cardTitle}>Do you want to log out?</Text>
 
           <Text style={styles.cardText}>
-            You will need to sign in again{"\n"}to access your account.
+            You will need to log your details in again{"\n"}to access your account.
           </Text>
 
           <View style={styles.sideBySideWrapper}>
@@ -31,7 +41,7 @@ const ProfileSignOutOverlay: React.FC = () => {
 
             <TouchableOpacity
               style={[styles.button, styles.signOutButton]}
-              onPress={() => router.push("/profile/signout")}
+              onPress={handleSignOut}
             >
               <Text style={styles.signOutText}>Log Out</Text>
             </TouchableOpacity>
@@ -41,6 +51,7 @@ const ProfileSignOutOverlay: React.FC = () => {
     </View>
   );
 };
+
 
 export default ProfileSignOutOverlay;
 
