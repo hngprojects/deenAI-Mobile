@@ -62,7 +62,7 @@ function RootLayoutNav() {
         !inHadithGroup &&
         !inPrayerTimesGroup &&
         !inAdhkarGroup &&
-        !inQiblaGroup
+        !inQiblaGroup &&
         !inAdhkarGroup
       ) {
         console.log("➡️ Redirecting to tabs");
@@ -78,7 +78,7 @@ function RootLayoutNav() {
         inHadithGroup ||
         inPrayerTimesGroup ||
         inAdhkarGroup ||
-        inQiblaGroup
+        inQiblaGroup ||
         inAdhkarGroup
       ) {
         console.log("➡️ Redirecting to login");

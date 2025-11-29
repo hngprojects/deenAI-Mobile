@@ -1,16 +1,38 @@
 import ScreenContainer from "@/components/ScreenContainer";
+import StreakBottomDrawer from "@/components/adhkar/StreakBottomDrawer";
 import DailyReflection from "@/components/home/DailyReflection";
 import HomeHeader from "@/components/home/HomeHeader";
 import QuickActions from "@/components/home/QuickActions";
 import UpcomingSolat from "@/components/home/UpcomingSolat";
+import { useStreakStore } from "@/store/streak-store";
 import { theme } from "@/styles/theme";
 import { router } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 
 export default function HomeScreen() {
+  const [showStreakDrawer, setShowStreakDrawer] = useState(false);
+  const { hasSeenDrawerToday, checkStreakStatus } = useStreakStore();
+
+  useEffect(() => {
+    // Check streak status when screen loads
+    checkStreakStatus();
+
+    // Show drawer if user hasn't seen it today
+    if (!hasSeenDrawerToday) {
+      // Small delay for better UX
+      setTimeout(() => {
+        setShowStreakDrawer(true);
+      }, 500);
+    }
+  }, [hasSeenDrawerToday, checkStreakStatus]);
+
   const handleFabPress = () => {
     router.push("/(deenai)");
+  };
+
+  const handleCloseDrawer = () => {
+    setShowStreakDrawer(false);
   };
 
   return (
@@ -30,13 +52,10 @@ export default function HomeScreen() {
           <View style={{ paddingHorizontal: 20 }}>
             <DailyReflection />
           </View>
-
-          {/* <View style={{ paddingHorizontal: 20 }}>
-                        <TodaysReflection />
-                    </View> */}
         </View>
       </View>
-      {/* FAB to */}
+
+      {/* FAB Button */}
       <View style={styles.fabContainer}>
         <TouchableOpacity style={styles.fabButton} onPress={handleFabPress}>
           <Image
@@ -45,6 +64,12 @@ export default function HomeScreen() {
           />
         </TouchableOpacity>
       </View>
+
+      {/* Streak Bottom Drawer */}
+      <StreakBottomDrawer
+        visible={showStreakDrawer}
+        onClose={handleCloseDrawer}
+      />
     </ScreenContainer>
   );
 }
@@ -67,10 +92,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.color.background,
   },
   fabContainer: {
-    // borderRadius: 100,
     height: 65,
     width: 65,
-    borderRadius: "100%",
+    borderRadius: 100,
     position: "absolute",
     bottom: 20,
     right: 20,

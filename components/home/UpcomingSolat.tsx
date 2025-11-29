@@ -58,6 +58,10 @@ export default function UpcomingSolat() {
     router.push("/(tasbih)");
   };
 
+  const handleStreakPress = () => {
+    router.push("/(adhkar)/streak-analytics");
+  };
+
   if (!savedLocation) {
     return (
       <View style={styles.container}>
@@ -243,7 +247,9 @@ export default function UpcomingSolat() {
 
           <View style={styles.separator} />
 
-          <TouchableOpacity style={styles.actionItem}>
+          <TouchableOpacity style={styles.actionItem}
+            onPress={handleStreakPress}
+          >
             <Image
               source={require("../../assets/images/streaks.png")}
               style={styles.actionIcon}
