@@ -26,7 +26,7 @@ export default function FAQPrivacyScreen() {
         ""
       ],
       "What sources does Deen AI use?": [
-        ""
+        "It uses the Qur'an and authentic Hadith collections."
       ]
     };
 
