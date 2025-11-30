@@ -23,7 +23,7 @@ export default function FAQPrivacyScreen() {
         ""
       ],
       "What is Deen AI?": [
-        ""
+        "Deen AI is a warm, intelligent, and faith-centered digital companion designed to help Muslims build a peaceful, consistent, and emotionally supportive relationship with the Qur'an."
       ],
       "What sources does Deen AI use?": [
         "It uses the Qur'an and authentic Hadith collections."
