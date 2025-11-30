@@ -9,8 +9,8 @@ export default function DeleteAccountSuccess() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace("/signup");
-    }, 3000);
+      router.replace("/(auth)/login");
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, []);
