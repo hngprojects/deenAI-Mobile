@@ -16,6 +16,9 @@ export default function FAQPrivacyScreen() {
       "Is the Deen AI free to use?": [
         ""
       ],
+      "Is Deen AI a fatwa-issuing tool?": [
+        ""
+      ],
   
     };
 
