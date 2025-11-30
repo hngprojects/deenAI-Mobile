@@ -11,14 +11,15 @@ import {
 } from "react-native";
 import { useVerifyOtp } from "@/hooks/useUpdateProfile";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useAuthStore } from "@/store/auth-store";
+import { authService } from "@/service/auth.service";
 
 export default function OTPDeleteAccount() {
   const router = useRouter();
+  const email = useAuthStore((state) => state.user?.email);
+  const token = useAuthStore((state) => state.token);
 
-  // GET EMAIL FROM PREVIOUS SCREEN
-  const { email } = useLocalSearchParams();
-
-  const [otp, setOtp] = useState(["", "", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const inputs = useRef<any>([]);
 
   const { mutate: verifyOtp, isPending } = useVerifyOtp();
@@ -31,7 +32,7 @@ export default function OTPDeleteAccount() {
     updated[index] = text;
     setOtp(updated);
 
-    if (text && index < 4) {
+    if (text && index < 5) {
       inputs.current[index + 1].focus();
     }
   };
@@ -46,15 +47,19 @@ export default function OTPDeleteAccount() {
 
     const code = otp.join("");
 
-    // Use the dynamic email instead of hardcoded email
-    verifyOtp(
-      { email: String(email), otp: code },
-      {
-        onSuccess: () => {
-          router.push("/(tabs)/(profile)/delete/DeleteAccountSuccess");
-        },
-      }
-    );
+    if (!token) {
+      alert("Authentication token missing. Please log in again.");
+      return;
+    }
+
+    authService
+      .confirmDeleteAccount(token, { otp: code })
+      .then(() => {
+        router.push("/(tabs)/(profile)/delete/DeleteAccountSuccess");
+      })
+      .catch((err: any) => {
+        alert(err.message || "Unable to confirm account deletion.");
+      });
   };
 
   return (
@@ -69,7 +74,7 @@ export default function OTPDeleteAccount() {
       <Text style={styles.confirmTitle}>Confirm Delete</Text>
 
       <Text style={styles.infoText}>
-        A 5-digit code has been sent to{" "}
+        A 6-digit code has been sent to{" "}
         <Text style={styles.boldEmail}>{email}</Text>
       </Text>
 
