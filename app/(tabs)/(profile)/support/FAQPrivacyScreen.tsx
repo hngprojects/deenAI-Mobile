@@ -20,7 +20,8 @@ export default function FAQPrivacyScreen() {
         ""
       ],
       "Is my data private?": [
-        ""
+        "Your privacy and peace of mind are very important to us. Every chat, reflection, and saved note within DeenAi is stored securely and kept strictly private. DeenAi does not share, sell, or use your personal data for advertising.",
+        "Your reflections are yours alone, only you can view or delete them. We also use secure encryption methods to protect all stored information and ensure that your conversations with DeenAi remain confidential."
       ],
       "What is Deen AI?": [
         "Deen AI is a warm, intelligent, and faith-centered digital companion designed to help Muslims build a peaceful, consistent, and emotionally supportive relationship with the Qur'an."
