@@ -19,7 +19,13 @@ export default function FAQPrivacyScreen() {
       "Is Deen AI a fatwa-issuing tool?": [
         ""
       ],
-  
+      "Is my data private?": [
+        ""
+      ],
+      "What is Deen AI?": [
+        ""
+      ],
+      
     };
 
     return answers[questionText] || ["Answer not available."];
