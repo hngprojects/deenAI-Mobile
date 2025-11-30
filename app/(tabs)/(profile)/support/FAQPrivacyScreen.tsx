@@ -14,7 +14,7 @@ export default function FAQPrivacyScreen() {
   const getAnswerContent = (questionText: string) => {
     const answers: { [key: string]: string[] } = {
       "Is the Deen AI free to use?": [
-        ""
+        "Yes. Deen AI offers access to essential features. It has a free version and optional premium version for reflections and other features."
       ],
       "Is Deen AI a fatwa-issuing tool?": [
         "No. Deen AI provides general guidance taken directly from the Qur'an and Hadith, but it does not replace scholars or certified fatwa bodies."
