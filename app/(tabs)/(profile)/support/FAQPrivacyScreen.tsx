@@ -25,7 +25,9 @@ export default function FAQPrivacyScreen() {
       "What is Deen AI?": [
         ""
       ],
-      
+      "What sources does Deen AI use?": [
+        ""
+      ]
     };
 
     return answers[questionText] || ["Answer not available."];
