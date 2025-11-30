@@ -17,7 +17,7 @@ export default function FAQPrivacyScreen() {
         ""
       ],
       "Is Deen AI a fatwa-issuing tool?": [
-        ""
+        "No. Deen AI provides general guidance taken directly from the Qur'an and Hadith, but it does not replace scholars or certified fatwa bodies."
       ],
       "Is my data private?": [
         "Your privacy and peace of mind are very important to us. Every chat, reflection, and saved note within DeenAi is stored securely and kept strictly private. DeenAi does not share, sell, or use your personal data for advertising.",
