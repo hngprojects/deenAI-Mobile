@@ -28,7 +28,7 @@ export default function QuickActions() {
         />
         <View style={styles.cardContent}>
           <Text style={styles.cardTitle}>
-            Uncover new &{"\n"}amazing things{"\n"}with Deen Ai
+            Uncover new &{"\n"}amazing things{"\n"}with Deen AI
           </Text>
           <View style={styles.ctaButton}>
             <Text style={styles.ctaText}>Let&apos;s Chat</Text>
