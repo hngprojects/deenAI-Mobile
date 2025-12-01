@@ -1,71 +1,109 @@
-import { theme } from '@/styles/theme';
-import { useRouter } from 'expo-router';
-import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import ScreenHeader from '../../../components/screenHeader';
-import ScreenContainer from '@/components/ScreenContainer';
+import { theme } from "@/styles/theme";
+import { useRouter } from "expo-router";
+import React from "react";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import ScreenContainer from "@/components/ScreenContainer";
+import { ArrowLeft } from "lucide-react-native";
 
 export default function SupportScreen() {
   const router = useRouter();
 
+  // Fixed Header Component
+  const fixedHeader = (
+    <View style={styles.header}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+        activeOpacity={0.7}
+      >
+        <ArrowLeft color={theme.color.secondary} size={24} />
+      </TouchableOpacity>
+
+      <Text style={styles.headerTitle}>Support</Text>
+
+      <View style={styles.placeholder} />
+    </View>
+  );
+
   return (
-    <ScreenContainer backgroundColor={theme.color.background3}>
-    <ScreenHeader title="Support"  onBackPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}/>
-
+    <ScreenContainer
+      fixedHeader={fixedHeader}
+      useFixedHeaderLayout={true}
+      paddingHorizontal={20}
+      backgroundColor={theme.color.background3}
+    >
       <View style={styles.list}>
-
         <TouchableOpacity
           style={styles.item}
-          onPress={() => router.push('/(tabs)/(profile)/support/ContactScreen')}
+          onPress={() => router.push("/(tabs)/(profile)/support/ContactScreen")}
         >
           <Text style={styles.title}>Contact Us</Text>
           <Image
-            source={require('@/assets/images/arrow-right.png')}
+            source={require("@/assets/images/arrow-right.png")}
             style={styles.arrow}
-            resizeMode ='contain'
+            resizeMode="contain"
           />
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.item}
-          onPress={() => router.push('/(tabs)/(profile)/support/FAQScreen')}
+          onPress={() => router.push("/(tabs)/(profile)/support/FAQScreen")}
         >
           <Text style={styles.title}>Frequent Asked Questions</Text>
           <Image
-            source={require('@/assets/images/arrow-right.png')}
+            source={require("@/assets/images/arrow-right.png")}
             style={styles.arrow}
-            resizeMode ='contain'
+            resizeMode="contain"
           />
         </TouchableOpacity>
-
       </View>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.color.background },
-  list: { marginTop: 20, paddingHorizontal: 16 },
-
-   item: {
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 15,
+    paddingHorizontal: 20,
+  },
+  backButton: {
+    width: 40,
+    alignItems: "flex-start",
+    marginLeft: -8,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontFamily: theme.font.semiBold,
+    color: theme.color.secondary,
+    flex: 1,
+    textAlign: "center",
+  },
+  placeholder: {
+    width: 40,
+  },
+  list: {
+    marginTop: 20,
+  },
+  item: {
     paddingVertical: 16,
     paddingHorizontal: 20,
-    backgroundColor: '#F4F4F4',
+    backgroundColor: "#F4F4F4",
     borderRadius: 12,
     marginBottom: 14,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#C7C5CC'
+    borderColor: "#C7C5CC",
   },
-
   title: {
     fontSize: 16,
     color: theme.color.secondary,
-    fontFamily: theme.font.regular
+    fontFamily: theme.font.regular,
   },
-
   arrow: {
     width: 24,
     height: 24,
