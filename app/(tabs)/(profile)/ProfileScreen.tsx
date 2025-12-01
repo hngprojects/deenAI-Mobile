@@ -13,6 +13,8 @@ import {
 import SignOutConfirmationModal from "./delete/SignOut";
 import { useUser } from "@/hooks/useUser";
 import { useAuthStore } from "@/store/auth-store";
+import ScreenContainer from "@/components/ScreenContainer";
+import { ArrowLeft } from "lucide-react-native";
 
 const { width } = Dimensions.get("window");
 
@@ -39,10 +41,9 @@ interface Option {
 const ProfileScreen: React.FC = () => {
   const router = useRouter();
   const [signOutModalVisible, setSignOutModalVisible] = useState(false);
-  const { data: userData, isLoading, refetch } = useUser(); // ✅ Added refetch
+  const { data: userData, isLoading, refetch } = useUser();
   const { user: authUser } = useAuthStore();
 
-  // ✅ FIX: Show selected avatar immediately if available
   const getAvatarSource = () => {
     if (userData?.avatar) {
       return { uri: userData.avatar };
@@ -121,9 +122,31 @@ const ProfileScreen: React.FC = () => {
     </TouchableOpacity>
   );
 
+  // Fixed Header Component
+  const fixedHeader = (
+    <View style={styles.header}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.push("/(tabs)")}
+        activeOpacity={0.7}
+      >
+        <ArrowLeft color={theme.color.secondary} size={24} />
+      </TouchableOpacity>
+
+      <Text style={styles.headerTitle}>Profile</Text>
+
+      <View style={styles.placeholder} />
+    </View>
+  );
+
   return (
-    <View>
-      <View style={styles.header}>
+    <ScreenContainer
+      fixedHeader={fixedHeader}
+      useFixedHeaderLayout={true}
+      paddingHorizontal={20}
+      backgroundColor={theme.color.background}
+    >
+      <View style={styles.profileHeader}>
         <Image source={profile.avatar} style={styles.avatar} />
         <Text style={[styles.nameGreeting, { color: theme.color.secondary }]}>
           {profile.nameGreeting}
@@ -140,21 +163,43 @@ const ProfileScreen: React.FC = () => {
         showsHorizontalScrollIndicator={false}
         bounces={false}
         overScrollMode="never"
-        contentContainerStyle={{ paddingHorizontal: 8, marginTop: 30 }}
+        contentContainerStyle={{ paddingHorizontal: 0, marginTop: 30 }}
       />
 
       <SignOutConfirmationModal
         visible={signOutModalVisible}
         setVisible={setSignOutModalVisible}
       />
-    </View>
+    </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
   header: {
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: 36,
+    justifyContent: "space-between",
+    marginBottom: 15,
+    paddingHorizontal: 20,
+  },
+  backButton: {
+    width: 40,
+    alignItems: "flex-start",
+    marginLeft: -8,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontFamily: theme.font.semiBold,
+    color: theme.color.secondary,
+    flex: 1,
+    textAlign: "center",
+  },
+  placeholder: {
+    width: 40,
+  },
+  profileHeader: {
+    alignItems: "center",
+    marginTop: 10,
   },
   avatar: {
     width: width * 0.32,
