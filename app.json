@@ -1,102 +1,106 @@
 {
-    "expo": {
-        "owner": "deenai",
-        "name": "DeenAi",
-        "slug": "DeenAi-Mobile",
-        "version": "1.0.1",
-        "orientation": "portrait",
-        "icon": "./assets/images/icon.png",
-        "scheme": "nooraimobile",
-        "userInterfaceStyle": "automatic",
-        "newArchEnabled": true,
-        "ios": {
-            "buildNumber": "2",
-            "supportsTablet": true,
-            "infoPlist": {
-                "NSLocationWhenInUseUsageDescription": "This app needs your location to provide accurate prayer times and Qibla direction for your area.",
-                "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs your location to provide accurate prayer times and Qibla direction for your area.",
-                "NSMotionUsageDescription": "This app needs access to your device's motion sensors to show the accurate Qibla direction using the compass.",
-                "NSAppTransportSecurity": {
-                    "NSExceptionDomains": {
-                        "api.ottoman.emerj.net": {
-                            "NSExceptionAllowsInsecureHTTPLoads": true,
-                            "NSIncludesSubdomains": true
-                        }
-                    }
-                },
-                "ITSAppUsesNonExemptEncryption": false
-            },
-            "bundleIdentifier": "com.allcodez.DeenAiMobile"
-        },
-        "android": {
-            "versionCode": 2,
-            "adaptiveIcon": {
-                "backgroundColor": "#E6F4FE",
-                "foregroundImage": "./assets/images/android-icon.png",
-                "backgroundImage": "./assets/images/android-icon.png",
-                "monochromeImage": "./assets/images/android-icon.png"
-            },
-            "intentFilters": [{
-                "action": "VIEW",
-                "autoVerify": true,
-                "data": [{
-                        "scheme": "nooraimobile"
-                    },
-                    {
-                        "scheme": "https",
-                        "host": "auth.expo.io",
-                        "pathPrefix": "/@deenai/DeenAi-Mobile"
-                    }
-                ],
-                "category": [
-                    "BROWSABLE",
-                    "DEFAULT"
-                ]
-            }],
-            "edgeToEdgeEnabled": true,
-            "predictiveBackGestureEnabled": false,
-            "permissions": [
-                "ACCESS_COARSE_LOCATION",
-                "ACCESS_FINE_LOCATION",
-                "android.permission.ACCESS_COARSE_LOCATION",
-                "android.permission.ACCESS_FINE_LOCATION"
-            ],
-            "package": "com.allcodez.DeenAiMobile"
-        },
-        "web": {
-            "output": "static",
-            "favicon": "./assets/images/splash-icon.png"
-        },
-        "plugins": [
-            [
-                "@react-native-google-signin/google-signin",
-                {
-                    "iosUrlScheme": "com.googleusercontent.apps.363819299326-00i9lufgchdclqtqc6nn3kp1bu95ahkp"
-                }
-            ],
-            [
-                "expo-location",
-                {
-                    "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location to provide accurate prayer times and Qibla direction.",
-                    "locationWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location to provide accurate prayer times and Qibla direction."
-                }
-            ],
-            [
-                "expo-sensors",
-                {
-                    "motionPermission": "Allow $(PRODUCT_NAME) to access your device's motion sensors to show the accurate Qibla direction."
-                }
-            ]
-        ],
-        "experiments": {
-            "typedRoutes": true,
-            "reactCompiler": true
-        },
-        "extra": {
-            "router": {},
-            "eas": {
-                "projectId": "524cdef3-3a7b-4fe8-b570-ca1758a8424d"
+  "expo": {
+    "owner": "deenai",
+    "name": "DeenAi",
+    "slug": "DeenAi-Mobile",
+    "version": "1.0.1",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "nooraimobile",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "buildNumber": "2",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app needs your location to provide accurate prayer times and Qibla direction for your area.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs your location to provide accurate prayer times and Qibla direction for your area.",
+        "NSMotionUsageDescription": "This app needs access to your device's motion sensors to show the accurate Qibla direction using the compass.",
+        "NSAppTransportSecurity": {
+          "NSExceptionDomains": {
+            "api.ottoman.emerj.net": {
+              "NSExceptionAllowsInsecureHTTPLoads": true,
+              "NSIncludesSubdomains": true
             }
+          }
+        },
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.allcodez.DeenAiMobile"
+    },
+    "android": {
+      "versionCode": 2,
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/android-icon.png",
+        "backgroundImage": "./assets/images/android-icon.png",
+        "monochromeImage": "./assets/images/android-icon.png"
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "nooraimobile"
+            },
+            {
+              "scheme": "https",
+              "host": "auth.expo.io",
+              "pathPrefix": "/@deenai/DeenAi-Mobile"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
+      ],
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.allcodez.DeenAiMobile"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/splash-icon.png"
+    },
+    "plugins": [
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.363819299326-00i9lufgchdclqtqc6nn3kp1bu95ahkp"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location to provide accurate prayer times and Qibla direction.",
+          "locationWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location to provide accurate prayer times and Qibla direction."
+        }
+      ],
+      [
+        "expo-sensors",
+        {
+          "motionPermission": "Allow $(PRODUCT_NAME) to access your device's motion sensors to show the accurate Qibla direction."
+        }
+      ],
+      "expo-localization"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "524cdef3-3a7b-4fe8-b570-ca1758a8424d"
+      }
     }
+  }
 }

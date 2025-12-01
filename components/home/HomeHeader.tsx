@@ -4,7 +4,10 @@ import { useRouter } from "expo-router";
 import { Bell } from "lucide-react-native";
 import React from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
+
 export default function HomeHeader() {
+  const { t } = useTranslation();
   const { user, isGuest } = useAuth();
   const logoutMutation = useLogout();
   const router = useRouter();
@@ -55,7 +58,7 @@ const handleNotificationPress = () => {
           <Text style={styles.avatarText}>{getInitials(userName)}</Text>
         </TouchableOpacity>
         <View style={styles.greeting}>
-          <Text style={styles.greetingText}>Assalam Alaykum</Text>
+          <Text style={styles.greetingText}>{t("greeting")}</Text>
           <Text style={styles.userName}>{userName}</Text>
         </View>
       </View>
