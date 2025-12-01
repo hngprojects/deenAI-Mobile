@@ -2,48 +2,9 @@ import { useToast } from '@/hooks/useToast';
 import { authService } from '@/service/auth.service';
 import { useAuthStore } from '@/store/auth-store';
 import { LoginFormValues, SignupFormValues } from '@/types/auth.types';
+import { checkPermissionsAndRoute } from '@/utils/permissionHelper';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import * as Location from 'expo-location';
-import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
-import { Alert } from 'react-native';
-
-// Helper function to check permissions
-const checkPermissionsAndRoute = async () => {
-    try {
-        const hasCompletedOnboarding = useAuthStore.getState().hasCompletedOnboarding;
-
-        // If user already completed onboarding, go straight to tabs
-        if (hasCompletedOnboarding) {
-            router.replace('/(tabs)');
-            return;
-        }
-
-        // Check location permission
-        const locationStatus = await Location.getForegroundPermissionsAsync();
-
-        if (!locationStatus.granted) {
-            router.replace('/(onboarding)/location-access');
-            return;
-        }
-
-        // Check notification permission
-        const notificationStatus = await Notifications.getPermissionsAsync();
-
-        if (!notificationStatus.granted) {
-            router.replace('/(onboarding)/notification-access');
-            return;
-        }
-
-        // Both permissions granted, mark onboarding complete and go to tabs
-        useAuthStore.getState().setOnboardingComplete(true);
-        router.replace('/(tabs)');
-    } catch (error) {
-        console.error('Permission check error:', error);
-        // If there's an error, just go to tabs
-        router.replace('/(tabs)');
-    }
-};
 
 export const useSignup = () => {
     const queryClient = useQueryClient();
@@ -59,7 +20,7 @@ export const useSignup = () => {
             queryClient.invalidateQueries({ queryKey: ['user'] });
             showToast('Account created! Now login.', 'success');
 
-            // Route to Xverify-emailX after successful signup
+            // Route to login after successful signup
             router.push({
                 pathname: '/(auth)/login',
                 params: { email: variables.email }
@@ -76,20 +37,7 @@ export const useSignup = () => {
                 errorMessage.includes('email is taken')
             ) {
                 showToast('Account already exists. Please login.', 'warning');
-                router.push('/(auth)/login')
-                // Route to login screen if account already exists
-                // setTimeout(() => {
-                //     Alert.alert(
-                //         'Account Exists',
-                //         'An account with this email already exists. Please login.',
-                //         [
-                //             {
-                //                 text: 'Go to Login',
-                //                 onPress: () => router.push('/(auth)/login')
-                //             }
-                //         ]
-                //     );
-                // }, 500);
+                router.push('/(auth)/login');
             } else {
                 showToast(error.message || 'Signup failed. Please try again.', 'error');
             }
@@ -164,12 +112,31 @@ export const useGuestLogin = () => {
     const { showToast } = useToast();
 
     return useMutation({
-        mutationFn: async () => Promise.resolve(),
-        onSuccess: () => {
+        mutationFn: async () => {
+            // Return a resolved promise to maintain mutation pattern
+            return Promise.resolve({ success: true });
+        },
+        onMutate: () => {
+            useAuthStore.getState().setLoading(true);
+        },
+        onSuccess: async () => {
+            // Set guest mode
             setGuest(true);
             queryClient.invalidateQueries({ queryKey: ['user'] });
+
             showToast('Continuing as guest', 'info');
+
+            // Check permissions for guest users (allow skip option)
+            await checkPermissionsAndRoute({ isGuest: true, allowSkip: true });
+        },
+        onError: (error) => {
+            console.error('Guest login error:', error);
+            showToast('Failed to continue as guest', 'error');
+            // Fallback to tabs even on error
             router.replace('/(tabs)');
+        },
+        onSettled: () => {
+            useAuthStore.getState().setLoading(false);
         },
     });
 };
@@ -191,7 +158,6 @@ export const useLogout = () => {
         },
         onSuccess: () => {
             console.log('✅ Logged out successfully');
-            // showToast('Logged out successfully', 'success');
             router.replace('/(auth)/login');
         },
         onError: (error) => {

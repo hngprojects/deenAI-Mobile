@@ -1,4 +1,6 @@
+import ProfileAvatar from "@/components/ProfileAvatar";
 import { useAuth, useLogout } from "@/hooks/useAuth";
+import { useUser } from "@/hooks/useUser";
 import { theme } from "@/styles/theme";
 import { useRouter } from "expo-router";
 import { Bell } from "lucide-react-native";
@@ -9,53 +11,53 @@ import { useTranslation } from "react-i18next";
 export default function HomeHeader() {
   const { t } = useTranslation();
   const { user, isGuest } = useAuth();
+  const { data: userProfile } = useUser(); // Fetch user profile with avatar
   const logoutMutation = useLogout();
   const router = useRouter();
+
   const userName = user?.name || (isGuest ? "Guest" : "User");
-  const getInitials = (name: string) => {
-    const names = name.trim().split(" ");
-    if (names.length >= 2) {
-      return `${names[0][0]}${names[1][0]}`.toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
-  };
+  const userAvatar = userProfile?.avatar; // Get avatar from profile
+
   const handleAvatarPress = () => {
-    console.log(":red_circle: Avatar pressed, showing alert");
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Logout",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await logoutMutation.mutateAsync();
-          } catch (error) {
-            console.error("Logout failed:", error);
-          }
-        },
-      },
-    ]);
+    // console.log(":red_circle: Avatar pressed, showing alert");
+    // Alert.alert("Logout", "Are you sure you want to logout?", [
+    //   {
+    //     text: "Cancel",
+    //     style: "cancel",
+    //   },
+    //   {
+    //     text: "Logout",
+    //     style: "destructive",
+    //     onPress: async () => {
+    //       try {
+    //         await logoutMutation.mutateAsync();
+    //       } catch (error) {
+    //         console.error("Logout failed:", error);
+    //       }
+    //     },
+    //   },
+    // ]);
+
+     router.push('/(tabs)/(profile)');
+
   };
-  
-const handleNotificationPress = () => {
-  router.push('/streak-complete'); // Your streak complete screen route
-};
-  const handleTasbihPress = () => {
-    console.log("Navigating to Tasbih...");
-    router.push("/(tasbih)");
+
+  const handleNotificationPress = () => {
+    router.push('/streak-complete');
   };
+
   return (
     <View style={styles.container}>
       <View style={styles.userInfo}>
         <TouchableOpacity
-          style={styles.avatar}
           onPress={handleAvatarPress}
           activeOpacity={0.7}
         >
-          <Text style={styles.avatarText}>{getInitials(userName)}</Text>
+          <ProfileAvatar
+            avatar={userAvatar}
+            name={userName}
+            size={56}
+          />
         </TouchableOpacity>
         <View style={styles.greeting}>
           <Text style={styles.greetingText}>{t("greeting")}</Text>
@@ -63,16 +65,6 @@ const handleNotificationPress = () => {
         </View>
       </View>
       <View style={styles.notifyButtons}>
-        {/* <TouchableOpacity
-          onPress={handleTasbihPress}
-          style={styles.notificationButton}
-        >
-          <Image
-            source={require("@/assets/images/tasbih.png")}
-            style={styles.iconImage}
-            resizeMode="contain"
-          />
-        </TouchableOpacity> */}
         <TouchableOpacity
           style={styles.notificationButton}
           onPress={handleNotificationPress}
@@ -84,6 +76,7 @@ const handleNotificationPress = () => {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
@@ -97,19 +90,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: theme.color.brand,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    fontSize: 20,
-    fontFamily: theme.font.bold,
-    color: theme.color.white,
   },
   greeting: {
     gap: 2,
@@ -129,11 +109,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     gap: 12,
-  },
-  iconImage: {
-    width: 27,
-    height: 27,
-    resizeMode: "contain",
   },
   notificationButton: {
     width: 42,

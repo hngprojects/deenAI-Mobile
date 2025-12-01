@@ -1,7 +1,8 @@
 import React from "react";
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Modal, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { theme } from "@/styles/theme";
+import { useLogout } from "@/hooks/useAuth";
 
 interface ModalProps {
   visible: boolean;
@@ -10,10 +11,18 @@ interface ModalProps {
 
 export default function SignOutConfirmationModal({ visible, setVisible }: ModalProps) {
   const router = useRouter();
+  const logoutMutation = useLogout();
 
-  const handleSignOut = () => {
-    setVisible(false);
-    // your sign-out logic here
+  const handleSignOut = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+      setVisible(false);
+      // Navigation will be handled by the useLogout hook
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Optionally show an error message to the user
+      setVisible(false);
+    }
   };
 
   return (
@@ -36,6 +45,7 @@ export default function SignOutConfirmationModal({ visible, setVisible }: ModalP
             <TouchableOpacity
               style={[styles.modalButton, styles.cancelButton]}
               onPress={() => setVisible(false)}
+              disabled={logoutMutation.isPending}
             >
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
@@ -43,8 +53,13 @@ export default function SignOutConfirmationModal({ visible, setVisible }: ModalP
             <TouchableOpacity
               style={[styles.modalButton, styles.logOutButton]}
               onPress={handleSignOut}
+              disabled={logoutMutation.isPending}
             >
-              <Text style={styles.logOutButtonText}>Log Out</Text>
+              {logoutMutation.isPending ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.logOutButtonText}>Log Out</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>

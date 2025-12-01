@@ -57,3 +57,5 @@ deenai-release.keystore
 keystore.txt
 project_structure.text
 keystore.txt
+GoogleService-Info.plist
+deenai-release-key.keystore
