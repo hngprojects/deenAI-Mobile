@@ -1,12 +1,14 @@
+import ScreenContainer from "@/components/ScreenContainer";
 import { theme } from "@/styles/theme";
 import { useRouter } from "expo-router";
-import React from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import ScreenContainer from "@/components/ScreenContainer";
 import { ArrowLeft } from "lucide-react-native";
+import React from "react";
+import { useTranslation } from 'react-i18next';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function SupportScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   // Fixed Header Component
   const fixedHeader = (
@@ -19,7 +21,7 @@ export default function SupportScreen() {
         <ArrowLeft color={theme.color.secondary} size={24} />
       </TouchableOpacity>
 
-      <Text style={styles.headerTitle}>Support</Text>
+      <Text style={styles.headerTitle}>{t('supportScreenTitle')}</Text>
 
       <View style={styles.placeholder} />
     </View>
@@ -37,7 +39,7 @@ export default function SupportScreen() {
           style={styles.item}
           onPress={() => router.push("/(tabs)/(profile)/support/ContactScreen")}
         >
-          <Text style={styles.title}>Contact Us</Text>
+          <Text style={styles.title}>{t('supportScreenContact')}</Text>
           <Image
             source={require("@/assets/images/arrow-right.png")}
             style={styles.arrow}
@@ -49,7 +51,7 @@ export default function SupportScreen() {
           style={styles.item}
           onPress={() => router.push("/(tabs)/(profile)/support/FAQScreen")}
         >
-          <Text style={styles.title}>Frequent Asked Questions</Text>
+          <Text style={styles.title}>{t('supportScreenFAQ')}</Text>
           <Image
             source={require("@/assets/images/arrow-right.png")}
             style={styles.arrow}

@@ -1,22 +1,24 @@
+import ScreenContainer from "@/components/ScreenContainer";
+import Toggle from "@/components/ToggleNotifications";
 import { theme } from "@/styles/theme";
+import { router } from "expo-router";
+import { ArrowLeft } from "lucide-react-native";
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   ScrollView,
   StyleSheet,
   Text,
-  View,
   TouchableOpacity,
+  View,
 } from "react-native";
-import ScreenContainer from "@/components/ScreenContainer";
-import Toggle from "@/components/ToggleNotifications";
-import { router } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
 
 export default function NotificationScreen() {
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState([
-    { id: 1, title: "Prayer Reminder", enabled: true },
-    { id: 2, title: "Reflection Reminder", enabled: false },
-    { id: 3, title: "Deen AI Message Alert", enabled: true },
+    { id: 1, title: t("prayerReminder"), enabled: true },
+    { id: 2, title: t("reflectionReminder"), enabled: false },
+    { id: 3, title: t("deenAIMessageAlert"), enabled: true },
   ]);
 
   const toggleNotification = (id: number) => {

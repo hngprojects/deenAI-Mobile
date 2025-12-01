@@ -69,12 +69,12 @@ export default function ReflectScreen() {
       <ScreenHeader
         titleAlign="left"
         showBackButton={false}
-        title="Reflection"
+        title={t("reflection")}
       />
 
       <InputField
         label=''
-        placeholder="Search a chapter"
+        placeholder={t("searchChapter")}
         leftIcon={<Search size={18} color="#667185" />}
       />
 
@@ -87,7 +87,7 @@ export default function ReflectScreen() {
       />
 
       <TodaysReflection
-        title='My Saved Reflections'
+        title={t("savedReflections")}
         showSeeAll={true}
         onSeeAll={() => navigation.navigate('saved-reflection')}
       />
