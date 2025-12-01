@@ -113,7 +113,18 @@ export default function ChatRoom() {
             setWaitingForStream(false);
             isFirstChunk = false;
           }
+
+          // Check if chunk is JSON (metadata/response object) - ignore it
+          const trimmedChunk = chunk.trim();
+          if (trimmedChunk.startsWith("{") || trimmedChunk.startsWith("[")) {
+            console.log("Ignoring JSON chunk:", trimmedChunk.substring(0, 50));
+            return; // Don't add JSON chunks to the message
+          }
+
           streamedContent += chunk;
+          console.log("Received chunk:", chunk);
+          console.log("streamedContent so far:", streamedContent);
+
           updateLastMessage(streamedContent);
         },
         () => {
@@ -189,7 +200,7 @@ export default function ChatRoom() {
       setStreaming(true);
 
       // Small delay to let the server start processing
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Start streaming the response
       let streamedContent = "";
@@ -213,7 +224,17 @@ export default function ChatRoom() {
             setWaitingForStream(false);
             isFirstChunk = false;
           }
+
+          // Check if chunk is JSON (metadata/response object) - ignore it
+          const trimmedChunk = chunk.trim();
+          if (trimmedChunk.startsWith("{") || trimmedChunk.startsWith("[")) {
+            console.log("Ignoring JSON chunk:", trimmedChunk.substring(0, 50));
+            return; // Don't add JSON chunks to the message
+          }
+
           streamedContent += chunk;
+          console.log("Received chunk:", chunk);
+          console.log("streamedContent so far:", streamedContent);
 
           // Update the last message (AI response) with accumulated content
           updateLastMessage(streamedContent);
@@ -315,6 +336,12 @@ export default function ChatRoom() {
                   </>
                 ) : null
               }
+              // Performance optimizations
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={10}
+              updateCellsBatchingPeriod={50}
+              initialNumToRender={10}
+              windowSize={10}
             />
           )}
         </View>
