@@ -6,7 +6,14 @@ import { theme } from "@/styles/theme";
 import { IChat } from "@/types/chat.type";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 const ChatHistory = () => {
   const [todayChats, setTodayChats] = useState<IChat[]>([]);
@@ -77,8 +84,8 @@ const ChatHistory = () => {
 
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         {loading ? (
           <ActivityIndicator size={"small"} />
@@ -113,6 +120,18 @@ const ChatHistory = () => {
                 ))}
               </View>
             )}
+
+            {/* Empty State */}
+            {!todayChats.length &&
+              !yesterdayChats.length &&
+              !earlierChats.length && (
+                <View style={styles.emptyState}>
+                  <Text>No chat history available.</Text>
+                  <Text style={{ marginTop: 8, color: theme.color.gray }}>
+                    Start a new chat to see your history here.
+                  </Text>
+                </View>
+              )}
           </View>
         )}
       </KeyboardAvoidingView>
@@ -130,6 +149,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   keyboardAvoidingView: {
+    flex: 1,
+  },
+  emptyState: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     flex: 1,
   },
 });
