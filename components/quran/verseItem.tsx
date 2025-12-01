@@ -93,7 +93,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
             <Edit size={16} color={theme.color.secondary} />
           </TouchableOpacity>
 
-          {onBookmarkPress && (
+          {/* {onBookmarkPress && (
             <TouchableOpacity
               style={styles.bookmarkButton}
               activeOpacity={0.7}
@@ -107,7 +107,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                 fill={isBookmarked ? theme.color.brand : 'transparent'}
               />
             </TouchableOpacity>
-          )}
+          )} */}
         </View>
       </View>
     </View>
