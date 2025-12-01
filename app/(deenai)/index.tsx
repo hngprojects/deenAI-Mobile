@@ -137,9 +137,9 @@ export default function DEENAI() {
                 onChangeText={setPrompt}
               />
 
-              <TouchableOpacity>
+              {/* <TouchableOpacity>
                 <Mic color={theme.color.gray} />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
 
             <TouchableOpacity

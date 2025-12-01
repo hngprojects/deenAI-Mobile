@@ -1,7 +1,12 @@
+import { useUser } from "@/hooks/useUser";
+import { useAuthStore } from "@/store/auth-store";
 import { theme } from "@/styles/theme";
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   Image,
@@ -9,12 +14,8 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from "react-native";
 import SignOutConfirmationModal from "./delete/SignOut";
-import { useUser } from "@/hooks/useUser";
-import { useAuthStore } from "@/store/auth-store";
-import { useFocusEffect } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
@@ -43,6 +44,7 @@ const ProfileScreen: React.FC = () => {
   const [signOutModalVisible, setSignOutModalVisible] = useState(false);
   const { data: userData, isLoading, refetch } = useUser();
   const { user: authUser } = useAuthStore();
+  const { t } = useTranslation();
 
   // ✅ FIX: Refetch user data when screen comes into focus
   useFocusEffect(
@@ -67,37 +69,37 @@ const ProfileScreen: React.FC = () => {
     options: [
       {
         id: "1",
-        title: "Edit Profile",
+        title: t('editProfile'),
         route: "/(tabs)/(profile)/EditProfileScreen",
         iconKey: "edit",
       },
       {
         id: "2",
-        title: "Notifications",
+        title: t('notifications'),
         route: "/(tabs)/(profile)/NotificationScreen",
         iconKey: "notifications",
       },
       {
         id: "3",
-        title: "Language",
+        title: t('selectLanguage'),
         route: "/(tabs)/(profile)/AppLanguageScreen",
         iconKey: "language",
       },
       {
         id: "4",
-        title: "Support",
+        title: t('support'),
         route: "/(tabs)/(profile)/SupportScreen",
         iconKey: "support",
       },
       {
         id: "5",
-        title: "Log Out",
+        title: t('logout'),
         route: "/(tabs)/(profile)/delete/SignOut",
         iconKey: "signout",
       },
       {
         id: "6",
-        title: "Delete Account",
+        title: t('deleteAccount'),
         route: "/(tabs)/(profile)/DeleteAccountScreen",
         iconKey: "delete",
       },

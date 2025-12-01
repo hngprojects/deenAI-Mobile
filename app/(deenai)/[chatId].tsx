@@ -262,8 +262,8 @@ export default function ChatRoom() {
 
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         {/* Messages */}
         <View style={{ flex: 1 }}>
@@ -281,7 +281,9 @@ export default function ChatRoom() {
                 paddingBottom: 20,
               }}
               data={messages}
-              keyExtractor={(msg, index) => msg.id || `${msg.createdAt}-${index}`}
+              keyExtractor={(msg, index) =>
+                msg.id || `${msg.createdAt}-${index}`
+              }
               renderItem={(msg) => <MessageBubble message={msg.item} />}
               ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
             />
@@ -299,9 +301,9 @@ export default function ChatRoom() {
                 onChangeText={setPrompt}
               />
 
-              <TouchableOpacity>
+              {/* <TouchableOpacity>
                 <Mic color={theme.color.gray} />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
 
             <TouchableOpacity
@@ -312,13 +314,15 @@ export default function ChatRoom() {
               {loading ? (
                 <Loader fill={theme.color.primary} color={theme.color.gray} />
               ) : (
-                <Send fill={theme.color.primary} color={theme.color.background} />
+                <Send
+                  fill={theme.color.primary}
+                  color={theme.color.background}
+                />
               )}
             </TouchableOpacity>
           </View>
         </View>
       </KeyboardAvoidingView>
-
     </View>
   );
 }

@@ -6,42 +6,46 @@ import { useRouter } from "expo-router";
 import { Check } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+// import { useTranslation } from "react-i18next";
+import i18n from "@/src/i18n";
 
 export default function SelectLanguage() {
   const router = useRouter();
   const { language, setLanguage } = useLanguageStore();
+  
 
   const languages = [
-    { key: "English", subtitle: "English" },
-    { key: "Arabic", subtitle: "العربية" },
-    { key: "French", subtitle: "Français" },
-    { key: "Turkish", subtitle: "Türkçe" },
-    { key: "Hausa", subtitle: "Hausa" },
-    { key: "Swahili", subtitle: "Kiswahili" },
+    { key: "English", subtitle: "English", code: "en" },
+    { key: "Arabic", subtitle: "العربية", code: "ar" },
+    { key: "French", subtitle: "Français", code: "fr" },
+    { key: "Turkish", subtitle: "Türkçe", code: "tr" },
+    { key: "Hausa", subtitle: "Hausa", code: "ha" },
+    { key: "Swahili", subtitle: "Kiswahili", code: "sw" },
   ];
 
-  const onSelect = (lang: string) => {
-    setLanguage(lang);
+  const onSelect = (label: string, langCode: string) => {
+    setLanguage(langCode);
+    i18n.changeLanguage(langCode);
     router.push("/(tabs)/(profile)/AppLanguageScreen");
   };
 
   return (
     <ScreenContainer backgroundColor={theme.color.background3}>
-      <ScreenHeader title="Select Language" />
+      <ScreenHeader title={i18n.t("selectLanguage")}  />
 
       <View style={styles.list}>
         {languages.map((lang) => (
           <TouchableOpacity
             key={lang.key}
             style={styles.item}
-            onPress={() => onSelect(lang.key)}
+            onPress={() => onSelect(lang.key, lang.code)}
           >
             <View style={styles.textWrapper}>
               <Text style={styles.text}>{lang.key}</Text>
               <Text style={styles.subtitle}>{lang.subtitle}</Text>
             </View>
 
-            {language === lang.key && (
+            {language === lang.code && (
               <Check size={28} color={theme.color.brand} />
             )}
           </TouchableOpacity>
