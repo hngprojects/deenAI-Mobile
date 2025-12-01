@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import locationService, {
     LocationCoordinates,
     LocationPermissionResult
@@ -8,27 +8,58 @@ export const useLocation = () => {
     const [loading, setLoading] = useState(false);
     const [location, setLocation] = useState<LocationCoordinates | null>(null);
     const [error, setError] = useState<string | null>(null);
-    // Real-time location subscription
+
+    // Track if component is mounted to prevent state updates after unmount
+    const isMounted = useRef(true);
+    const subscriptionRef = useRef<any>(null);
+
+    // Real-time location subscription with proper cleanup
     useEffect(() => {
-        let subscription: any = null;
-        (async () => {
-            subscription = await locationService.watchLocation((loc) => {
-                setLocation(loc);
-            });
-        })();
-        return () => {
-            if (subscription && typeof subscription.remove === 'function') {
-                subscription.remove();
+        isMounted.current = true;
+        let isSubscribed = true;
+
+        const setupLocationWatch = async () => {
+            try {
+                // Clean up any existing subscription first
+                if (subscriptionRef.current?.remove) {
+                    subscriptionRef.current.remove();
+                }
+
+                const subscription = await locationService.watchLocation((loc) => {
+                    if (isSubscribed && isMounted.current) {
+                        setLocation(loc);
+                    }
+                });
+
+                if (isSubscribed) {
+                    subscriptionRef.current = subscription;
+                }
+            } catch (err) {
+                console.error('Location watch setup error:', err);
             }
         };
-    }, []);
 
-    const requestPermission = async (): Promise<LocationPermissionResult> => {
+        setupLocationWatch();
+
+        return () => {
+            isSubscribed = false;
+            isMounted.current = false;
+
+            if (subscriptionRef.current?.remove) {
+                subscriptionRef.current.remove();
+                subscriptionRef.current = null;
+            }
+        };
+    }, []); // Empty deps - only run once on mount
+
+    const requestPermission = useCallback(async (): Promise<LocationPermissionResult> => {
         try {
             setLoading(true);
             setError(null);
 
             const result = await locationService.requestPermission();
+
+            if (!isMounted.current) return result;
 
             if (result.granted && result.location) {
                 setLocation(result.location);
@@ -39,44 +70,59 @@ export const useLocation = () => {
             return result;
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to request location permission';
-            setError(errorMessage);
+
+            if (isMounted.current) {
+                setError(errorMessage);
+            }
+
             return {
                 granted: false,
                 error: errorMessage,
             };
         } finally {
-            setLoading(false);
+            if (isMounted.current) {
+                setLoading(false);
+            }
         }
-    };
+    }, []);
 
-    const getCurrentLocation = async (): Promise<LocationCoordinates | null> => {
+    const getCurrentLocation = useCallback(async (): Promise<LocationCoordinates | null> => {
         try {
             setLoading(true);
             setError(null);
 
             const coords = await locationService.getCurrentLocation();
-            setLocation(coords);
+
+            if (isMounted.current) {
+                setLocation(coords);
+            }
 
             return coords;
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to get location';
-            setError(errorMessage);
+
+            if (isMounted.current) {
+                setError(errorMessage);
+            }
+
             return null;
         } finally {
-            setLoading(false);
+            if (isMounted.current) {
+                setLoading(false);
+            }
         }
-    };
+    }, []);
 
-    const checkPermission = async (): Promise<boolean> => {
+    const checkPermission = useCallback(async (): Promise<boolean> => {
         try {
             return await locationService.checkPermission();
         } catch (err: any) {
             console.error('Check permission error:', err);
             return false;
         }
-    };
+    }, []);
 
-    const getAddress = async (
+    const getAddress = useCallback(async (
         lat?: number,
         lon?: number
     ): Promise<string | null> => {
@@ -90,19 +136,26 @@ export const useLocation = () => {
                 throw new Error('No coordinates available');
             }
 
-            return await locationService.getAddressFromCoordinates(latitude, longitude);
+            const address = await locationService.getAddressFromCoordinates(latitude, longitude);
+            return address;
         } catch (err: any) {
             const errorMessage = err.message || 'Failed to get address';
-            setError(errorMessage);
+
+            if (isMounted.current) {
+                setError(errorMessage);
+            }
+
             return null;
         } finally {
-            setLoading(false);
+            if (isMounted.current) {
+                setLoading(false);
+            }
         }
-    };
+    }, [location]);
 
-    const clearError = () => {
+    const clearError = useCallback(() => {
         setError(null);
-    };
+    }, []);
 
     return {
         location,

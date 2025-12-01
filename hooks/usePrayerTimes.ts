@@ -3,7 +3,7 @@ import prayerService, { HijriDate, PrayerSettings, PrayerTimesData, SavedLocatio
 import { useLocation } from './useLocation';
 
 export const usePrayerTimes = () => {
-  const { location, getCurrentLocation, getAddress } = useLocation();
+  const { getCurrentLocation, getAddress } = useLocation();
   const [prayerTimes, setPrayerTimes] = useState<PrayerTimesData | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [hijriDate, setHijriDate] = useState<HijriDate | null>(null);
@@ -16,28 +16,38 @@ export const usePrayerTimes = () => {
   const [settings, setSettings] = useState<PrayerSettings | null>(null);
   const [locationName, setLocationName] = useState<string>('');
 
-  // Track if initial load is complete
-  const initialLoadComplete = useRef(false);
+  // Track if component is mounted
+  const isMounted = useRef(true);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const initialLoadComplete = useRef(false);
+  const isLoadingLocation = useRef(false);
 
   /**
-   * Load saved location and settings on mount - OPTIMIZED
+   * Load saved location and settings on mount
    */
   useEffect(() => {
+    isMounted.current = true;
     loadInitialData();
+
+    return () => {
+      isMounted.current = false;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
   }, []);
 
   /**
-   * Calculate prayer times when location or date changes - OPTIMIZED
+   * Calculate prayer times when location, date, or settings change
    */
   useEffect(() => {
-    if (savedLocation) {
+    if (savedLocation && isMounted.current) {
       calculateTimes(savedLocation.latitude, savedLocation.longitude, selectedDate);
     }
   }, [savedLocation, selectedDate, settings]);
 
   /**
-   * Update current prayer and countdown every second - OPTIMIZED
+   * Update current prayer and countdown every second
    */
   useEffect(() => {
     // Clear existing interval
@@ -45,28 +55,31 @@ export const usePrayerTimes = () => {
       clearInterval(intervalRef.current);
     }
 
-    if (!prayerTimes || !savedLocation) return;
+    if (!prayerTimes || !savedLocation || !isMounted.current) return;
 
     // Update immediately first
     updatePrayerInfo();
 
     // Then set interval
     intervalRef.current = setInterval(() => {
-      updatePrayerInfo();
+      if (isMounted.current) {
+        updatePrayerInfo();
+      }
     }, 1000);
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
   }, [prayerTimes, savedLocation, settings]);
 
   /**
-   * Extract prayer update logic for reuse
+   * Update prayer info (current, next, time remaining)
    */
   const updatePrayerInfo = useCallback(() => {
-    if (!prayerTimes || !savedLocation) return;
+    if (!prayerTimes || !savedLocation || !isMounted.current) return;
 
     try {
       const current = prayerService.getCurrentPrayer(prayerTimes);
@@ -88,79 +101,112 @@ export const usePrayerTimes = () => {
   }, [prayerTimes, savedLocation, settings]);
 
   /**
-   * Load initial data - OPTIMIZED with parallel loading
+   * Load initial data
    */
   const loadInitialData = async () => {
+    if (initialLoadComplete.current) return;
+
     try {
       setLoading(true);
       setError(null);
 
-      // Load both in parallel for faster loading
+      // Load settings and saved location in parallel
       const [savedLoc, savedSettings] = await Promise.all([
         prayerService.getSavedLocation(),
         prayerService.getSettings(),
       ]);
 
-      // Set settings first (doesn't trigger re-render of times calculation)
+      if (!isMounted.current) return;
+
+      // Set settings first
       setSettings(savedSettings);
 
-      // Then set location (this will trigger prayer times calculation)
+      // Handle location
       if (savedLoc) {
         setSavedLocation(savedLoc);
         setLocationName(savedLoc.city || 'Unknown Location');
       } else {
-        // No saved location - try to get current location
-        console.log('No saved location found, attempting to get current location...');
-        // Don't block here - let the user see the UI while location loads
-        getCurrentLocation()
-          .then(async (coords) => {
-            if (coords) {
-              let address = 'Unknown Location';
-              try {
-                const reverseGeocode = await getAddress(coords.latitude, coords.longitude);
-                if (reverseGeocode) {
-                  address = reverseGeocode;
-                }
-              } catch (geoError) {
-                console.log('Reverse geocoding failed');
-              }
-
-              const newLocation: SavedLocation = {
-                latitude: coords.latitude,
-                longitude: coords.longitude,
-                city: address.split(',')[0],
-                country: address.split(',').pop()?.trim(),
-                timestamp: Date.now(),
-              };
-
-              await prayerService.saveLocation(newLocation);
-              setSavedLocation(newLocation);
-              setLocationName(address);
-            }
-          })
-          .catch((err) => {
-            console.error('Failed to get current location:', err);
-            setError('Location access required for prayer times');
-          });
+        // No saved location - get current location in background
+        fetchCurrentLocation();
       }
 
       initialLoadComplete.current = true;
     } catch (err: any) {
       console.error('Error loading initial data:', err);
-      setError(err.message || 'Failed to load data');
+      if (isMounted.current) {
+        setError(err.message || 'Failed to load data');
+      }
     } finally {
-      // Set loading to false after a short delay to prevent flicker
-      setTimeout(() => setLoading(false), 100);
+      // Delay to prevent flicker
+      setTimeout(() => {
+        if (isMounted.current) {
+          setLoading(false);
+        }
+      }, 100);
     }
   };
 
   /**
-   * Calculate prayer times - OPTIMIZED with immediate state update
+   * Fetch current location (non-blocking)
+   */
+  const fetchCurrentLocation = async () => {
+    if (isLoadingLocation.current) return;
+
+    isLoadingLocation.current = true;
+
+    try {
+      const coords = await getCurrentLocation();
+
+      if (!coords || !isMounted.current) {
+        isLoadingLocation.current = false;
+        return;
+      }
+
+      let address = 'Unknown Location';
+      try {
+        const reverseGeocode = await getAddress(coords.latitude, coords.longitude);
+        if (reverseGeocode) {
+          address = reverseGeocode;
+        }
+      } catch (geoError) {
+        console.log('Reverse geocoding failed, using default');
+      }
+
+      if (!isMounted.current) {
+        isLoadingLocation.current = false;
+        return;
+      }
+
+      const newLocation: SavedLocation = {
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        city: address.split(',')[0],
+        country: address.split(',').pop()?.trim(),
+        timestamp: Date.now(),
+      };
+
+      await prayerService.saveLocation(newLocation);
+
+      if (isMounted.current) {
+        setSavedLocation(newLocation);
+        setLocationName(address);
+      }
+    } catch (err) {
+      console.error('Failed to get current location:', err);
+      if (isMounted.current) {
+        setError('Location access required for prayer times');
+      }
+    } finally {
+      isLoadingLocation.current = false;
+    }
+  };
+
+  /**
+   * Calculate prayer times
    */
   const calculateTimes = useCallback(
     (latitude: number, longitude: number, date: Date) => {
       try {
-        // Calculate times synchronously (this is fast)
         const times = prayerService.calculatePrayerTimes(
           latitude,
           longitude,
@@ -168,20 +214,22 @@ export const usePrayerTimes = () => {
           settings || undefined
         );
 
-        // Update state immediately
+        if (!isMounted.current) return;
+
         setPrayerTimes(times);
 
-        // Calculate Hijri date
         const hijri = prayerService.getHijriDate(date);
         setHijriDate(hijri);
 
-        // Cache asynchronously (don't await)
+        // Cache asynchronously
         prayerService.cachePrayerTimes(date, times).catch(console.error);
 
         setError(null);
       } catch (err: any) {
         console.error('Error calculating prayer times:', err);
-        setError(err.message || 'Failed to calculate prayer times');
+        if (isMounted.current) {
+          setError(err.message || 'Failed to calculate prayer times');
+        }
       }
     },
     [settings]
@@ -190,7 +238,7 @@ export const usePrayerTimes = () => {
   /**
    * Refresh location and prayer times
    */
-  const refreshLocation = async () => {
+  const refreshLocation = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -201,7 +249,7 @@ export const usePrayerTimes = () => {
         throw new Error('Could not get location');
       }
 
-      // Get location name (will default to "Lagos, Nigeria" if reverse geocoding fails)
+      // Get location name
       let address = 'Unknown Location';
       try {
         const reverseGeocode = await getAddress(coords.latitude, coords.longitude);
@@ -209,8 +257,10 @@ export const usePrayerTimes = () => {
           address = reverseGeocode;
         }
       } catch (geoError) {
-        console.log('Reverse geocoding failed, using default name');
+        console.log('Reverse geocoding failed');
       }
+
+      if (!isMounted.current) return;
 
       setLocationName(address);
 
@@ -224,33 +274,44 @@ export const usePrayerTimes = () => {
       };
 
       await prayerService.saveLocation(newLocation);
-      setSavedLocation(newLocation);
 
+      if (isMounted.current) {
+        setSavedLocation(newLocation);
+      }
     } catch (err: any) {
       console.error('Error refreshing location:', err);
-      setError(err.message || 'Failed to refresh location');
+      if (isMounted.current) {
+        setError(err.message || 'Failed to refresh location');
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
-  };
+  }, [getCurrentLocation, getAddress]);
 
   /**
-   * Set location manually (useful for testing/emulator)
+   * Set location manually
    */
-  const setManualLocation = async (latitude: number, longitude: number, cityName?: string) => {
+  const setManualLocation = useCallback(async (
+    latitude: number,
+    longitude: number,
+    cityName?: string
+  ) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Get location name if not provided
       let locationName = cityName;
       if (!cityName) {
         const address = await getAddress(latitude, longitude);
         locationName = address || 'Unknown Location';
       }
+
+      if (!isMounted.current) return;
+
       setLocationName(locationName || 'Manual Location');
 
-      // Save location
       const newLocation: SavedLocation = {
         latitude,
         longitude,
@@ -260,80 +321,73 @@ export const usePrayerTimes = () => {
       };
 
       await prayerService.saveLocation(newLocation);
-      setSavedLocation(newLocation);
 
-      setError(null);
+      if (isMounted.current) {
+        setSavedLocation(newLocation);
+        setError(null);
+      }
     } catch (err: any) {
       console.error('Error setting manual location:', err);
-      setError(err.message || 'Failed to set location');
+      if (isMounted.current) {
+        setError(err.message || 'Failed to set location');
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
-  };
+  }, [getAddress]);
 
-  const changeDate = (date: Date) => {
+  const changeDate = useCallback((date: Date) => {
     setSelectedDate(date);
-  };
+  }, []);
 
-  /**
-   * Go to next day
-   */
-  const nextDay = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + 1);
-    setSelectedDate(newDate);
-  };
+  const nextDay = useCallback(() => {
+    setSelectedDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setDate(newDate.getDate() + 1);
+      return newDate;
+    });
+  }, []);
 
-  /**
-   * Go to previous day
-   */
-  const previousDay = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() - 1);
-    setSelectedDate(newDate);
-  };
+  const previousDay = useCallback(() => {
+    setSelectedDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setDate(newDate.getDate() - 1);
+      return newDate;
+    });
+  }, []);
 
-  /**
-   * Go to today
-   */
-  const goToToday = () => {
+  const goToToday = useCallback(() => {
     setSelectedDate(new Date());
-  };
+  }, []);
 
-  /**
-   * Update prayer settings
-   */
-  const updateSettings = async (newSettings: PrayerSettings) => {
+  const updateSettings = useCallback(async (newSettings: PrayerSettings) => {
     try {
       await prayerService.saveSettings(newSettings);
-      setSettings(newSettings);
+      if (isMounted.current) {
+        setSettings(newSettings);
+      }
     } catch (err: any) {
       console.error('Error updating settings:', err);
-      setError(err.message || 'Failed to update settings');
+      if (isMounted.current) {
+        setError(err.message || 'Failed to update settings');
+      }
     }
-  };
+  }, []);
 
-  /**
-   * Check if it's a forbidden prayer time
-   */
-  const isForbiddenTime = (): boolean => {
+  const isForbiddenTime = useCallback((): boolean => {
     if (!prayerTimes) return false;
     return prayerService.isForbiddenTime(prayerTimes);
-  };
+  }, [prayerTimes]);
 
-  /**
-   * Format time
-   */
-  const formatTime = (date: Date): string => {
+  const formatTime = useCallback((date: Date): string => {
     return prayerService.formatTime(date);
-  };
+  }, []);
 
-  /**
-   * Format date
-   */
-  const formatDate = (date: Date): string => {
+  const formatDate = useCallback((date: Date): string => {
     return prayerService.formatDate(date);
-  };
+  }, []);
 
   return {
     // State

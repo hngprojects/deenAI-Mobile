@@ -1,6 +1,6 @@
+import * as Device from 'expo-device';
 import * as Location from 'expo-location';
 import { Alert, Linking, Platform } from 'react-native';
-import * as Device from 'expo-device';
 
 export interface LocationCoordinates {
     latitude: number;
@@ -8,6 +8,7 @@ export interface LocationCoordinates {
     altitude: number | null;
     accuracy: number | null;
     timestamp: number;
+    source: 'user' | 'emulator';
 }
 
 export interface LocationPermissionResult {
@@ -23,6 +24,7 @@ const DEFAULT_LOCATION = {
     altitude: null,
     accuracy: 100,
     timestamp: Date.now(),
+    source: 'emulator' as const,
 };
 
 class LocationService {
@@ -34,9 +36,12 @@ class LocationService {
     }
 
     /**
-     * Get default location for emulator
+     * Get default location for emulator ONLY
      */
     private getDefaultLocation(): LocationCoordinates {
+        if (!this.isEmulator()) {
+            throw new Error('Default location can only be used on emulator');
+        }
         console.log('📍 Using default location (Lagos, Nigeria) for emulator');
         return DEFAULT_LOCATION;
     }
@@ -89,6 +94,7 @@ class LocationService {
                 };
             }
 
+            // REAL DEVICE: Check if services are enabled
             const servicesEnabled = await this.checkServicesEnabled();
 
             if (!servicesEnabled) {
@@ -133,6 +139,8 @@ class LocationService {
 
     /**
      * Get current location coordinates
+     * ONLY returns default location on emulator
+     * THROWS errors on real devices
      */
     async getCurrentLocation(): Promise<LocationCoordinates> {
         try {
@@ -141,18 +149,17 @@ class LocationService {
                 return this.getDefaultLocation();
             }
 
+            // REAL DEVICE ONLY from here
             const servicesEnabled = await this.checkServicesEnabled();
 
             if (!servicesEnabled) {
-                console.log('⚠️ Location services disabled, using default location');
-                return this.getDefaultLocation();
+                throw new Error('Location services are disabled. Please enable them in settings.');
             }
 
             const { status } = await Location.getForegroundPermissionsAsync();
 
             if (status !== 'granted') {
-                console.log('⚠️ Location permission not granted, using default location');
-                return this.getDefaultLocation();
+                throw new Error('Location permission not granted. Please enable location access.');
             }
 
             const location = await Location.getCurrentPositionAsync({
@@ -166,12 +173,19 @@ class LocationService {
                 altitude: location.coords.altitude,
                 accuracy: location.coords.accuracy,
                 timestamp: location.timestamp,
+                source: 'user',
             };
         } catch (error) {
             console.error('Get location error:', error);
-            console.log('⚠️ Falling back to default location (Lagos, Nigeria)');
-            // Return default location instead of throwing error
-            return this.getDefaultLocation();
+
+            // CRITICAL: Only return default on emulator
+            if (this.isEmulator()) {
+                console.log('⚠️ Emulator error, using default location');
+                return this.getDefaultLocation();
+            }
+
+            // REAL DEVICE: Throw the error instead of returning default
+            throw error;
         }
     }
 
@@ -201,9 +215,8 @@ class LocationService {
         longitude: number
     ): Promise<string> {
         try {
-            // For emulator with default location, return Lagos
             if (this.isEmulator() && latitude === DEFAULT_LOCATION.latitude && longitude === DEFAULT_LOCATION.longitude) {
-                return 'Lagos, Lagos, Nigeria';
+                return 'Lagos, Nigeria (Emulator)';
             }
 
             const addresses = await Location.reverseGeocodeAsync({
@@ -219,11 +232,10 @@ class LocationService {
             return 'Unknown location';
         } catch (error) {
             console.error('Reverse geocode error:', error);
-            // Fallback to Lagos if it's the default location
-            if (latitude === DEFAULT_LOCATION.latitude && longitude === DEFAULT_LOCATION.longitude) {
-                return 'Location...';
+            if (this.isEmulator() && latitude === DEFAULT_LOCATION.latitude && longitude === DEFAULT_LOCATION.longitude) {
+                return 'Lagos, Nigeria (Emulator)';
             }
-            return 'Unable to get address';
+            throw new Error('Unable to get address');
         }
     }
 
@@ -265,12 +277,13 @@ class LocationService {
                         altitude: position.coords.altitude,
                         accuracy: position.coords.accuracy,
                         timestamp: position.timestamp,
+                        source: 'user',
                     });
                 }
             );
         } catch (error) {
             console.error('Watch location error:', error);
-            return null;
+            throw error; // Throw error instead of returning null
         }
     }
 
@@ -287,13 +300,13 @@ class LocationService {
             const servicesEnabled = await this.checkServicesEnabled();
 
             if (!servicesEnabled) {
-                return null;
+                throw new Error('Location services are disabled');
             }
 
             const { status } = await Location.getForegroundPermissionsAsync();
 
             if (status !== 'granted') {
-                return null;
+                throw new Error('Location permission not granted');
             }
 
             const location = await Location.getLastKnownPositionAsync();
@@ -308,11 +321,33 @@ class LocationService {
                 altitude: location.coords.altitude,
                 accuracy: location.coords.accuracy,
                 timestamp: location.timestamp,
+                source: 'user',
             };
         } catch (error) {
             console.error('Get last known location error:', error);
-            return null;
+
+            // Only return default on emulator
+            if (this.isEmulator()) {
+                return this.getDefaultLocation();
+            }
+
+            throw error; // Throw error on real device
         }
+    }
+
+    /**
+     * Helper method to format location string with source label
+     */
+    formatLocationWithLabel(location: LocationCoordinates): string {
+        const label = location.source === 'emulator' ? '(emulator)' : '';
+        return `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)} ${label}`.trim();
+    }
+
+    /**
+     * Helper method to get location label
+     */
+    getLocationLabel(location: LocationCoordinates): string {
+        return location.source === 'emulator' ? 'Emulator Location' : 'Your Location';
     }
 }
 

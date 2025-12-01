@@ -72,7 +72,7 @@ export default function PrayerTimesScreen() {
         }
         setPermissionLoading(false);
       }, 1500);
-    } catch (err: any) {
+    } catch {
       // Don't show error, just close modal as we have fallback location
       console.log('Location request completed with fallback');
       setShowPermissionModal(false);
@@ -93,7 +93,6 @@ export default function PrayerTimesScreen() {
   // Calculate which prayer is next for today or tomorrow
   const getNextPrayerForDisplay = () => {
     const now = new Date();
-    const todayString = now.toDateString();
 
     // If viewing today, find next prayer
     if (isToday && prayerTimes) {
@@ -260,6 +259,8 @@ export default function PrayerTimesScreen() {
   const sunsetStart = new Date(prayerTimes.maghrib);
   sunsetStart.setMinutes(sunsetStart.getMinutes() - 15);
 
+  const nextPrayerForDisplay = getNextPrayerForDisplay();
+
   return (
     <View style={styles.container}>
       <LocationPermissionModal
@@ -306,23 +307,23 @@ export default function PrayerTimesScreen() {
         </View>
 
         {/* Next Prayer Highlight */}
-        {isToday && getNextPrayerForDisplay() && (
+        {isToday && nextPrayerForDisplay && (
           <UpcomingSolatCard
-            prayerName={getNextPrayerForDisplay().name}
-            prayerTime={getNextPrayerForDisplay().time}
-            formattedDate={formatDate(getNextPrayerForDisplay().time)}
-            formattedTime={formatTime(getNextPrayerForDisplay().time)}
+            prayerName={nextPrayerForDisplay.name}
+            prayerTime={nextPrayerForDisplay.time}
+            formattedDate={formatDate(nextPrayerForDisplay.time)}
+            formattedTime={formatTime(nextPrayerForDisplay.time)}
             locationName={locationName}
           />
         )}
 
         {/* Prayer Times List */}
         <View style={styles.prayerListContainer}>
-          {renderPrayerItem('Subh', prayerTimes.fajr, isToday && getNextPrayerForDisplay()?.name === 'Fajr')}
-          {renderPrayerItem('Dhuhr', prayerTimes.dhuhr, isToday && getNextPrayerForDisplay()?.name === 'Dhuhr')}
-          {renderPrayerItem('Asr', prayerTimes.asr, isToday && getNextPrayerForDisplay()?.name === 'Asr')}
-          {renderPrayerItem('Maghrib', prayerTimes.maghrib, isToday && getNextPrayerForDisplay()?.name === 'Maghrib')}
-          {renderPrayerItem('Isha', prayerTimes.isha, isToday && getNextPrayerForDisplay()?.name === 'Isha')}
+          {renderPrayerItem('Subh', prayerTimes.fajr, isToday && nextPrayerForDisplay?.name === 'Fajr')}
+          {renderPrayerItem('Dhuhr', prayerTimes.dhuhr, isToday && nextPrayerForDisplay?.name === 'Dhuhr')}
+          {renderPrayerItem('Asr', prayerTimes.asr, isToday && nextPrayerForDisplay?.name === 'Asr')}
+          {renderPrayerItem('Maghrib', prayerTimes.maghrib, isToday && nextPrayerForDisplay?.name === 'Maghrib')}
+          {renderPrayerItem('Isha', prayerTimes.isha, isToday && nextPrayerForDisplay?.name === 'Isha')}
           {renderPrayerItem('Tahajjud', prayerTimes.fajr, false)}
         </View>
 
@@ -416,65 +417,11 @@ const styles = StyleSheet.create({
     color: theme.color.brand,
     marginBottom: 4,
     fontFamily: theme.font.regular,
-
   },
   hijriText: {
     fontSize: 14,
     color: '#666',
-        fontFamily: theme.font.regular,
-
-  },
-  upcomingContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
-  },
-  upcomingTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 12,
-  },
-  upcomingCard: {
-    backgroundColor: theme.color.brand,
-    borderRadius: 20,
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 10,
-  },
-  upcomingIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  upcomingInfo: {
-    flex: 1,
-  },
-  upcomingDate: {
-    fontSize: 12,
-    color: '#FFFFFF',
-    opacity: 0.9,
-        fontFamily: theme.font.regular,
-  },
-  upcomingPrayer: {
-    fontSize: 20,
     fontFamily: theme.font.regular,
-    color: '#FFFFFF',
-    marginBottom: 3,
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  locationText: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    marginLeft: 4,
   },
   prayerListContainer: {
     paddingHorizontal: 20,
@@ -515,11 +462,6 @@ const styles = StyleSheet.create({
   nextPrayerText: {
     color: '#FFFFFF',
   },
-  pastPrayerText: {
-    color: '#999',
-        fontFamily: theme.font.regular,
-
-  },
   forbiddenContainer: {
     paddingHorizontal: 20,
     paddingTop: 24,
@@ -541,7 +483,6 @@ const styles = StyleSheet.create({
   },
   forbiddenIcon: {
     borderRadius: 28,
-    // backgroundColor: '#FFF5E6',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -558,8 +499,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#333',
     marginBottom: 8,
-        fontFamily: theme.font.regular,
-
+    fontFamily: theme.font.regular,
   },
   forbiddenTimes: {
     flexDirection: 'row',
@@ -568,20 +508,12 @@ const styles = StyleSheet.create({
   forbiddenTime: {
     fontSize: 16,
     color: '#666',
-        fontFamily: theme.font.semiBold,
-
+    fontFamily: theme.font.semiBold,
   },
   timeSeparator: {
     width: 40,
     height: 1,
     backgroundColor: '#DDD',
     marginHorizontal: 8,
-  },
-  iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

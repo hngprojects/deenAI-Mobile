@@ -1,7 +1,9 @@
+// components/UpcomingSolatCard.tsx
 import { theme } from "@/styles/theme";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
+import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 
 interface UpcomingSolatCardProps {
   prayerName: string;
@@ -17,6 +19,30 @@ export default function UpcomingSolatCard({
   formattedTime,
   locationName,
 }: UpcomingSolatCardProps) {
+  const { savedLocation } = usePrayerTimes();
+
+  // Helper to check if location is valid and add source label
+  const getLocationDisplay = () => {
+    // Check if location is invalid or placeholder
+    if (!locationName ||
+        locationName === 'Location...' ||
+        locationName === 'Unknown Location' ||
+        locationName.trim() === '') {
+      return null; // Will show loading state
+    }
+
+    // Add source label (+user or +emulator) if savedLocation exists
+    if (savedLocation) {
+      const label = savedLocation.source === 'emulator' ? '+emulator' : '+user';
+      return `${locationName} ${label}`;
+    }
+
+    // Fallback: return just the location name if no savedLocation
+    return locationName;
+  };
+
+  const displayLocation = getLocationDisplay();
+
   return (
     <View style={styles.upcomingContainer}>
       <Text style={styles.upcomingTitle}>Upcoming Solat</Text>
@@ -34,7 +60,21 @@ export default function UpcomingSolatCard({
           <Text style={styles.upcomingPrayer}>{prayerName} Prayer</Text>
           <View style={styles.locationContainer}>
             <Ionicons name="location" size={16} color="#FFFFFF" />
-            <Text style={styles.locationText}>{locationName}</Text>
+            {displayLocation ? (
+              <Text style={styles.locationText} numberOfLines={1}>
+                {displayLocation}
+              </Text>
+            ) : (
+              <View style={styles.locationLoading}>
+                <ActivityIndicator
+                  size="small"
+                  color="rgba(255, 255, 255, 0.8)"
+                />
+                <Text style={styles.locationLoadingText}>
+                  Getting location...
+                </Text>
+              </View>
+            )}
           </View>
         </View>
       </View>
@@ -45,7 +85,6 @@ export default function UpcomingSolatCard({
 const styles = StyleSheet.create({
   upcomingContainer: {
     paddingHorizontal: 20,
-    // paddingTop: 24,
   },
   upcomingTitle: {
     fontSize: 18,
@@ -94,5 +133,17 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     marginLeft: 4,
     fontFamily: theme.font.regular,
+  },
+  locationLoading: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginLeft: 4,
+  },
+  locationLoadingText: {
+    fontSize: 12,
+    fontFamily: theme.font.regular,
+    color: "rgba(255, 255, 255, 0.8)",
+    fontStyle: 'italic',
   },
 });
