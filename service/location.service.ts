@@ -17,7 +17,6 @@ export interface LocationPermissionResult {
     servicesDisabled?: boolean;
 }
 
-// Default location for emulator/simulator (Lagos, Nigeria)
 const DEFAULT_LOCATION = {
     latitude: 6.5244,
     longitude: 3.3792,
@@ -222,7 +221,7 @@ class LocationService {
             console.error('Reverse geocode error:', error);
             // Fallback to Lagos if it's the default location
             if (latitude === DEFAULT_LOCATION.latitude && longitude === DEFAULT_LOCATION.longitude) {
-                return 'Lagos, Lagos, Nigeria';
+                return 'Location...';
             }
             return 'Unable to get address';
         }

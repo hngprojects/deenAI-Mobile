@@ -28,7 +28,7 @@ export default function EditProfileScreen() {
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<any>(null);
 
-  const { data: userData, refetch: refetchUser } = useUser();
+  const { data: userData } = useUser();
   const { mutate: editProfile, isPending } = useEditProfile();
   const { isConnected, showNoConnectionToast } = useNetworkStatus();
   const { user: authUser } = useAuthStore();
@@ -49,38 +49,34 @@ export default function EditProfileScreen() {
     });
 
     if (!result.canceled) {
-      setAvatarUri(result.assets[0].uri);
+      const selectedImage = result.assets[0];
+      setAvatarUri(selectedImage.uri);
+
+      // Extract proper filename and mime type
+      const filename = selectedImage.uri.split("/").pop() || "avatar.jpg";
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : "image/jpeg";
+
       setAvatarFile({
-        uri: result.assets[0].uri,
-        type: result.assets[0].type || "image/jpeg",
-        name: "avatar.jpg",
-      } as any);
+        uri: selectedImage.uri,
+        type: type,
+        name: filename,
+      });
     }
   };
 
   const initialValues: EditProfileType = {
-    fullname: authUser?.name || "",
+    fullname: authUser?.name || userData?.name || "",
     username: userData?.username || "",
-    email: authUser?.email || "",
+    email: authUser?.email || userData?.email || "",
     language: "",
-    avatar: avatarUri ?? "",
+    avatar: userData?.avatar || "",
   };
 
   const handleSave = (values: EditProfileType) => {
     if (!isConnected) {
       showNoConnectionToast();
       return;
-    }
-
-    const { user: currentUser, login } = useAuthStore.getState();
-    if (currentUser) {
-      login(
-        {
-          ...currentUser,
-          name: values.fullname,
-        },
-        useAuthStore.getState().token!
-      );
     }
 
     editProfile({
@@ -193,7 +189,7 @@ export default function EditProfileScreen() {
             <PrimaryButton
               title={isPending ? "Saving..." : "Save Changes"}
               onPress={() => handleSubmit()}
-              disabled={!isValid || isPending || !dirty}
+              disabled={!isValid || isPending || (!dirty && !avatarFile)}
               loading={isPending}
               style={{ marginTop: 10 }}
             />

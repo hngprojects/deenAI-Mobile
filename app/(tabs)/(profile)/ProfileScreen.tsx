@@ -9,12 +9,14 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
 import SignOutConfirmationModal from "./delete/SignOut";
 import { useUser } from "@/hooks/useUser";
 import { useAuthStore } from "@/store/auth-store";
 import ScreenContainer from "@/components/ScreenContainer";
 import { ArrowLeft } from "lucide-react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
@@ -44,6 +46,13 @@ const ProfileScreen: React.FC = () => {
   const { data: userData, isLoading, refetch } = useUser();
   const { user: authUser } = useAuthStore();
 
+  // Refetch user data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
+
   const getAvatarSource = () => {
     if (userData?.avatar) {
       return { uri: userData.avatar };
@@ -53,8 +62,8 @@ const ProfileScreen: React.FC = () => {
 
   const profile = {
     avatar: getAvatarSource(),
-    name: authUser?.name || "User",
-    nameGreeting: `Asalam Alaykum ${authUser?.name || "User"},\n`,
+    name: userData?.name || authUser?.name || "User",
+    nameGreeting: `Asalam Alaykum ${userData?.name || authUser?.name || "User"},\n`,
     greeting: "May all your days be filled with Light.",
     options: [
       {
@@ -93,7 +102,7 @@ const ProfileScreen: React.FC = () => {
         route: "/(tabs)/(profile)/DeleteAccountScreen",
         iconKey: "delete",
       },
-    ],
+    ] as Option[],
   };
 
   const renderOption = ({ item }: { item: Option }) => (
@@ -104,7 +113,7 @@ const ProfileScreen: React.FC = () => {
         if (item.id === "5") {
           setSignOutModalVisible(true);
         } else if (item.route) {
-          router.push(item?.route);
+          router.push(item.route);
         }
       }}
     >
@@ -138,6 +147,15 @@ const ProfileScreen: React.FC = () => {
       <View style={styles.placeholder} />
     </View>
   );
+
+  // Show loading state while fetching profile
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.color.primary} />
+      </View>
+    );
+  }
 
   return (
     <ScreenContainer
@@ -175,6 +193,11 @@ const ProfileScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",

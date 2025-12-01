@@ -62,7 +62,7 @@ const StreakCompleteModal: React.FC<StreakCompleteModalProps> = ({
                     {/* Title */}
                     <Text style={styles.title}>Streak Complete!</Text>
                     <Text style={styles.subtitle}>
-                        Alhamdullilah! You've completed your Azkar for today. May your
+                        Alhamdullilah! You&apos;ve completed your Azkar for today. May your
                         dedication be rewarded
                     </Text>
 
@@ -94,7 +94,7 @@ const StreakCompleteModal: React.FC<StreakCompleteModalProps> = ({
 
                     {/* Today's Achievement */}
                     <View style={styles.achievementContainer}>
-                        <Text style={styles.achievementTitle}>Today's Achievement</Text>
+                        <Text style={styles.achievementTitle}>Today&apos;s Achievement</Text>
 
                         <View style={styles.statsRow}>
                             <View style={styles.statItem}>

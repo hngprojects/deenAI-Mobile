@@ -57,10 +57,15 @@ class ApiService {
     const url = `${API_BASE_URL}${endpoint}`;
 
     const { token } = useAuthStore.getState();
+    const headers: Record<string, string> = {};
+
+    if (!(fetchOptions.body instanceof FormData)) {
+      headers["Content-Type"] = "application/json";
+    }
 
     const config: RequestInit = {
       headers: {
-        "Content-Type": "application/json",
+        ...headers,
         ...fetchOptions.headers,
       },
       ...fetchOptions,
@@ -139,9 +144,13 @@ class ApiService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error("API request error data:", errorData);
-        throw new Error(
+
+          const error: any = new Error(
           errorData.message || `Request failed with status ${response.status}`
         );
+        error.status_code = errorData.status_code || response.status;
+        error.errors = errorData.errors;
+        throw error;
       }
 
       return await response.json();
@@ -168,7 +177,7 @@ class ApiService {
     return this.request<T>(endpoint, {
       ...options,
       method: "POST",
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : (data ? JSON.stringify(data) : undefined),
     });
   }
 
@@ -180,7 +189,7 @@ class ApiService {
     return this.request<T>(endpoint, {
       ...options,
       method: "PUT",
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : (data ? JSON.stringify(data) : undefined),
     });
   }
 
@@ -196,7 +205,7 @@ class ApiService {
     return this.request<T>(endpoint, {
       ...options,
       method: "PATCH",
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : (data ? JSON.stringify(data) : undefined),
     });
   }
 }

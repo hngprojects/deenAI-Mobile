@@ -7,42 +7,43 @@ import { useRouter } from 'expo-router';
 import ScreenTitle from '@/components/ScreenTitle';
 
 export default function FAQScreen() {
-const router = useRouter();
+  const router = useRouter();
 
-interface FAQItem {
-  title: string;
-  route?: any;
-}
+  interface FAQItem {
+    title: string;
+    route?: any;
+  }
 
-const faqList: FAQItem[] = [
-  { title: "How secure is my data?", route: '/(tabs)/(profile)/support/FAQPrivacyScreen'},
-  { title: "How do i set prayer reminder", route: '/(tabs)/(profile)/support/FAQPrivacyScreen'},
-  { title: "Is NoorAI free to use?", route: '/(tabs)/(profile)/support/FAQPrivacyScreen'},
-  { title: "What is NoorAI?", route: '/(tabs)/(profile)/support/FAQPrivacyScreen'},
-  { title: "How do i contact the team?", route: '/(tabs)/(profile)/support/FAQPrivacyScreen' }
-];
+  const faqList: FAQItem[] = [
+    { title: "Is the Deen AI free to use?", route: '/(tabs)/(profile)/support/FAQPrivacyScreen'},
+    { title: "Is Deen AI a fatwa-issuing tool?", route: '/(tabs)/(profile)/support/FAQPrivacyScreen'},
+    { title: "Is my data private?", route: '/(tabs)/(profile)/support/FAQPrivacyScreen'},
+    { title: "What is Deen AI?", route: '/(tabs)/(profile)/support/FAQPrivacyScreen'},
+    { title: "What sources does Deen AI use?", route: '/(tabs)/(profile)/support/FAQPrivacyScreen'}
+  ];
+
   return (
     <ScreenContainer backgroundColor={theme.color.background3}>
-
-    <ScreenHeader title="Frequently Asked Questions"  onBackPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}/>
+      <ScreenHeader title="Frequently Asked Questions" onBackPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}/>
 
       <View style={styles.list}>
-      {faqList.map((item, index) => (
-
-        <TouchableOpacity 
-          key={index} 
-          style={styles.item}
-          onPress={() => router.push(item?.route)}
-        >
-          <Text style={styles.title}>{item.title}</Text>
-          <Image
-            source={require('@/assets/images/arrow-right.png')}
-            style={styles.arrow}
-            resizeMode ='contain'
-          />
-        </TouchableOpacity>
-      ))}
-
+        {faqList.map((item, index) => (
+          <TouchableOpacity 
+            key={index} 
+            style={styles.item}
+            onPress={() => router.push({
+              pathname: item.route,
+              params: { question: item.title } // Pass the question as parameter
+            })}
+          >
+            <Text style={styles.title}>{item.title}</Text>
+            <Image
+              source={require('@/assets/images/arrow-right.png')}
+              style={styles.arrow}
+              resizeMode='contain'
+            />
+          </TouchableOpacity>
+        ))}
       </View>
     </ScreenContainer>
   );
@@ -51,8 +52,7 @@ const faqList: FAQItem[] = [
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.color.background },
   list: { marginTop: 20, paddingHorizontal: 16 },
-
-   item: {
+  item: {
     paddingVertical: 16,
     paddingHorizontal: 20,
     backgroundColor: '#F4F4F4',
@@ -64,15 +64,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#C7C5CC'
   },
-
   title: {
-    fontSize: 16,
+    fontSize: 15,
     color: theme.color.secondary,
     fontFamily: theme.font.regular
   },
-
   arrow: {
-    width: 24,
-    height: 24,
+    width: 20,
+    height: 20,
   },
 });

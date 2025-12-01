@@ -1,6 +1,6 @@
 import { useToast } from "@/hooks/useToast";
 import { profileupdateService } from "@/service/profileupdate.service";
-import { ContactSupportType, EditProfileType } from "@/types/profile.types";
+import { ContactSupportType } from "@/types/profile.types";
 import { useAuthStore } from "@/store/auth-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
@@ -8,38 +8,51 @@ import { router } from "expo-router";
 export const useEditProfile = () => {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const { setLoading, user: currentUser, login } = useAuthStore.getState();
+  const { user: currentUser, login } = useAuthStore();
 
   return useMutation({
-    mutationFn: (userData: { username: string; name: string; avatarFile?: any }) => {
+    mutationFn: (userData: {
+      username?: string;
+      name?: string;
+      language?: string;
+      timezone?: string;
+      avatarFile?: any
+    }) => {
       return profileupdateService.editProfile(userData);
     },
 
-    onMutate: () => {
-      setLoading(true);
-    },
-
     onSuccess: (data, variables) => {
-      setLoading(false);
-
-      if (currentUser) {
+      // ✅ Update auth store with returned data from API
+      if (currentUser && data.data) {
         const updatedUser = {
           ...currentUser,
-          name: variables.name,
+          name: variables.name || currentUser.name,
         };
         login(updatedUser, useAuthStore.getState().token!);
       }
 
+      // ✅ Invalidate user query to refetch fresh data including avatar
       queryClient.invalidateQueries({ queryKey: ['user'] });
 
-      showToast("Profile updated successfully", "success");
+      showToast(data.message || "Profile updated successfully", "success");
 
-      router.push("/(tabs)/(profile)/ProfileScreen");
+      // ✅ Use router.back() for better navigation
+      router.back();
     },
 
     onError: (error: any) => {
-      setLoading(false);
-      showToast(error?.message || "Profile update failed", "error");
+      console.error('Profile update error:', error);
+
+      // ✅ Handle specific error cases from API
+      if (error?.status_code === 400) {
+        showToast("Username already exists. Please choose another.", "error");
+      } else if (error?.status_code === 422 && error?.errors) {
+        // Show first validation error
+        const firstError = Object.values(error.errors)[0];
+        showToast(Array.isArray(firstError) ? firstError[0] : "Validation failed", "error");
+      } else {
+        showToast(error?.message || "Profile update failed", "error");
+      }
     },
   });
 };
@@ -47,26 +60,19 @@ export const useEditProfile = () => {
 export const useContactSupport = () => {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const { setLoading } = useAuthStore.getState();
 
   return useMutation({
     mutationFn: (userData: ContactSupportType) => {
       return profileupdateService.contactSupport(userData);
     },
 
-    onMutate: () => {
-      setLoading(true);
-    },
-
     onSuccess: () => {
-      setLoading(false);
       queryClient.invalidateQueries({ queryKey: ["user"] });
       showToast("Thank you for contacting us", "success");
-      router.push("/(tabs)/(profile)/ProfileScreen");
+      router.back();
     },
 
     onError: (error: any) => {
-      setLoading(false);
       showToast(
         error?.message || "Please ensure all required fields are correctly filled and try again.",
         "error"
