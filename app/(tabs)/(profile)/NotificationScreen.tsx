@@ -1,11 +1,16 @@
-import { theme } from '@/styles/theme';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
-import ScreenContainer from '@/components/ScreenContainer';
-import Toggle from '@/components/ToggleNotifications';
-import ScreenTitle from '@/components/ScreenTitle';
-import ScreenHeader from '@/components/screenHeader';
-import { router } from 'expo-router';
+import { theme } from "@/styles/theme";
+import React, { useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+} from "react-native";
+import ScreenContainer from "@/components/ScreenContainer";
+import Toggle from "@/components/ToggleNotifications";
+import { router } from "expo-router";
+import { ArrowLeft } from "lucide-react-native";
 
 export default function NotificationScreen() {
   const [notifications, setNotifications] = useState([
@@ -22,20 +27,42 @@ export default function NotificationScreen() {
     );
   };
 
-  return (
-    <ScreenContainer backgroundColor={theme.color.background3}>
-      <ScreenHeader title="Notifications"  onBackPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}/>
+  // Fixed Header Component
+  const fixedHeader = (
+    <View style={styles.header}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+        activeOpacity={0.7}
+      >
+        <ArrowLeft color={theme.color.secondary} size={24} />
+      </TouchableOpacity>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <Text style={styles.headerTitle}>Notifications</Text>
+
+      <View style={styles.placeholder} />
+    </View>
+  );
+
+  return (
+    <ScreenContainer
+      fixedHeader={fixedHeader}
+      useFixedHeaderLayout={true}
+      paddingHorizontal={20}
+      backgroundColor={theme.color.background3}
+    >
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         {notifications.map((item) => (
           <View key={item.id} style={styles.card}>
             <Text style={styles.title}>{item.title}</Text>
-         
-         <Toggle
-          value={item.enabled}
-          onChange={() => toggleNotification(item.id)}
-        />
 
+            <Toggle
+              value={item.enabled}
+              onChange={() => toggleNotification(item.id)}
+            />
           </View>
         ))}
       </ScrollView>
@@ -44,8 +71,32 @@ export default function NotificationScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingTop: 20},
-
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 15,
+    paddingHorizontal: 20,
+  },
+  backButton: {
+    width: 40,
+    alignItems: "flex-start",
+    marginLeft: -8,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontFamily: theme.font.semiBold,
+    color: theme.color.secondary,
+    flex: 1,
+    textAlign: "center",
+  },
+  placeholder: {
+    width: 40,
+  },
+  content: {
+    paddingTop: 20,
+    paddingBottom: 20,
+  },
   card: {
     paddingVertical: 19,
     paddingHorizontal: 16,
@@ -58,7 +109,6 @@ const styles = StyleSheet.create({
     borderColor: "#C7C5CC",
     gap: 10,
   },
-
   title: {
     flex: 1,
     fontSize: 16,

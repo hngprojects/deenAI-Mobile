@@ -40,11 +40,9 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
   const statusBarHeight =
     Platform.OS === "android" ? StatusBar.currentHeight || 0 : 44;
 
-  // You can tweak this for your layout
   const FIXED_HEADER_TOP = statusBarHeight + 10;
   const FIXED_HEADER_HEIGHT = 70;
 
-  // Determine padding based on whether we're using fixed header layout
   const getTopPadding = () => {
     if (!scrollable) {
       return FIXED_HEADER_TOP;
@@ -96,7 +94,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
     <View style={[styles.container, { backgroundColor }]}>
       <ExpoStatusBar style={statusBarStyle} backgroundColor={backgroundColor} />
 
-      {/* FIXED HEADER - Only render if useFixedHeaderLayout is true */}
+      {/* FIXED HEADER */}
       {useFixedHeaderLayout && fixedHeader && (
         <View
           style={[

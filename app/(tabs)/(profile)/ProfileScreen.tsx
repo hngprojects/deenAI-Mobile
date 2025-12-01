@@ -16,6 +16,11 @@ import {
   View,
 } from "react-native";
 import SignOutConfirmationModal from "./delete/SignOut";
+import { useUser } from "@/hooks/useUser";
+import { useAuthStore } from "@/store/auth-store";
+import ScreenContainer from "@/components/ScreenContainer";
+import { ArrowLeft } from "lucide-react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
@@ -46,14 +51,13 @@ const ProfileScreen: React.FC = () => {
   const { user: authUser } = useAuthStore();
   const { t } = useTranslation();
 
-  // ✅ FIX: Refetch user data when screen comes into focus
+  // Refetch user data when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       refetch();
     }, [refetch])
   );
 
-  // ✅ FIX: Prioritize userData over authUser for most up-to-date info
   const getAvatarSource = () => {
     if (userData?.avatar) {
       return { uri: userData.avatar };
@@ -132,7 +136,24 @@ const ProfileScreen: React.FC = () => {
     </TouchableOpacity>
   );
 
-  // ✅ Show loading state while fetching profile
+  // Fixed Header Component
+  const fixedHeader = (
+    <View style={styles.header}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.push("/(tabs)")}
+        activeOpacity={0.7}
+      >
+        <ArrowLeft color={theme.color.secondary} size={24} />
+      </TouchableOpacity>
+
+      <Text style={styles.headerTitle}>Profile</Text>
+
+      <View style={styles.placeholder} />
+    </View>
+  );
+
+  // Show loading state while fetching profile
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -142,8 +163,13 @@ const ProfileScreen: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <ScreenContainer
+      fixedHeader={fixedHeader}
+      useFixedHeaderLayout={true}
+      paddingHorizontal={20}
+      backgroundColor={theme.color.background}
+    >
+      <View style={styles.profileHeader}>
         <Image source={profile.avatar} style={styles.avatar} />
         <Text style={[styles.nameGreeting, { color: theme.color.secondary }]}>
           {profile.nameGreeting}
@@ -160,29 +186,48 @@ const ProfileScreen: React.FC = () => {
         showsHorizontalScrollIndicator={false}
         bounces={false}
         overScrollMode="never"
-        contentContainerStyle={{ paddingHorizontal: 8, marginTop: 30 }}
+        contentContainerStyle={{ paddingHorizontal: 0, marginTop: 30 }}
       />
 
       <SignOutConfirmationModal
         visible={signOutModalVisible}
         setVisible={setSignOutModalVisible}
       />
-    </View>
+    </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
   header: {
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: 36,
+    justifyContent: "space-between",
+    marginBottom: 15,
+    paddingHorizontal: 20,
+  },
+  backButton: {
+    width: 40,
+    alignItems: "flex-start",
+    marginLeft: -8,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontFamily: theme.font.semiBold,
+    color: theme.color.secondary,
+    flex: 1,
+    textAlign: "center",
+  },
+  placeholder: {
+    width: 40,
+  },
+  profileHeader: {
+    alignItems: "center",
+    marginTop: 10,
   },
   avatar: {
     width: width * 0.32,
