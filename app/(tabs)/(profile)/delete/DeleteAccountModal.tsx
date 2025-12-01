@@ -2,6 +2,8 @@ import React from "react";
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import { theme } from "@/styles/theme";
+import { authService } from "@/service/auth.service";
+import { useAuthStore } from "@/store/auth-store";
 
 interface ModalProps {
   visible: boolean;
@@ -13,10 +15,27 @@ export default function DeleteAccountModal({
   setVisible,
 }: ModalProps) {
   const router = useRouter();
+  const token = useAuthStore((state) => state.token); // <-- get token
 
-  const handleSignOut = () => {
-    setVisible(false);
-    router.push("/(tabs)/(profile)/delete/OTPDeleteAccount");
+  const handleSignOut = async () => {
+    try {
+      if (!token) {
+        alert("Authentication token missing. Please log in again.");
+        return;
+      }
+
+      // Send delete request to backend
+      await authService.requestDeleteAccount(token);
+
+      // Close modal
+      setVisible(false);
+
+      // Navigate to OTP screen
+      router.push("/(tabs)/(profile)/delete/OTPDeleteAccount");
+    } catch (error: any) {
+      console.log("Delete account request error:", error.message);
+      alert(error.message || "Unable to request account deletion. Try again.");
+    }
   };
 
   return (

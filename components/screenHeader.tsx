@@ -98,6 +98,9 @@ const styles = StyleSheet.create({
         color: theme.color.secondary,
         flex: 1,
         textAlign: 'center',
+        flexShrink: 1, // Add this - prevents shrinking
+        flexWrap: 'nowrap', // Add this - prevents wrapping
+        numberOfLines: 1,
     },
     rightComponent: {
         width: 40,
