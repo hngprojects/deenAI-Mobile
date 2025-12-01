@@ -24,6 +24,25 @@ const { width } = Dimensions.get("window");
 const COMPASS_SIZE = width * 0.6;
 
 const Qibla = () => {
+  // Wrap hook call in try-catch for extra safety
+  let hookData;
+  try {
+    hookData = useQibla();
+  } catch (error) {
+    console.error("Failed to initialize useQibla hook:", error);
+    // Return error state
+    hookData = {
+      rotation: 0,
+      qiblaDirection: null,
+      heading: 0,
+      distanceToMecca: null,
+      sensorAvailable: false,
+      error: "Failed to initialize compass",
+      needsCalibration: false,
+      magneticFieldStrength: 0,
+    };
+  }
+
   const {
     rotation,
     qiblaDirection,
@@ -33,7 +52,8 @@ const Qibla = () => {
     error,
     needsCalibration,
     magneticFieldStrength,
-  } = useQibla();
+  } = hookData;
+
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0.8));
   const [isCalibrating, setIsCalibrating] = useState(false);
@@ -41,49 +61,71 @@ const Qibla = () => {
 
   useEffect(() => {
     // Animate in when data is available
-    if (qiblaDirection !== null) {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          toValue: 1,
-          duration: 600,
-          easing: Easing.out(Easing.back(1.5)),
-          useNativeDriver: true,
-        }),
-      ]).start();
+    try {
+      if (qiblaDirection !== null) {
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(scaleAnim, {
+            toValue: 1,
+            duration: 600,
+            easing: Easing.out(Easing.back(1.5)),
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }
+    } catch (animError) {
+      console.error("Animation error:", animError);
+      // Continue without animation
     }
   }, [qiblaDirection]);
 
   // Show error alert if sensor is not available
   useEffect(() => {
-    if (sensorAvailable === false) {
-      Alert.alert(
-        "Compass Not Available",
-        "Your device doesn't support compass functionality. The Qibla direction will be shown based on your location only.",
-        [{ text: "OK" }]
-      );
+    try {
+      if (sensorAvailable === false && error) {
+        Alert.alert(
+          "Compass Not Available",
+          "Your device doesn't support compass functionality. The Qibla direction will be shown based on your location only.",
+          [{ text: "OK" }]
+        );
+      }
+    } catch (alertError) {
+      console.error("Alert error:", alertError);
     }
-  }, [sensorAvailable]);
+  }, [sensorAvailable, error]);
 
   // Auto-detect calibration issues and show modal
   useEffect(() => {
-    if (needsCalibration && !hasShownAutoCalibration && sensorAvailable) {
-      // Show calibration modal automatically
-      setIsCalibrating(true);
-      setHasShownAutoCalibration(true);
+    try {
+      if (needsCalibration && !hasShownAutoCalibration && sensorAvailable) {
+        setIsCalibrating(true);
+        setHasShownAutoCalibration(true);
 
-      // Reset the flag after 30 seconds to allow re-triggering if still needed
-      const timer = setTimeout(() => {
-        setHasShownAutoCalibration(false);
-      }, 30000);
+        const timer = setTimeout(() => {
+          setHasShownAutoCalibration(false);
+        }, 30000);
 
-      return () => clearTimeout(timer);
+        return () => clearTimeout(timer);
+      }
+    } catch (calibrationError) {
+      console.error("Calibration detection error:", calibrationError);
     }
   }, [needsCalibration, hasShownAutoCalibration, sensorAvailable]);
+
+  // Safe number formatting
+  const formatNumber = (num: number | null | undefined, decimals: number = 1): string => {
+    try {
+      if (num === null || num === undefined || isNaN(num)) return "—";
+      return num.toFixed(decimals);
+    } catch (error) {
+      console.error("Number formatting error:", error);
+      return "—";
+    }
+  };
 
   return (
     <>
@@ -124,7 +166,6 @@ const Qibla = () => {
               height: 15,
               width: 15,
               borderRadius: 100000,
-              animationDuration: "2s",
             }}
           />
 
@@ -153,7 +194,7 @@ const Qibla = () => {
               />
               <Text style={styles.errorText}>Compass Not Available</Text>
               <Text style={styles.errorSubtext}>
-                Your device doesn't support compass sensors. You can still see
+                Your device doesn&apos;t support compass sensors. You can still see
                 the Qibla direction based on your location.
               </Text>
             </View>
@@ -163,30 +204,22 @@ const Qibla = () => {
           {qiblaDirection !== null && sensorAvailable !== false && (
             <Animated.View
               style={{
-                transform: [{ rotate: `${-rotation}deg` }],
+                transform: [{ rotate: `${rotation}deg` }],
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                animationTimingFunction: "ease-in-out",
-                transformOrigin: "center",
-                transitionDuration: "1s",
                 overflow: "hidden",
                 width: 300,
                 height: 300,
               }}
             >
               {/* KA'BAH as pin head */}
-              <Text
-                style={{
-                  fontSize: 50,
-                }}
-              >
-                🕋
-              </Text>
+              <Text style={{ fontSize: 50 }}>🕋</Text>
 
               <Image
                 style={{ width: COMPASS_SIZE, height: COMPASS_SIZE }}
                 source={require("@/assets/compass.png")}
+                resizeMode="contain"
               />
             </Animated.View>
           )}
@@ -220,7 +253,7 @@ const Qibla = () => {
                 />
                 <Text style={styles.infoLabel}>Heading</Text>
                 <Text style={styles.infoValue}>
-                  {sensorAvailable ? `${heading?.toFixed(1) || "0"}°` : "—"}
+                  {sensorAvailable ? `${formatNumber(heading)}°` : "—"}
                 </Text>
               </View>
 
@@ -233,9 +266,8 @@ const Qibla = () => {
                 <Text style={styles.infoLabel}>Qibla</Text>
                 <Text style={styles.infoValue}>
                   {qiblaDirection !== null
-                    ? (qiblaDirection + 90).toFixed(1)
+                    ? `${formatNumber(qiblaDirection + 90)}°`
                     : "—"}
-                  °
                 </Text>
               </View>
 
@@ -247,7 +279,7 @@ const Qibla = () => {
                 />
                 <Text style={styles.infoLabel}>Distance</Text>
                 <Text style={styles.infoValue}>
-                  {distanceToMecca ? `${distanceToMecca.toFixed(0)} km` : "—"}
+                  {distanceToMecca ? `${formatNumber(distanceToMecca, 0)} km` : "—"}
                 </Text>
               </View>
             </View>
@@ -255,51 +287,44 @@ const Qibla = () => {
         )}
       </ScreenContainer>
 
-      <View>
-        <Modal
-          visible={isCalibrating}
-          animationType="fade"
-          transparent={true}
-          onRequestClose={() => setIsCalibrating(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <RefreshCcw size={48} color={theme.color.brand} />
+      <Modal
+        visible={isCalibrating}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setIsCalibrating(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <RefreshCcw size={48} color={theme.color.brand} />
 
-              {/* <Image
-            source={require("@/assets/compass-calibration.gif")}
-            style={{ width: 200, height: 200, marginVertical: 20 }}
-            /> */}
+            <Text style={styles.modalTitle}>Compass Needs Calibration</Text>
 
-              <Text style={styles.modalTitle}>Compass Needs Calibration</Text>
+            <Text style={styles.modalText}>
+              Move your phone in a figure 8 motion to improve accuracy. This
+              helps recalibrate the compass sensors for precise Qibla
+              direction.
+            </Text>
 
-              <Text style={styles.modalText}>
-                Move your phone in a figure 8 motion to improve accuracy. This
-                helps recalibrate the compass sensors for precise Qibla
-                direction.
-              </Text>
+            {magneticFieldStrength > 0 && (
+              <View style={styles.calibrationInfo}>
+                <Text style={styles.calibrationInfoText}>
+                  Field Strength: {formatNumber(magneticFieldStrength)} µT
+                </Text>
+                <Text style={styles.calibrationInfoSubtext}>
+                  {magneticFieldStrength < 20 || magneticFieldStrength > 70
+                    ? "⚠ Out of normal range (25-65 µT)"
+                    : "✓ Within normal range"}
+                </Text>
+              </View>
+            )}
 
-              {magneticFieldStrength > 0 && (
-                <View style={styles.calibrationInfo}>
-                  <Text style={styles.calibrationInfoText}>
-                    Field Strength: {magneticFieldStrength.toFixed(1)} µT
-                  </Text>
-                  <Text style={styles.calibrationInfoSubtext}>
-                    {magneticFieldStrength < 20 || magneticFieldStrength > 70
-                      ? "⚠ Out of normal range (25-65 µT)"
-                      : "✓ Within normal range"}
-                  </Text>
-                </View>
-              )}
-
-              <PrimaryButton
-                onPress={() => setIsCalibrating(false)}
-                title="Done"
-              />
-            </View>
+            <PrimaryButton
+              onPress={() => setIsCalibrating(false)}
+              title="Done"
+            />
           </View>
-        </Modal>
-      </View>
+        </View>
+      </Modal>
     </>
   );
 };
@@ -316,7 +341,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 20,
     padding: 24,
-    gap: 34,
+    gap: 24,
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",

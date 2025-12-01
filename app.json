@@ -10,7 +10,7 @@
         "userInterfaceStyle": "automatic",
         "newArchEnabled": true,
         "ios": {
-            "buildNumber": "2",
+            "buildNumber": "3",
             "supportsTablet": true,
             "infoPlist": {
                 "NSLocationWhenInUseUsageDescription": "This app needs your location to provide accurate prayer times and Qibla direction for your area.",
@@ -29,7 +29,7 @@
             "bundleIdentifier": "com.allcodez.DeenAiMobile"
         },
         "android": {
-            "versionCode": 2,
+            "versionCode": 3,
             "adaptiveIcon": {
                 "backgroundColor": "#E6F4FE",
                 "foregroundImage": "./assets/images/android-icon.png",
@@ -81,7 +81,7 @@
             [
                 "expo-sensors",
                 {
-                    "motionPermission": "Allow $(PRODUCT_NAME) to access your device's motion sensors to show the accurate Qibla direction."
+                    "motionPermission": "Allow $(PRODUCT_NAME) to access motion sensors for accurate Qibla compass direction."
                 }
             ],
             "expo-build-properties",
