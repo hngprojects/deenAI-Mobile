@@ -1,8 +1,23 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import DeleteConfirmCard from "@/components/bookmark/DeleteConfirmCard";
-import { quranService } from "@/service/quran.service";
-import { theme } from "@/styles/theme";
+import { quranService } from '@/service/quran.service';
+import { useReflectStore } from '@/store/reflect-store';
+import { theme } from '@/styles/theme';
+import { useRouter } from 'expo-router';
+import { Bookmark, Edit } from 'lucide-react-native';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+interface VerseItemProps {
+  verseNumber: number;
+  arabicText: string;
+  translation: string;
+  transliteration?: string;
+  isBookmarked?: boolean;
+  onBookmarkPress?: () => void;
+  onReflectPress?: () => void;
+  showTransliteration?: boolean;
+  surahNumber?: number;
+  surahName?: string;
+}
 
 const VerseItem: React.FC<VerseItemProps> = ({
   verseNumber,
@@ -12,12 +27,41 @@ const VerseItem: React.FC<VerseItemProps> = ({
   onBookmarkPress,
   surahNumber,
 }) => {
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { setDraft } = useReflectStore();
+  const router = useRouter();
 
-  const handleDelete = async () => {
-    await quranService.removeBookmark(Number(surahNumber), Number(verseNumber));
-    setShowDeleteConfirm(false);
-    // optionally update parent state
+  const handleReflectPress = () => {
+    setDraft({
+      surahNumber,
+      verseNumber,
+      arabicText,
+      translation,
+      surahName,
+    });
+
+    router.push({
+      pathname: '/reflect-verse',
+      params: {
+        surahNumber: surahNumber?.toString(),
+        startAyah: verseNumber?.toString(),
+        verseText: translation,
+        surahName: surahName,
+      },
+    });
+  };
+
+  const handleBookmarkLongPress = async () => {
+    try {
+      const allBookmarks = await quranService.getBookmarks();
+
+      if (allBookmarks.length === 0) {
+        router.push('/(tabs)/(bookmark)'); // No bookmarks
+      } else {
+        router.push('/(tabs)/(bookmark)/bookmarklistscreen'); // Bookmarks exist
+      }
+    } catch (err) {
+      console.log('Error fetching bookmarks:', err);
+    }
   };
 
   const handleCancel = () => setShowDeleteConfirm(false);
@@ -34,14 +78,33 @@ const VerseItem: React.FC<VerseItemProps> = ({
         <Text style={styles.deleteText}>Delete Bookmark</Text>
       </TouchableOpacity>
 
-      {showDeleteConfirm && (
-        <DeleteConfirmCard
-          surahNumber={surahNumber!}
-          verseNumber={verseNumber}
-          onConfirm={handleDelete}
-          onCancel={handleCancel}
-        />
-      )}
+        <View style={styles.saurahActions}>
+          <TouchableOpacity
+            onPress={handleReflectPress}
+            activeOpacity={0.7}
+            style={styles.reflectButton}
+          >
+            <Text style={styles.saurahActionsText}>Reflect</Text>
+            <Edit size={16} color={theme.color.secondary} />
+          </TouchableOpacity>
+
+          {/* {onBookmarkPress && (
+            <TouchableOpacity
+              style={styles.bookmarkButton}
+              activeOpacity={0.7}
+              onPress={onBookmarkPress} // Tap toggles bookmark
+              onLongPress={handleBookmarkLongPress} // Long press navigates based on bookmarks
+              delayLongPress={300}
+            >
+              <Bookmark
+                size={20}
+                color={isBookmarked ? theme.color.brand : theme.color.secondary}
+                fill={isBookmarked ? theme.color.brand : 'transparent'}
+              />
+            </TouchableOpacity>
+          )} */}
+        </View>
+      </View>
     </View>
   );
 };
