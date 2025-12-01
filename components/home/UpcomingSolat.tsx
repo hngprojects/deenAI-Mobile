@@ -3,6 +3,7 @@ import { theme } from "@/styles/theme";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Image,
@@ -14,6 +15,7 @@ import {
 
 export default function UpcomingSolat() {
   const router = useRouter();
+  const { t } = useTranslation();
   const {
     nextPrayer,
     locationName,
@@ -67,8 +69,8 @@ export default function UpcomingSolat() {
       <View style={styles.container}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.todayText}>Today</Text>
-            <Text style={styles.title}>Upcoming Solat</Text>
+            <Text style={styles.todayText}>{t("today")}</Text>
+            <Text style={styles.title}>{t("upcomingSolat")}</Text>
           </View>
         </View>
 
@@ -107,8 +109,8 @@ export default function UpcomingSolat() {
       <View style={styles.container}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.todayText}>Today</Text>
-            <Text style={styles.title}>Upcoming Solat</Text>
+            <Text style={styles.todayText}>{t("today")}</Text>
+            <Text style={styles.title}>{t("upcomingSolat")}</Text>
           </View>
         </View>
 
@@ -125,8 +127,8 @@ export default function UpcomingSolat() {
       <View style={styles.container}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.todayText}>Today</Text>
-            <Text style={styles.title}>Upcoming Solat</Text>
+            <Text style={styles.todayText}>{t("today")}</Text>
+            <Text style={styles.title}>{t("upcomingSolat")}</Text>
           </View>
         </View>
 
@@ -162,11 +164,11 @@ export default function UpcomingSolat() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.todayText}>Today</Text>
-          <Text style={styles.title}>Upcoming Solat</Text>
+          <Text style={styles.todayText}>{t("today")}</Text>
+          <Text style={styles.title}>{t("upcomingSolat")}</Text>
         </View>
         <TouchableOpacity onPress={handleSeeAll}>
-          <Text style={styles.seeAllText}>See all</Text>
+          <Text style={styles.seeAllText}>{t("seeAll")}</Text>
         </TouchableOpacity>
       </View>
 
@@ -214,7 +216,7 @@ export default function UpcomingSolat() {
               style={styles.actionIcon}
               resizeMode="contain"
             />
-            <Text style={styles.actionText}>Qibla</Text>
+            <Text style={styles.actionText}>{t("qibla")}</Text>
           </TouchableOpacity>
 
           <View style={styles.separator} />
@@ -228,7 +230,7 @@ export default function UpcomingSolat() {
               style={styles.actionIcon}
               resizeMode="contain"
             />
-            <Text style={styles.actionText}>Counter</Text>
+            <Text style={styles.actionText}>{t("counter")}</Text>
           </TouchableOpacity>
 
           <View style={styles.separator} />
@@ -242,7 +244,7 @@ export default function UpcomingSolat() {
               style={styles.actionIcon}
               resizeMode="contain"
             />
-            <Text style={styles.actionText}>Azkar</Text>
+            <Text style={styles.actionText}>{t("azkar")}</Text>
           </TouchableOpacity>
 
           <View style={styles.separator} />
@@ -255,7 +257,7 @@ export default function UpcomingSolat() {
               style={styles.actionIcon}
               resizeMode="contain"
             />
-            <Text style={styles.actionText}>Streaks</Text>
+            <Text style={styles.actionText}>{t("streaks")}</Text>
           </TouchableOpacity>
         </View>
       </View>
