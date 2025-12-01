@@ -3,7 +3,7 @@ import { theme } from "@/styles/theme";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
-import { usePrayerTimes } from "@/hooks/usePrayerTimes";
+// import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 
 interface UpcomingSolatCardProps {
   prayerName: string;
@@ -19,7 +19,7 @@ export default function UpcomingSolatCard({
   formattedTime,
   locationName,
 }: UpcomingSolatCardProps) {
-  const { savedLocation } = usePrayerTimes();
+  // const { savedLocation } = usePrayerTimes();
 
   // Helper to check if location is valid and add source label
   const getLocationDisplay = () => {
@@ -32,10 +32,10 @@ export default function UpcomingSolatCard({
     }
 
     // Add source label (+user or +emulator) if savedLocation exists
-    if (savedLocation) {
-      const label = savedLocation.source === 'emulator' ? '+emulator' : '+user';
-      return `${locationName} ${label}`;
-    }
+    // if (savedLocation) {
+    //   const label = savedLocation.source === 'emulator' ? '+emulator' : '+user';
+    //   return `${locationName} ${label}`;
+    // }
 
     // Fallback: return just the location name if no savedLocation
     return locationName;

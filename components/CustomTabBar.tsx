@@ -1,7 +1,7 @@
 import { theme } from '@/styles/theme';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Define which routes should be hidden from the tab bar
@@ -10,8 +10,18 @@ const HIDDEN_ROUTES = [''];
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const insets = useSafeAreaInsets();
 
+    const bottomPadding = Platform.OS === 'android'
+        ? Math.max(insets.bottom + 10, 20) // Minimum 20px on Android
+        : insets.bottom || 0;
+
     return (
-        <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+        <View style={[
+            styles.container,
+            {
+                paddingBottom: bottomPadding,
+
+            }
+        ]}>
             <View style={styles.tabBar}>
                 {state.routes
                     .filter((route) => {

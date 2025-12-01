@@ -1,7 +1,4 @@
-import { useUser } from "@/hooks/useUser";
-import { useAuthStore } from "@/store/auth-store";
 import { theme } from "@/styles/theme";
-import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { useTranslation } from 'react-i18next';

@@ -84,7 +84,8 @@
                     "motionPermission": "Allow $(PRODUCT_NAME) to access your device's motion sensors to show the accurate Qibla direction."
                 }
             ],
-            "expo-build-properties"
+            "expo-build-properties",
+            "expo-localization"
         ],
         "experiments": {
             "typedRoutes": true,

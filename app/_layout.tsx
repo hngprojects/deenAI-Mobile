@@ -8,6 +8,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -88,17 +89,19 @@ function RootLayoutNav() {
   }, [isAuthenticated, isGuest, isLoading, router, segments]);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(onboarding)" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="(tasbih)" />
-      <Stack.Screen name="(deenai)" />
-      <Stack.Screen name="(adhkar)" />
-      <Stack.Screen name="profile" />
-      <Stack.Screen name="(qibla)" />
-    </Stack>
+    <SafeAreaProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(onboarding)" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(tasbih)" />
+        <Stack.Screen name="(deenai)" />
+        <Stack.Screen name="(adhkar)" />
+        <Stack.Screen name="profile" />
+        <Stack.Screen name="(qibla)" />
+      </Stack>
+    </SafeAreaProvider>
   );
 }
 

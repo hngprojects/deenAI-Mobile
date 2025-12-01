@@ -5,14 +5,13 @@ import { theme } from "@/styles/theme";
 import { useRouter } from "expo-router";
 import { Bell } from "lucide-react-native";
 import React from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 export default function HomeHeader() {
   const { t } = useTranslation();
   const { user, isGuest } = useAuth();
   const { data: userProfile } = useUser(); // Fetch user profile with avatar
-  const logoutMutation = useLogout();
   const router = useRouter();
 
   const userName = user?.name || (isGuest ? "Guest" : "User");
@@ -42,9 +41,9 @@ export default function HomeHeader() {
 
   };
 
-  const handleNotificationPress = () => {
-    router.push('/streak-complete');
-  };
+  // const handleNotificationPress = () => {
+  //   router.push('/streak-complete');
+  // };
 
   return (
     <View style={styles.container}>
@@ -64,7 +63,7 @@ export default function HomeHeader() {
           <Text style={styles.userName}>{userName}</Text>
         </View>
       </View>
-      <View style={styles.notifyButtons}>
+      {/* <View style={styles.notifyButtons}>
         <TouchableOpacity
           style={styles.notificationButton}
           onPress={handleNotificationPress}
@@ -72,7 +71,7 @@ export default function HomeHeader() {
           <Bell size={20} color={theme.color.secondary} strokeWidth={2} />
           {!isGuest && <View style={styles.notificationBadge} />}
         </TouchableOpacity>
-      </View>
+      </View> */}
     </View>
   );
 }
