@@ -10,12 +10,15 @@ import {
   Dimensions,
   Easing,
   Image,
+  Modal,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 
 import { LinearGradient } from "expo-linear-gradient";
+import { RefreshCcw } from "lucide-react-native";
+import PrimaryButton from "@/components/primaryButton";
 
 const { width } = Dimensions.get("window");
 const COMPASS_SIZE = width * 0.6;
@@ -27,10 +30,14 @@ const Qibla = () => {
     heading,
     distanceToMecca,
     sensorAvailable,
-    error
+    error,
+    needsCalibration,
+    magneticFieldStrength,
   } = useQibla();
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0.8));
+  const [isCalibrating, setIsCalibrating] = useState(false);
+  const [hasShownAutoCalibration, setHasShownAutoCalibration] = useState(false);
 
   useEffect(() => {
     // Animate in when data is available
@@ -62,142 +69,305 @@ const Qibla = () => {
     }
   }, [sensorAvailable]);
 
-  return (
-    <ScreenContainer backgroundColor={theme.color.background}>
-      <ScreenHeader
-        title="Qibla Direction"
-        headerStyle={{
-          paddingHorizontal: 0,
-        }}
-      />
+  // Auto-detect calibration issues and show modal
+  useEffect(() => {
+    if (needsCalibration && !hasShownAutoCalibration && sensorAvailable) {
+      // Show calibration modal automatically
+      setIsCalibrating(true);
+      setHasShownAutoCalibration(true);
 
-      <View style={styles.container}>
-        <LinearGradient
-          colors={[theme.color.gradientStart, theme.color.gradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{
-            height: 15,
-            width: 15,
-            borderRadius: 100000,
-            animationDuration: "2s",
+      // Reset the flag after 30 seconds to allow re-triggering if still needed
+      const timer = setTimeout(() => {
+        setHasShownAutoCalibration(false);
+      }, 30000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [needsCalibration, hasShownAutoCalibration, sensorAvailable]);
+
+  return (
+    <>
+      <ScreenContainer backgroundColor={theme.color.background}>
+        <ScreenHeader
+          title="Qibla Direction"
+          headerStyle={{
+            paddingHorizontal: 0,
           }}
+          rightComponent={
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+            >
+              {needsCalibration && sensorAvailable && (
+                <Ionicons
+                  name="warning"
+                  size={24}
+                  color="#FFA500"
+                  style={{ marginRight: -4 }}
+                />
+              )}
+              <Ionicons
+                name="refresh"
+                size={24}
+                color={theme.color.brand}
+                onPress={() => setIsCalibrating(true)}
+              />
+            </View>
+          }
         />
 
-        {error && sensorAvailable === false && (
-          <View style={styles.errorContainer}>
-            <Ionicons
-              name="warning-outline"
-              size={60}
-              color={theme.color.brand}
-              style={styles.errorIcon}
-            />
-            <Text style={styles.errorText}>Compass Not Available</Text>
-            <Text style={styles.errorSubtext}>
-              Your device doesn't support compass sensors. You can still see the Qibla direction based on your location.
-            </Text>
-          </View>
-        )}
-
-        {/* Main Content - Show if sensor available or at least direction calculated */}
-        {qiblaDirection !== null && sensorAvailable !== false && (
-          <Animated.View
+        <View style={styles.container}>
+          <LinearGradient
+            colors={[theme.color.gradientStart, theme.color.gradientEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={{
-              transform: [{ rotate: `${-rotation}deg` }],
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              animationTimingFunction: "ease-in-out",
-              transformOrigin: "center",
-              transitionDuration: "1s",
-              overflow: "hidden",
-              width: 300,
-              height: 300,
+              height: 15,
+              width: 15,
+              borderRadius: 100000,
+              animationDuration: "2s",
             }}
-          >
-            {/* KA'BAH as pin head */}
-            <Text
+          />
+
+          {/* Calibration Warning Banner */}
+          {needsCalibration && sensorAvailable && !isCalibrating && (
+            <View style={styles.calibrationBanner}>
+              <Ionicons
+                name="warning"
+                size={20}
+                color="#FFA500"
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.calibrationBannerText}>
+                Compass needs calibration for accurate readings
+              </Text>
+            </View>
+          )}
+
+          {error && sensorAvailable === false && (
+            <View style={styles.errorContainer}>
+              <Ionicons
+                name="warning-outline"
+                size={60}
+                color={theme.color.brand}
+                style={styles.errorIcon}
+              />
+              <Text style={styles.errorText}>Compass Not Available</Text>
+              <Text style={styles.errorSubtext}>
+                Your device doesn't support compass sensors. You can still see
+                the Qibla direction based on your location.
+              </Text>
+            </View>
+          )}
+
+          {/* Main Content - Show if sensor available or at least direction calculated */}
+          {qiblaDirection !== null && sensorAvailable !== false && (
+            <Animated.View
               style={{
-                fontSize: 50,
+                transform: [{ rotate: `${-rotation}deg` }],
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                animationTimingFunction: "ease-in-out",
+                transformOrigin: "center",
+                transitionDuration: "1s",
+                overflow: "hidden",
+                width: 300,
+                height: 300,
               }}
             >
-              🕋
-            </Text>
+              {/* KA'BAH as pin head */}
+              <Text
+                style={{
+                  fontSize: 50,
+                }}
+              >
+                🕋
+              </Text>
 
-            <Image
-              style={{ width: COMPASS_SIZE, height: COMPASS_SIZE }}
-              source={require("@/assets/compass.png")}
-            />
-          </Animated.View>
-        )}
-
-        {/* Loading State */}
-        {qiblaDirection === null && !error && sensorAvailable !== false && (
-          <View style={styles.loadingContainer}>
-            <Ionicons
-              name="compass"
-              size={60}
-              color={theme.color.brand}
-              style={styles.loadingIcon}
-            />
-            <Text style={styles.loadingText}>Finding Qibla Direction...</Text>
-            <Text style={styles.loadingSubtext}>
-              Ensuring accurate location and compass data
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Metadata below compass */}
-      {qiblaDirection !== null && (
-        <View style={styles.infoPanel}>
-          <View style={styles.infoRow}>
-            <View style={styles.infoItem}>
-              <Ionicons
-                name="compass-outline"
-                size={20}
-                color={theme.color.brand}
+              <Image
+                style={{ width: COMPASS_SIZE, height: COMPASS_SIZE }}
+                source={require("@/assets/compass.png")}
               />
-              <Text style={styles.infoLabel}>Heading</Text>
-              <Text style={styles.infoValue}>
-                {sensorAvailable ? `${heading?.toFixed(1) || "0"}°` : "—"}
+            </Animated.View>
+          )}
+
+          {/* Loading State */}
+          {qiblaDirection === null && !error && sensorAvailable !== false && (
+            <View style={styles.loadingContainer}>
+              <Ionicons
+                name="compass"
+                size={60}
+                color={theme.color.brand}
+                style={styles.loadingIcon}
+              />
+              <Text style={styles.loadingText}>Finding Qibla Direction...</Text>
+              <Text style={styles.loadingSubtext}>
+                Ensuring accurate location and compass data
               </Text>
             </View>
-
-            <View style={styles.infoItem}>
-              <Ionicons
-                name="navigate-outline"
-                size={20}
-                color={theme.color.brand}
-              />
-              <Text style={styles.infoLabel}>Qibla</Text>
-              <Text style={styles.infoValue}>
-                {qiblaDirection !== null
-                  ? (qiblaDirection + 90).toFixed(1)
-                  : "—"}
-                °
-              </Text>
-            </View>
-
-            <View style={styles.infoItem}>
-              <Ionicons
-                name="location-outline"
-                size={20}
-                color={theme.color.brand}
-              />
-              <Text style={styles.infoLabel}>Distance</Text>
-              <Text style={styles.infoValue}>
-                {distanceToMecca ? `${distanceToMecca.toFixed(0)} km` : "—"}
-              </Text>
-            </View>
-          </View>
+          )}
         </View>
-      )}
-    </ScreenContainer>
+
+        {/* Metadata below compass */}
+        {qiblaDirection !== null && (
+          <View style={styles.infoPanel}>
+            <View style={styles.infoRow}>
+              <View style={styles.infoItem}>
+                <Ionicons
+                  name="compass-outline"
+                  size={20}
+                  color={theme.color.brand}
+                />
+                <Text style={styles.infoLabel}>Heading</Text>
+                <Text style={styles.infoValue}>
+                  {sensorAvailable ? `${heading?.toFixed(1) || "0"}°` : "—"}
+                </Text>
+              </View>
+
+              <View style={styles.infoItem}>
+                <Ionicons
+                  name="navigate-outline"
+                  size={20}
+                  color={theme.color.brand}
+                />
+                <Text style={styles.infoLabel}>Qibla</Text>
+                <Text style={styles.infoValue}>
+                  {qiblaDirection !== null
+                    ? (qiblaDirection + 90).toFixed(1)
+                    : "—"}
+                  °
+                </Text>
+              </View>
+
+              <View style={styles.infoItem}>
+                <Ionicons
+                  name="location-outline"
+                  size={20}
+                  color={theme.color.brand}
+                />
+                <Text style={styles.infoLabel}>Distance</Text>
+                <Text style={styles.infoValue}>
+                  {distanceToMecca ? `${distanceToMecca.toFixed(0)} km` : "—"}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+      </ScreenContainer>
+
+      <View>
+        <Modal
+          visible={isCalibrating}
+          animationType="fade"
+          transparent={true}
+          onRequestClose={() => setIsCalibrating(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <RefreshCcw size={48} color={theme.color.brand} />
+
+              {/* <Image
+            source={require("@/assets/compass-calibration.gif")}
+            style={{ width: 200, height: 200, marginVertical: 20 }}
+            /> */}
+
+              <Text style={styles.modalTitle}>Compass Needs Calibration</Text>
+
+              <Text style={styles.modalText}>
+                Move your phone in a figure 8 motion to improve accuracy. This
+                helps recalibrate the compass sensors for precise Qibla
+                direction.
+              </Text>
+
+              {magneticFieldStrength > 0 && (
+                <View style={styles.calibrationInfo}>
+                  <Text style={styles.calibrationInfoText}>
+                    Field Strength: {magneticFieldStrength.toFixed(1)} µT
+                  </Text>
+                  <Text style={styles.calibrationInfoSubtext}>
+                    {magneticFieldStrength < 20 || magneticFieldStrength > 70
+                      ? "⚠ Out of normal range (25-65 µT)"
+                      : "✓ Within normal range"}
+                  </Text>
+                </View>
+              )}
+
+              <PrimaryButton
+                onPress={() => setIsCalibrating(false)}
+                title="Done"
+              />
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "#1a19194d",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 24,
+    gap: 34,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  modalText: {
+    fontSize: 16,
+    textAlign: "center",
+    lineHeight: 22,
+    color: theme.color.text,
+  },
+  calibrationInfo: {
+    backgroundColor: "rgba(0,0,0,0.05)",
+    borderRadius: 12,
+    padding: 16,
+    width: "100%",
+    alignItems: "center",
+  },
+  calibrationInfoText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: theme.color.text,
+    marginBottom: 4,
+  },
+  calibrationInfoSubtext: {
+    fontSize: 12,
+    color: theme.color.gray,
+    textAlign: "center",
+  },
+  calibrationBanner: {
+    backgroundColor: "rgba(255, 165, 0, 0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 165, 0, 0.3)",
+    borderRadius: 12,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 20,
+    marginTop: 10,
+  },
+  calibrationBannerText: {
+    flex: 1,
+    fontSize: 14,
+    color: theme.color.text,
+    lineHeight: 18,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 20,
