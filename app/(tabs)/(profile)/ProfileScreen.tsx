@@ -1,7 +1,12 @@
+import { useUser } from "@/hooks/useUser";
+import { useAuthStore } from "@/store/auth-store";
 import { theme } from "@/styles/theme";
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   Image,
@@ -9,11 +14,12 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from "react-native";
 import SignOutConfirmationModal from "./delete/SignOut";
 import { useUser } from "@/hooks/useUser";
 import { useAuthStore } from "@/store/auth-store";
+import ScreenContainer from "@/components/ScreenContainer";
+import { ArrowLeft } from "lucide-react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
@@ -43,15 +49,15 @@ const ProfileScreen: React.FC = () => {
   const [signOutModalVisible, setSignOutModalVisible] = useState(false);
   const { data: userData, isLoading, refetch } = useUser();
   const { user: authUser } = useAuthStore();
+  const { t } = useTranslation();
 
-  // ✅ FIX: Refetch user data when screen comes into focus
+  // Refetch user data when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       refetch();
     }, [refetch])
   );
 
-  // ✅ FIX: Prioritize userData over authUser for most up-to-date info
   const getAvatarSource = () => {
     if (userData?.avatar) {
       return { uri: userData.avatar };
@@ -67,37 +73,37 @@ const ProfileScreen: React.FC = () => {
     options: [
       {
         id: "1",
-        title: "Edit Profile",
+        title: t('editProfile'),
         route: "/(tabs)/(profile)/EditProfileScreen",
         iconKey: "edit",
       },
       {
         id: "2",
-        title: "Notifications",
+        title: t('notifications'),
         route: "/(tabs)/(profile)/NotificationScreen",
         iconKey: "notifications",
       },
       {
         id: "3",
-        title: "Language",
+        title: t('selectLanguage'),
         route: "/(tabs)/(profile)/AppLanguageScreen",
         iconKey: "language",
       },
       {
         id: "4",
-        title: "Support",
+        title: t('support'),
         route: "/(tabs)/(profile)/SupportScreen",
         iconKey: "support",
       },
       {
         id: "5",
-        title: "Log Out",
+        title: t('logout'),
         route: "/(tabs)/(profile)/delete/SignOut",
         iconKey: "signout",
       },
       {
         id: "6",
-        title: "Delete Account",
+        title: t('deleteAccount'),
         route: "/(tabs)/(profile)/DeleteAccountScreen",
         iconKey: "delete",
       },
@@ -130,7 +136,24 @@ const ProfileScreen: React.FC = () => {
     </TouchableOpacity>
   );
 
-  // ✅ Show loading state while fetching profile
+  // Fixed Header Component
+  const fixedHeader = (
+    <View style={styles.header}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.push("/(tabs)")}
+        activeOpacity={0.7}
+      >
+        <ArrowLeft color={theme.color.secondary} size={24} />
+      </TouchableOpacity>
+
+      <Text style={styles.headerTitle}>Profile</Text>
+
+      <View style={styles.placeholder} />
+    </View>
+  );
+
+  // Show loading state while fetching profile
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -140,8 +163,13 @@ const ProfileScreen: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <ScreenContainer
+      fixedHeader={fixedHeader}
+      useFixedHeaderLayout={true}
+      paddingHorizontal={20}
+      backgroundColor={theme.color.background}
+    >
+      <View style={styles.profileHeader}>
         <Image source={profile.avatar} style={styles.avatar} />
         <Text style={[styles.nameGreeting, { color: theme.color.secondary }]}>
           {profile.nameGreeting}
@@ -158,29 +186,48 @@ const ProfileScreen: React.FC = () => {
         showsHorizontalScrollIndicator={false}
         bounces={false}
         overScrollMode="never"
-        contentContainerStyle={{ paddingHorizontal: 8, marginTop: 30 }}
+        contentContainerStyle={{ paddingHorizontal: 0, marginTop: 30 }}
       />
 
       <SignOutConfirmationModal
         visible={signOutModalVisible}
         setVisible={setSignOutModalVisible}
       />
-    </View>
+    </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
   header: {
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: 36,
+    justifyContent: "space-between",
+    marginBottom: 15,
+    paddingHorizontal: 20,
+  },
+  backButton: {
+    width: 40,
+    alignItems: "flex-start",
+    marginLeft: -8,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontFamily: theme.font.semiBold,
+    color: theme.color.secondary,
+    flex: 1,
+    textAlign: "center",
+  },
+  placeholder: {
+    width: 40,
+  },
+  profileHeader: {
+    alignItems: "center",
+    marginTop: 10,
   },
   avatar: {
     width: width * 0.32,

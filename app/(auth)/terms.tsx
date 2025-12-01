@@ -34,7 +34,7 @@ export default function TermsAndConditions() {
                 <Text style={styles.date}>Last Updated: 22nd November, 2025</Text>
 
                 <Text style={styles.paragraph}>
-                    Welcome to DeenAI. These Terms and Conditions (&quot;Terms&quot;) govern your access to and use of the DeenAI mobile application and related services (collectively, the &quot;Service&quot;). By using DeenAI, you agree to comply with these Terms.
+                    Welcome to Deen AI. These Terms and Conditions (&quot;Terms&quot;) govern your access to and use of the Deen AI mobile application and related services (collectively, the &quot;Service&quot;). By using Deen AI, you agree to comply with these Terms.
                 </Text>
 
                 <Text style={styles.paragraph}>
@@ -44,13 +44,13 @@ export default function TermsAndConditions() {
                 <Text style={styles.sectionTitle}>1. Acceptance of Terms</Text>
 
                 <Text style={styles.paragraph}>
-                    By creating an account or using DeenAI, you confirm that you have read, understood, and accepted these Terms.
+                    By creating an account or using Deen AI, you confirm that you have read, understood, and accepted these Terms.
                 </Text>
 
                 <Text style={styles.sectionTitle}>2. Eligibility</Text>
 
                 <Text style={styles.paragraph}>
-                    You must meet the minimum legal age required in your country to use this Service. If you are under the required age, you may not use DeenAI.
+                    You must meet the minimum legal age required in your country to use this Service. If you are under the required age, you may not use Deen AI.
                 </Text>
 
                 <Text style={styles.sectionTitle}>3. User Account</Text>
@@ -73,7 +73,7 @@ export default function TermsAndConditions() {
                     You agree to:
                 </Text>
 
-                <Text style={styles.bulletPoint}>• Use DeenAI for lawful and respectful purposes</Text>
+                <Text style={styles.bulletPoint}>• Use Deen AI for lawful and respectful purposes</Text>
                 <Text style={styles.bulletPoint}>• Not attempt to access systems or data without authorization</Text>
                 <Text style={styles.bulletPoint}>• Not reverse-engineer or misuse the app</Text>
                 <Text style={styles.bulletPoint}>• Upload content that violates copyright or privacy</Text>
@@ -99,13 +99,13 @@ export default function TermsAndConditions() {
                 <Text style={styles.sectionTitle}>6. Intellectual Property</Text>
 
                 <Text style={styles.paragraph}>
-                    All content, features, branding, and functionality within DeenAI are the property of DeenAI and protected by copyright and other intellectual property laws. You may not copy, modify, distribute, or reverse-engineer any part of the Service.
+                    All content, features, branding, and functionality within Deen AI are the property of Deen AI and protected by copyright and other intellectual property laws. You may not copy, modify, distribute, or reverse-engineer any part of the Service.
                 </Text>
 
                 <Text style={styles.sectionTitle}>7. User Content</Text>
 
                 <Text style={styles.paragraph}>
-                    If you submit or upload content through the app, you grant DeenAI a limited license to process that content solely for the purpose of providing the Service. You retain ownership of your content.
+                    If you submit or upload content through the app, you grant Deen AI a limited license to process that content solely for the purpose of providing the Service. You retain ownership of your content.
                 </Text>
 
                 <Text style={styles.paragraph}>
@@ -121,17 +121,17 @@ export default function TermsAndConditions() {
                 <Text style={styles.sectionTitle}>9. AI-Generated Responses</Text>
 
                 <Text style={styles.paragraph}>
-                    DeenAI provides automated responses using artificial intelligence. You understand and agree that:
+                    Deen AI provides automated responses using artificial intelligence. You understand and agree that:
                 </Text>
 
                 <Text style={styles.bulletPoint}>• AI-generated outputs may not always be accurate</Text>
-                <Text style={styles.bulletPoint}>• DeenAI is not responsible for decisions made based on AI responses</Text>
+                <Text style={styles.bulletPoint}>• Deen AI is not responsible for decisions made based on AI responses</Text>
                 <Text style={styles.bulletPoint}>• AI content should not be treated as professional, legal, medical, or financial advice</Text>
 
                 <Text style={styles.sectionTitle}>10. Limitation of Liability</Text>
 
                 <Text style={styles.paragraph}>
-                    To the maximum extent permitted by law, DeenAI is not liable for:
+                    To the maximum extent permitted by law, Deen AI is not liable for:
                 </Text>
 
                 <Text style={styles.bulletPoint}>• Loss of data</Text>
@@ -173,7 +173,7 @@ export default function TermsAndConditions() {
                 <Text style={styles.bulletPoint}>• In-App Support: Available through the settings section</Text>
 
                 <Text style={styles.paragraph}>
-                    Thank you for using DeenAI.
+                    Thank you for using Deen AI.
                 </Text>
 
             </ScreenContainer>

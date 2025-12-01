@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -50,6 +51,7 @@ export default function ReflectVerseScreen() {
   const params = useLocalSearchParams();
   const textInputRef = useRef<TextInput>(null);
   const { showToast } = useToast();
+  const { t } = useTranslation();
 
   // Get auth state to check if user is guest
   const { isGuest } = useAuthStore();
@@ -372,7 +374,7 @@ export default function ReflectVerseScreen() {
     >
       <View style={styles.fixedHeader}>
         <ScreenHeader
-          title={editMode ? "Edit Reflection" : "Reflect on Verse"}
+          title={editMode ? "Edit Reflection" : t("personalReflection")}
           showBackButton={true}
           onBackPress={handleCancel}
 
@@ -433,11 +435,11 @@ export default function ReflectVerseScreen() {
 
           <View style={styles.reflectionSection}>
             <View style={styles.headerWithCounter}>
-              <Text style={styles.reflectionHeader}>Your Reflection</Text>
+              <Text style={styles.reflectionHeader}>{t("personalReflection")}</Text>
 
             </View>
             <Text style={styles.reflectionSubtitle}>
-              {editMode ? "Update your thoughts on this verse..." : "Write what this verse means to you..."}
+              {editMode ? t("EditReflectionMessage") : t("reflectionMessage")}
             </Text>
 
             <View style={styles.textareaContainer}>
@@ -448,7 +450,7 @@ export default function ReflectVerseScreen() {
                   validationError && styles.textareaError,
                   isFocused && styles.textareaFocused
                 ]}
-                placeholder={editMode ? "Update your reflection..." : "Share your thoughts, insights, or personal reflections on this verse..."}
+                placeholder={editMode ? t("updateReflection") : t("reflectBox")}
                 placeholderTextColor={theme.color.black}
                 value={content}
                 onChangeText={setContent}
@@ -485,14 +487,14 @@ export default function ReflectVerseScreen() {
 
           <View style={styles.buttonContainer}>
             <PrimaryButton
-              title={saving ? "Saving..." : editMode ? "Update Reflection" : "Save Reflection"}
+              title={saving ? "Saving..." : editMode ? t("updateReflection") : t("saveReflection")}
               onPress={handleSaveReflection}
               disabled={saving || content.trim().length < 5}
               loading={saving}
               style={styles.button}
             />
             <SecondaryButton
-              title="Share reflection"
+              title={t("shareReflection")}
               onPress={handleShare}
               style={styles.button}
               disabled={saving}

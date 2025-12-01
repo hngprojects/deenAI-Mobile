@@ -190,7 +190,7 @@ export default function SignupScreen() {
 
                     <View style={styles.bottomContainer}>
                         <Text style={styles.termsText}>
-                            By using Deen Ai, you agree to the
+                            By using Deen AI, you agree to the
                         </Text>
 
                         <View style={styles.termsContainer}>

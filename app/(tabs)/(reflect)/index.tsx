@@ -7,6 +7,7 @@ import { useReflectStore } from '@/store/reflect-store';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Search } from 'lucide-react-native';
+import { useTranslation } from "react-i18next";
 import PrimaryButton from '../../../components/primaryButton';
 
 type ReflectStackParamList = {
@@ -29,7 +30,7 @@ type ReflectIndexProp = NativeStackNavigationProp<ReflectStackParamList, 'index'
 export default function ReflectScreen() {
   const navigation = useNavigation<ReflectIndexProp>();
   const { setDraft, clearDraft } = useReflectStore();
-
+  const { t } = useTranslation();
   // Static verse data from ReflectionQuote
   const staticVerse = {
     translation: "Those who believe and whose hearts find rest in the remembrance of Allah. Surely, in the remembrance of Allah do hearts find peace.",
@@ -80,7 +81,7 @@ export default function ReflectScreen() {
       <ReflectionQuote />
 
       <PrimaryButton
-        title="Reflect on this verse"
+        title={t("reflectVerse")}
         onPress={handleReflectOnVerse}
         style={{ marginTop: 12, marginBottom: 30 }}
       />

@@ -100,7 +100,7 @@ export default function PrivacyPolicy() {
 
                 <Text style={styles.bulletPoint}>• Service partners (e.g., email/SMS/notification partners)</Text>
                 <Text style={styles.bulletPoint}>• Analytics tools to improve app performance</Text>
-                <Text style={styles.bulletPoint}>• Legal authorities (only if required by law</Text>
+                <Text style={styles.bulletPoint}>• Legal authorities (only if required by law)</Text>
 
                 <Text style={styles.paragraph}>
                     We never share your information with third parties for advertising.

@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Audio } from "expo-av";
 
 export default function TasbihScreen() {
   const [count, setCount] = useState(0);
@@ -21,6 +22,24 @@ export default function TasbihScreen() {
   const router = useRouter();
 
   const STORAGE_KEY = "@tasbih_count";
+
+  const [clickSound, setClickSound] = useState(null);
+
+  // Load sound once
+  useEffect(() => {
+    const loadSound = async () => {
+      const { sound } = await Audio.Sound.createAsync(
+        require("@/assets/tasbihAudioClick.mp3")
+      );
+      setClickSound(sound);
+    };
+
+    loadSound();
+
+    return () => {
+      if (clickSound) clickSound.unloadAsync();
+    };
+  }, []);
 
   // Load saved count from AsyncStorage on mount
   useEffect(() => {
@@ -47,7 +66,18 @@ export default function TasbihScreen() {
     saveCount();
   }, [count]);
 
-  const handleIncrement = () => setCount(count + 1);
+  const handleIncrement = async () => {
+    setCount((prev) => prev + 1);
+
+    // Play sound only if speaker is ON
+    if (speakerOn && clickSound) {
+      try {
+        await clickSound.replayAsync();
+      } catch (e) {
+        console.log("Error playing sound:", e);
+      }
+    }
+  };
 
   const handleReset = async () => {
     setCount(0);
@@ -102,8 +132,8 @@ export default function TasbihScreen() {
           <Image
             source={
               speakerOn
-                ? require("@/assets/images/no-soundButton.png")
-                : require("@/assets/images/buttonSjpeaker.png")
+                ? require("@/assets/images/buttonSjpeaker.png")
+                : require("@/assets/images/no-soundButton.png")
             }
             style={styles.iconImage}
             resizeMode="contain"

@@ -1,9 +1,10 @@
 import ScreenContainer from "@/components/ScreenContainer";
 import { theme } from "@/styles/theme";
-import { Image, StyleSheet, Text, View } from "react-native";
-import PrimaryButton from "../../../components/primaryButton";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from "react-i18next";
+import { Image, StyleSheet, Text, View } from "react-native";
+import PrimaryButton from "../../../components/primaryButton";
 
 type ReflectStackParamList = {
   'reflect-success': undefined;
@@ -15,7 +16,8 @@ type ReflectSuccessProp = NativeStackNavigationProp<ReflectStackParamList, 'refl
 
 export default function ReflectSuccess() {
   const navigation = useNavigation<ReflectSuccessProp>();
-
+  const { t } = useTranslation();
+  
   return (
     <ScreenContainer>
       <View style={styles.container}>
@@ -25,15 +27,14 @@ export default function ReflectSuccess() {
           resizeMode="contain"
         />
 
-        <Text style={styles.textHeader}>Your Reflection has been saved</Text>
+        <Text style={styles.textHeader}>{t("reflectSuccessHeader")}</Text>
 
         <Text style={styles.containerText}>
-          Your reflection has been added to your journal, a space you can return
-          to anytime for peace and remembrance.
+          {t("reflectSuccessText")}
         </Text>
 
         <PrimaryButton
-          title="Open reflection journal"
+          title={t("openReflectionJournal")}
           onPress={() => navigation.replace("saved-reflection")}
           style={styles.button}
         />
@@ -42,7 +43,7 @@ export default function ReflectSuccess() {
           style={styles.backText}
           onPress={() => navigation.navigate("index")}
         >
-          Back to Reflection
+         {t("reflectSuccessButton")}
         </Text>
       </View>
     </ScreenContainer>

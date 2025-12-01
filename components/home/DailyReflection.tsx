@@ -5,6 +5,7 @@ import { Verse } from '@/types/quran.types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
     StyleSheet,
@@ -29,6 +30,7 @@ export default function DailyReflection() {
     const router = useRouter();
     // const { loadCollection, loadedData } = useHadithStore();
     const { setDraft } = useReflectStore();
+    const { t } = useTranslation();
 
     const [content, setContent] = useState<DailyContent | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -271,7 +273,7 @@ export default function DailyReflection() {
     if (error || !content) {
         return (
             <View style={styles.container}>
-                <Text style={styles.title}>Today&apos;s Reflection</Text>
+                <Text style={styles.title}>{t("reflectionTitle")}</Text>
                 <View style={styles.errorContainer}>
                     <Text style={styles.errorText}>
                         {error || 'No content available'}
@@ -296,7 +298,7 @@ export default function DailyReflection() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Today&apos;s Reflection</Text>
+            <Text style={styles.title}>{t("reflectionTitle")}</Text>
 
             <View style={styles.card}>
                 <View style={styles.contentContainer}>
@@ -329,7 +331,7 @@ export default function DailyReflection() {
                 activeOpacity={0.8}
             >
                 <Text style={styles.reflectButtonText}>
-                    Reflect on this verse
+                    {t("reflectVerse")}
                 </Text>
             </TouchableOpacity>
         </View>

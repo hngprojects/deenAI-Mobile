@@ -1,26 +1,28 @@
-import InputField from '@/components/InputField';
-import PrimaryButton from '@/components/primaryButton';
-import ScreenContainer from '@/components/ScreenContainer';
-import ScreenHeader from '@/components/screenHeader';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import { useEditProfile } from '@/hooks/useUpdateProfile';
-import { useUser } from '@/hooks/useUser';
-import { useAuthStore } from '@/store/auth-store';
-import { EditProfileType } from '@/types/profile.types';
-import { EditProfileSchema } from '@/utils/validation';
-import * as ImagePicker from 'expo-image-picker';
-import { router } from 'expo-router';
-import { Formik } from 'formik';
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  Dimensions,
+  View,
   Image,
-  StyleSheet,
   TouchableOpacity,
-  View
-} from 'react-native';
+  StyleSheet,
+  Dimensions,
+  Text,
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { Formik } from "formik";
+import ScreenContainer from "@/components/ScreenContainer";
+import InputField from "@/components/InputField";
+import PrimaryButton from "@/components/primaryButton";
+import { EditProfileType } from "@/types/profile.types";
+import { EditProfileSchema } from "@/utils/validation";
+import { useEditProfile } from "@/hooks/useUpdateProfile";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useUser } from "@/hooks/useUser";
+import { useAuthStore } from "@/store/auth-store";
+import { router } from "expo-router";
+import { ArrowLeft } from "lucide-react-native";
+import { theme } from "@/styles/theme";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 export default function EditProfileScreen() {
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
@@ -33,8 +35,8 @@ export default function EditProfileScreen() {
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      alert('Permission to access photos is required!');
+    if (status !== "granted") {
+      alert("Permission to access photos is required!");
       return;
     }
 
@@ -43,32 +45,32 @@ export default function EditProfileScreen() {
       allowsEditing: true,
       quality: 0.7,
       aspect: [1, 1],
-      base64: false
+      base64: false,
     });
 
     if (!result.canceled) {
       const selectedImage = result.assets[0];
       setAvatarUri(selectedImage.uri);
 
-      // ✅ FIX: Extract proper filename and mime type
-      const filename = selectedImage.uri.split('/').pop() || 'avatar.jpg';
+      // Extract proper filename and mime type
+      const filename = selectedImage.uri.split("/").pop() || "avatar.jpg";
       const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : 'image/jpeg';
+      const type = match ? `image/${match[1]}` : "image/jpeg";
 
       setAvatarFile({
         uri: selectedImage.uri,
         type: type,
-        name: filename
+        name: filename,
       });
     }
   };
 
   const initialValues: EditProfileType = {
-    fullname: authUser?.name || userData?.name || '',
-    username: userData?.username || '',
-    email: authUser?.email || userData?.email || '',
-    language: '',
-    avatar: userData?.avatar || ''
+    fullname: authUser?.name || userData?.name || "",
+    username: userData?.username || "",
+    email: authUser?.email || userData?.email || "",
+    language: "",
+    avatar: userData?.avatar || "",
   };
 
   const handleSave = (values: EditProfileType) => {
@@ -77,23 +79,37 @@ export default function EditProfileScreen() {
       return;
     }
 
-    // ✅ Only send fields that have changed or avatar if selected
     editProfile({
       username: values.username,
       name: values.fullname,
       avatarFile: avatarFile,
-      // Add language if you implement language selection
-      // language: values.language
     });
   };
 
-  return (
-    <ScreenContainer>
-      <ScreenHeader
-        title="Edit Profile"
-        onBackPress={() => router.back()} // ✅ Use router.back() instead
-      />
+  // Fixed Header Component
+  const fixedHeader = (
+    <View style={styles.header}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+        activeOpacity={0.7}
+      >
+        <ArrowLeft color={theme.color.secondary} size={24} />
+      </TouchableOpacity>
 
+      <Text style={styles.headerTitle}>Edit Profile</Text>
+
+      <View style={styles.placeholder} />
+    </View>
+  );
+
+  return (
+    <ScreenContainer
+      fixedHeader={fixedHeader}
+      useFixedHeaderLayout={true}
+      paddingHorizontal={20}
+      backgroundColor={theme.color.background}
+    >
       <View style={styles.avatarWrapper}>
         <View style={styles.avatarContainer}>
           <Image
@@ -102,14 +118,17 @@ export default function EditProfileScreen() {
                 ? { uri: avatarUri }
                 : userData?.avatar
                   ? { uri: userData.avatar }
-                  : require('@/assets/images/woman-in-hijab.png')
+                  : require("@/assets/images/woman-in-hijab.png")
             }
             style={styles.avatar}
           />
 
-          <TouchableOpacity style={styles.cameraIconWrapper} onPress={pickImage}>
+          <TouchableOpacity
+            style={styles.cameraIconWrapper}
+            onPress={pickImage}
+          >
             <Image
-              source={require('@/assets/images/camera.png')}
+              source={require("@/assets/images/camera.png")}
               style={styles.cameraIconImage}
             />
           </TouchableOpacity>
@@ -132,15 +151,15 @@ export default function EditProfileScreen() {
           errors,
           touched,
           isValid,
-          dirty
+          dirty,
         }) => (
           <View style={styles.formContainer}>
             <InputField
               label="Full Name"
               placeholder="Enter full name"
               value={values.fullname}
-              onChangeText={handleChange('fullname')}
-              onBlur={handleBlur('fullname')}
+              onChangeText={handleChange("fullname")}
+              onBlur={handleBlur("fullname")}
               error={touched.fullname ? errors.fullname : undefined}
               editable={!isPending}
             />
@@ -149,8 +168,8 @@ export default function EditProfileScreen() {
               label="Username"
               placeholder="Username"
               value={values.username}
-              onChangeText={handleChange('username')}
-              onBlur={handleBlur('username')}
+              onChangeText={handleChange("username")}
+              onBlur={handleBlur("username")}
               error={touched.username ? errors.username : undefined}
               editable={!isPending}
             />
@@ -159,8 +178,8 @@ export default function EditProfileScreen() {
               label="Email Address"
               placeholder="Email address"
               value={values.email}
-              onChangeText={handleChange('email')}
-              onBlur={handleBlur('email')}
+              onChangeText={handleChange("email")}
+              onBlur={handleBlur("email")}
               keyboardType="email-address"
               autoCapitalize="none"
               error={touched.email ? errors.email : undefined}
@@ -168,9 +187,9 @@ export default function EditProfileScreen() {
             />
 
             <PrimaryButton
-              title={isPending ? 'Saving...' : 'Save Changes'}
+              title={isPending ? "Saving..." : "Save Changes"}
               onPress={() => handleSubmit()}
-              disabled={!isValid || isPending || (!dirty && !avatarFile)} // ✅ Enable if avatar changed
+              disabled={!isValid || isPending || (!dirty && !avatarFile)}
               loading={isPending}
               style={{ marginTop: 10 }}
             />
@@ -182,32 +201,54 @@ export default function EditProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 15,
+    paddingHorizontal: 20,
+  },
+  backButton: {
+    width: 40,
+    alignItems: "flex-start",
+    marginLeft: -8,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontFamily: theme.font.semiBold,
+    color: theme.color.secondary,
+    flex: 1,
+    textAlign: "center",
+  },
+  placeholder: {
+    width: 40,
+  },
   formContainer: {
     marginTop: 21,
     marginBottom: 20,
     gap: 6,
   },
-  avatarWrapper: { alignItems: 'center', marginTop: 10 },
-  avatarContainer: { position: 'relative' },
+  avatarWrapper: { alignItems: "center", marginTop: 10 },
+  avatarContainer: { position: "relative" },
   avatar: {
     width: width * 0.32,
     height: width * 0.32,
-    borderRadius: (width * 0.32) / 2
+    borderRadius: (width * 0.32) / 2,
   },
   cameraIconWrapper: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 2,
     right: 5,
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F7EEDB',
-    justifyContent: 'center',
-    alignItems: 'center'
+    backgroundColor: "#F7EEDB",
+    justifyContent: "center",
+    alignItems: "center",
   },
   cameraIconImage: {
     width: 44,
     height: 44,
-    resizeMode: 'contain'
-  }
+    resizeMode: "contain",
+  },
 });

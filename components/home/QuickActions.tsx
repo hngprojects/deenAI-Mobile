@@ -1,9 +1,11 @@
 import { theme } from "@/styles/theme";
 import { router } from "expo-router";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function QuickActions() {
+  const { t } = useTranslation();
   const handleDeenAiPress = () => {
     // TODO: Navigate to Deen AI chat
     router.push("/(deenai)");
@@ -28,10 +30,10 @@ export default function QuickActions() {
         />
         <View style={styles.cardContent}>
           <Text style={styles.cardTitle}>
-            Uncover new &{"\n"}amazing things{"\n"}with Deen Ai
+            {t("discoverTitle")}
           </Text>
           <View style={styles.ctaButton}>
-            <Text style={styles.ctaText}>Let&apos;s Chat</Text>
+            <Text style={styles.ctaText}>{t("letsChat")}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -48,10 +50,9 @@ export default function QuickActions() {
         />
 
         <View style={styles.cardContent}>
-          <Text style={styles.hadithTitle}>Learn about Hadiths</Text>
+          <Text style={styles.hadithTitle}>{t("learnHadith")}</Text>
           <Text style={styles.hadithDescription}>
-            Find light and guidance for how you feel, see, through the Quran or
-            Hadith.
+            {t("learnHadithText")}
           </Text>
         </View>
       </TouchableOpacity>
