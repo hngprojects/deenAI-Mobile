@@ -82,13 +82,62 @@ const isValidCoordinates = (lat: number, lng: number): boolean => {
   );
 };
 
+// Detect if compass needs calibration based on sensor readings
+const detectCalibrationNeeded = (
+  magneticData: { x: number; y: number; z: number },
+  previousReadings: number[]
+): { needsCalibration: boolean; fieldStrength: number } => {
+  // Calculate magnetic field strength (magnitude)
+  const fieldStrength = Math.sqrt(
+    magneticData.x ** 2 + magneticData.y ** 2 + magneticData.z ** 2
+  );
+
+  // Expected Earth's magnetic field: 25-65 µT (microtesla)
+  // If field strength is way off, magnetometer needs calibration
+  const FIELD_MIN = 20; // µT
+  const FIELD_MAX = 70; // µT
+  const fieldOutOfRange =
+    fieldStrength < FIELD_MIN || fieldStrength > FIELD_MAX;
+
+  // Check for erratic readings (heading jumping around rapidly)
+  let erraticReadings = false;
+  if (previousReadings.length >= 5) {
+    const recentReadings = previousReadings.slice(-5);
+    const differences = [];
+
+    for (let i = 1; i < recentReadings.length; i++) {
+      let diff = Math.abs(recentReadings[i] - recentReadings[i - 1]);
+      // Handle 360° wraparound (e.g., 359° to 1° should be 2°, not 358°)
+      if (diff > 180) {
+        diff = 360 - diff;
+      }
+      differences.push(diff);
+    }
+
+    // If average change is more than 30° per reading, it's erratic
+    const avgChange =
+      differences.reduce((a, b) => a + b, 0) / differences.length;
+    erraticReadings = avgChange > 30;
+  }
+
+  return {
+    needsCalibration: fieldOutOfRange || erraticReadings,
+    fieldStrength,
+  };
+};
+
 export function useQibla() {
   const [heading, setHeading] = useState(0);
   const [qiblaDirection, setQiblaDirection] = useState<number | null>(null);
   const [distanceToMecca, setDistanceToMecca] = useState<number | null>(null);
   const [sensorAvailable, setSensorAvailable] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [needsCalibration, setNeedsCalibration] = useState(false);
   const { location } = useLocation();
+
+  // Calibration detection state
+  const [previousReadings, setPreviousReadings] = useState<number[]>([]);
+  const [magneticFieldStrength, setMagneticFieldStrength] = useState<number>(0);
 
   // Check magnetometer availability and subscribe
   useEffect(() => {
@@ -116,6 +165,27 @@ export function useQibla() {
           if (isMounted) {
             const calculatedHeading = getHeading(data);
             setHeading(calculatedHeading);
+
+            // Detect calibration issues
+            setPreviousReadings((prev) => {
+              const newReadings = [...prev, calculatedHeading];
+              // Keep only last 10 readings for efficiency
+              if (newReadings.length > 10) {
+                newReadings.shift();
+              }
+              return newReadings;
+            });
+
+            // Check if calibration is needed
+            const { needsCalibration: calibrationNeeded, fieldStrength } =
+              detectCalibrationNeeded(data, previousReadings);
+
+            setMagneticFieldStrength(fieldStrength);
+
+            // Only trigger calibration warning if we have enough data
+            if (previousReadings.length >= 5) {
+              setNeedsCalibration(calibrationNeeded);
+            }
           }
         });
 
@@ -206,6 +276,8 @@ export function useQibla() {
     distanceToMecca,
     sensorAvailable,
     error,
+    needsCalibration,
+    magneticFieldStrength,
     meccaCoordinates: { lat: MECCA_LAT, lng: MECCA_LNG },
   };
 }
