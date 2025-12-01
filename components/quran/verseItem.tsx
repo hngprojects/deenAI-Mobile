@@ -64,8 +64,6 @@ const VerseItem: React.FC<VerseItemProps> = ({
     }
   };
 
-  const handleCancel = () => setShowDeleteConfirm(false);
-
   return (
     <View style={styles.container}>
       <Text style={styles.arabicText}>{arabicText}</Text>
