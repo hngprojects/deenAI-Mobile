@@ -2,6 +2,7 @@ import { setStringAsync } from "expo-clipboard";
 import { router } from "expo-router";
 import { BookOpen, BookOpenText, Copy, Share } from "lucide-react-native";
 import moment from "moment";
+import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Markdown from "react-native-markdown-display";
 
@@ -16,7 +17,7 @@ interface MessageBubbleProps {
   message: IMessage;
 }
 
-export default function MessageBubble({ message }: MessageBubbleProps) {
+function MessageBubble({ message }: MessageBubbleProps) {
   const {
     loadCollection,
     setCurrentCollection,
@@ -330,4 +331,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     paddingVertical: 2,
   },
+});
+
+// Memoize to prevent unnecessary re-renders during streaming
+export default React.memo(MessageBubble, (prevProps, nextProps) => {
+  // Only re-render if message content or references changed
+  return (
+    prevProps.message.id === nextProps.message.id &&
+    prevProps.message.content === nextProps.message.content &&
+    prevProps.message.aiReferences === nextProps.message.aiReferences
+  );
 });

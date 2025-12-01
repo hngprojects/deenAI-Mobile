@@ -1,10 +1,11 @@
 import MessageBubble from "@/components/deen-ai/MessageBubble";
+import TypingIndicator from "@/components/deen-ai/TypingIndicator";
 import ScreenHeader from "@/components/screenHeader";
 import { chatService } from "@/service/chat.service";
 import { useChatStore } from "@/store/chat.store";
 import { theme } from "@/styles/theme";
 import { router, useLocalSearchParams } from "expo-router";
-import { Book, Loader, Mic, Send } from "lucide-react-native";
+import { Book, Loader, Send } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -18,6 +19,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ChatRoom() {
   const { chatId, first } = useLocalSearchParams<{
@@ -28,6 +30,7 @@ export default function ChatRoom() {
   const [loading, setLoading] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [streaming, setStreaming] = useState(false);
+  const [waitingForStream, setWaitingForStream] = useState(false);
   const streamCleanupRef = useRef<(() => void) | null>(null);
   const chatListRef = useRef<FlatList<any> | null>(null);
 
@@ -57,9 +60,11 @@ export default function ChatRoom() {
   }, []);
 
   useEffect(() => {
-    // scroll to bottom when messages change
-    chatListRef.current?.scrollToEnd({ animated: true });
-  }, [messages]);
+    // scroll to bottom when messages change or when waiting for stream
+    if (messages.length > 0 || waitingForStream) {
+      chatListRef.current?.scrollToEnd({ animated: true });
+    }
+  }, [messages, waitingForStream]);
 
   const handleFirstMessageStream = async () => {
     try {
@@ -76,7 +81,7 @@ export default function ChatRoom() {
       }
 
       setLoadingMessages(false);
-      setStreaming(true);
+      setWaitingForStream(true);
 
       // Send message to server
       const messsageRes = await chatService.sendMessageToChatRoom(
@@ -84,32 +89,48 @@ export default function ChatRoom() {
         chatId
       );
 
-      // add AI message placeholder
-      const aiMessagePlaceholder = {
-        chatId: chatId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        role: "assistant" as const,
-        id: `temp-ai-${Date.now()}`, // Use temp ID since server doesn't return aiMessage yet
-        content: "",
-      };
-      addMessage(aiMessagePlaceholder);
-
-      // Small delay to let the server start processing
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Keep waitingForStream true until first chunk arrives
+      setStreaming(true);
 
       // stream
       let streamedContent = "";
+      let isFirstChunk = true;
 
       streamCleanupRef.current = await chatService.streamChatResponse(
         chatId,
         (chunk: string) => {
+          // On first chunk, add AI message placeholder and hide typing indicator
+          if (isFirstChunk) {
+            const aiMessagePlaceholder = {
+              chatId: chatId,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              role: "assistant" as const,
+              id: `temp-ai-${Date.now()}`,
+              content: "",
+            };
+            addMessage(aiMessagePlaceholder);
+            setWaitingForStream(false);
+            isFirstChunk = false;
+          }
+
+          // Check if chunk is JSON (metadata/response object) - ignore it
+          const trimmedChunk = chunk.trim();
+          if (trimmedChunk.startsWith("{") || trimmedChunk.startsWith("[")) {
+            console.log("Ignoring JSON chunk:", trimmedChunk.substring(0, 50));
+            return; // Don't add JSON chunks to the message
+          }
+
           streamedContent += chunk;
+          console.log("Received chunk:", chunk);
+          console.log("streamedContent so far:", streamedContent);
+
           updateLastMessage(streamedContent);
         },
         () => {
           console.log("Stream completed");
           setStreaming(false);
+          setWaitingForStream(false);
           streamCleanupRef.current = null;
           // reload messages to get final version with citations
           loadMessages();
@@ -117,6 +138,7 @@ export default function ChatRoom() {
         (error: string) => {
           console.error("Stream error:", error);
           setStreaming(false);
+          setWaitingForStream(false);
           streamCleanupRef.current = null;
           // show error to user
           updateLastMessage(`Error: ${error}`);
@@ -125,6 +147,7 @@ export default function ChatRoom() {
     } catch (error) {
       console.error("Failed to stream first message", error);
       setLoadingMessages(false);
+      setWaitingForStream(false);
       setStreaming(false);
     }
   };
@@ -153,6 +176,7 @@ export default function ChatRoom() {
 
     try {
       setLoading(true);
+      setWaitingForStream(true);
 
       // Add user message optimistically
       const userMessage = {
@@ -171,31 +195,46 @@ export default function ChatRoom() {
         chatId
       );
 
-      // Create placeholder for AI message
-      const aiMessagePlaceholder = {
-        chatId: chatId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        role: "assistant" as const,
-        id: `temp-ai-${Date.now()}`, // Use temp ID since server doesn't return aiMessage yet
-        content: "",
-      };
-      addMessage(aiMessagePlaceholder);
-
       setLoading(false);
+      // Keep waitingForStream true until first chunk arrives
       setStreaming(true);
 
       // Small delay to let the server start processing
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Start streaming the response
       let streamedContent = "";
+      let isFirstChunk = true;
 
       streamCleanupRef.current = await chatService.streamChatResponse(
         chatId,
         // onChunk
         (chunk: string) => {
+          // On first chunk, add AI message placeholder and hide typing indicator
+          if (isFirstChunk) {
+            const aiMessagePlaceholder = {
+              chatId: chatId,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              role: "assistant" as const,
+              id: `temp-ai-${Date.now()}`,
+              content: "",
+            };
+            addMessage(aiMessagePlaceholder);
+            setWaitingForStream(false);
+            isFirstChunk = false;
+          }
+
+          // Check if chunk is JSON (metadata/response object) - ignore it
+          const trimmedChunk = chunk.trim();
+          if (trimmedChunk.startsWith("{") || trimmedChunk.startsWith("[")) {
+            console.log("Ignoring JSON chunk:", trimmedChunk.substring(0, 50));
+            return; // Don't add JSON chunks to the message
+          }
+
           streamedContent += chunk;
+          console.log("Received chunk:", chunk);
+          console.log("streamedContent so far:", streamedContent);
 
           // Update the last message (AI response) with accumulated content
           updateLastMessage(streamedContent);
@@ -205,6 +244,7 @@ export default function ChatRoom() {
         () => {
           console.log("Stream completed");
           setStreaming(false);
+          setWaitingForStream(false);
           streamCleanupRef.current = null;
 
           // Optionally reload messages to get the final saved version with citations
@@ -214,6 +254,7 @@ export default function ChatRoom() {
         (error: string) => {
           console.error("Stream error:", error);
           setStreaming(false);
+          setWaitingForStream(false);
           streamCleanupRef.current = null;
 
           // Show error to user
@@ -223,6 +264,7 @@ export default function ChatRoom() {
     } catch (error) {
       console.error("Failed to send message", error);
       setLoading(false);
+      setWaitingForStream(false);
       setStreaming(false);
     }
   };
@@ -243,7 +285,7 @@ export default function ChatRoom() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={["bottom"]} style={styles.container}>
       {/* Header */}
       <View style={styles.headerContainer}>
         <ScreenHeader
@@ -267,7 +309,7 @@ export default function ChatRoom() {
       >
         {/* Messages */}
         <View style={{ flex: 1 }}>
-          {messages.length === 0 ? (
+          {messages.length === 0 && !waitingForStream ? (
             <View style={styles.centerContent}>
               <Text style={styles.emptyText}>No messages yet</Text>
             </View>
@@ -286,6 +328,20 @@ export default function ChatRoom() {
               }
               renderItem={(msg) => <MessageBubble message={msg.item} />}
               ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
+              ListFooterComponent={
+                waitingForStream ? (
+                  <>
+                    <View style={{ height: 20 }} />
+                    <TypingIndicator />
+                  </>
+                ) : null
+              }
+              // Performance optimizations
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={10}
+              updateCellsBatchingPeriod={50}
+              initialNumToRender={10}
+              windowSize={10}
             />
           )}
         </View>
@@ -323,7 +379,7 @@ export default function ChatRoom() {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
 
