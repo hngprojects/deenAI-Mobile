@@ -2,7 +2,7 @@ import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { theme } from "@/styles/theme";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useCallback, memo } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -12,6 +12,81 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+// Move QuickActions OUTSIDE and memoize it
+const QuickActions = memo(({
+  onQiblaPress,
+  onCounterPress,
+  onAzkarPress,
+  onStreakPress,
+  t
+}: {
+  onQiblaPress: () => void;
+  onCounterPress: () => void;
+  onAzkarPress: () => void;
+  onStreakPress: () => void;
+  t: any;
+}) => {
+  return (
+  <View style={styles.quickActionsBox}>
+    <TouchableOpacity
+      onPress={onQiblaPress}
+      style={styles.actionItem}
+    >
+      <Image
+        source={require("../../assets/images/clarity_compass-line.png")}
+        style={styles.actionIcon}
+        resizeMode="contain"
+      />
+      <Text style={styles.actionText}>{t("qibla")}</Text>
+    </TouchableOpacity>
+
+    <View style={styles.separator} />
+
+    <TouchableOpacity
+      style={styles.actionItem}
+      onPress={onCounterPress}
+    >
+      <Image
+        source={require("../../assets/images/tasbeeh.png")}
+        style={styles.actionIcon}
+        resizeMode="contain"
+      />
+      <Text style={styles.actionText}>{t("counter")}</Text>
+    </TouchableOpacity>
+
+    <View style={styles.separator} />
+
+    <TouchableOpacity
+      style={styles.actionItem}
+      onPress={onAzkarPress}
+    >
+      <Image
+        source={require("../../assets/images/adhkarr.png")}
+        style={styles.actionIcon}
+        resizeMode="contain"
+      />
+      <Text style={styles.actionText}>{t("azkar")}</Text>
+    </TouchableOpacity>
+
+    <View style={styles.separator} />
+
+    <TouchableOpacity
+      style={styles.actionItem}
+      onPress={onStreakPress}
+    >
+      <Image
+        source={require("../../assets/images/streaks.png")}
+        style={styles.actionIcon}
+        resizeMode="contain"
+      />
+      <Text style={styles.actionText}>{t("streaks")}</Text>
+    </TouchableOpacity>
+  </View>
+  );
+});
+
+QuickActions.displayName = 'QuickActions';
 
 export default function UpcomingSolat() {
   const router = useRouter();
@@ -48,19 +123,20 @@ export default function UpcomingSolat() {
 
   const displayLocation = getLocationDisplay();
 
-  const handleSeeAll = () => {
+  // Memoize all handlers to prevent unnecessary re-renders
+  const handleSeeAll = useCallback(() => {
     router.push("/(prayer-times)/prayerTimes");
-  };
+  }, [router]);
 
-  const handlePrayerPress = () => {
+  const handlePrayerPress = useCallback(() => {
     router.push("/(prayer-times)/prayerTimes");
-  };
+  }, [router]);
 
-  const handleQiblaPress = () => {
+  const handleQiblaPress = useCallback(() => {
     router.push("/(qibla)");
-  };
+  }, [router]);
 
-  const handleAllowLocation = async () => {
+  const handleAllowLocation = useCallback(async () => {
     setIsRequestingLocation(true);
     try {
       console.log('🔄 User requesting location from home screen');
@@ -71,77 +147,19 @@ export default function UpcomingSolat() {
     } finally {
       setIsRequestingLocation(false);
     }
-  };
+  }, [refreshLocation]);
 
-  const handleAzkarPress = () => {
+  const handleAzkarPress = useCallback(() => {
     router.push("/(adhkar)");
-  };
+  }, [router]);
 
-  const handleCounterPress = () => {
+  const handleCounterPress = useCallback(() => {
     router.push("/(tasbih)");
-  };
+  }, [router]);
 
-  const handleStreakPress = () => {
+  const handleStreakPress = useCallback(() => {
     router.push("/(adhkar)/streak-analytics");
-  };
-
-  const QuickActions = () => (
-    <View style={styles.quickActionsBox}>
-      <TouchableOpacity
-        onPress={handleQiblaPress}
-        style={styles.actionItem}
-      >
-        <Image
-          source={require("../../assets/images/clarity_compass-line.png")}
-          style={styles.actionIcon}
-          resizeMode="contain"
-        />
-        <Text style={styles.actionText}>{t("qibla")}</Text>
-      </TouchableOpacity>
-
-      <View style={styles.separator} />
-
-      <TouchableOpacity
-        style={styles.actionItem}
-        onPress={handleCounterPress}
-      >
-        <Image
-          source={require("../../assets/images/tasbeeh.png")}
-          style={styles.actionIcon}
-          resizeMode="contain"
-        />
-        <Text style={styles.actionText}>{t("counter")}</Text>
-      </TouchableOpacity>
-
-      <View style={styles.separator} />
-
-      <TouchableOpacity
-        style={styles.actionItem}
-        onPress={handleAzkarPress}
-      >
-        <Image
-          source={require("../../assets/images/adhkarr.png")}
-          style={styles.actionIcon}
-          resizeMode="contain"
-        />
-        <Text style={styles.actionText}>{t("azkar")}</Text>
-      </TouchableOpacity>
-
-      <View style={styles.separator} />
-
-      <TouchableOpacity
-        style={styles.actionItem}
-        onPress={handleStreakPress}
-      >
-        <Image
-          source={require("../../assets/images/streaks.png")}
-          style={styles.actionIcon}
-          resizeMode="contain"
-        />
-        <Text style={styles.actionText}>{t("streaks")}</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  }, [router]);
 
   // No location saved - show permission request
   if (!savedLocation) {
@@ -181,50 +199,7 @@ export default function UpcomingSolat() {
           </TouchableOpacity>
         </View>
 
-        <QuickActions />
-      </View>
-    );
-  }
-
-  // Loading initial prayer times
-  if (loading && !nextPrayer) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.todayText}>Today</Text>
-            <Text style={styles.title}>Upcoming Solat</Text>
-          </View>
-        </View>
-
-        <View style={styles.noLocationCard}>
-          <View style={styles.noLocationContent}>
-            <MaterialIcons
-              name="location-off"
-              size={48}
-              color={theme.color.brand}
-              style={styles.noLocationIcon}
-            />
-            <Text style={styles.noLocationTitle}>Enable Location</Text>
-            <Text style={styles.noLocationSubtitle}>
-              Allow location access to see your prayer times
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.allowButton}
-            onPress={handleAllowLocation}
-            disabled={isRequestingLocation}
-          >
-            {isRequestingLocation ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.allowButtonText}>Allow Location</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        <QuickActions />
+        {/* <QuickActions /> */}
       </View>
     );
   }
@@ -248,7 +223,7 @@ export default function UpcomingSolat() {
           )}
         </View>
 
-        <QuickActions />
+        {/* <QuickActions /> */}
       </View>
     );
   }
@@ -285,7 +260,7 @@ export default function UpcomingSolat() {
           )}
         </TouchableOpacity>
 
-        <QuickActions />
+        {/* <QuickActions /> */}
       </View>
     );
   }
@@ -348,7 +323,13 @@ export default function UpcomingSolat() {
           </View>
         </TouchableOpacity>
 
-        <QuickActions />
+        <QuickActions
+          onQiblaPress={handleQiblaPress}
+          onCounterPress={handleCounterPress}
+          onAzkarPress={handleAzkarPress}
+          onStreakPress={handleStreakPress}
+          t={t}
+        />
       </View>
     </View>
   );
