@@ -5,7 +5,7 @@ import ScreenHeader from "@/components/screenHeader";
 import { useChatStore } from "@/store/chat.store";
 import { theme } from "@/styles/theme";
 import { router, useFocusEffect } from "expo-router";
-import { Book, Loader, Mic, Send } from "lucide-react-native";
+import { Book, Loader, Send } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
 import {
   FlatList,
@@ -17,6 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function DEENAI() {
   const [prompt, setPrompt] = useState("");
@@ -74,7 +75,10 @@ export default function DEENAI() {
   const handleHistoryPress = () => router.push("/(deenai)/chat-history");
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.color.background2 }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.color.background2 }}
+      edges={["bottom"]}
+    >
       {/* Header */}
       <View style={styles.headerContainer}>
         <ScreenHeader
@@ -158,7 +162,7 @@ export default function DEENAI() {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
 
