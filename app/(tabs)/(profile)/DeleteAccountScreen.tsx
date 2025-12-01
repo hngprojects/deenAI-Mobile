@@ -1,13 +1,14 @@
+import ScreenContainer from "@/components/ScreenContainer";
 import { theme } from "@/styles/theme";
 import { useRouter } from "expo-router";
-import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import ScreenContainer from "@/components/ScreenContainer";
 import { ArrowLeft } from "lucide-react-native";
+import React from "react";
+import { useTranslation } from 'react-i18next';
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function DeleteAccountScreen() {
   const router = useRouter();
-
+  const { t } = useTranslation();
   // Fixed Header Component
   const fixedHeader = (
     <View style={styles.header}>
@@ -19,7 +20,7 @@ export default function DeleteAccountScreen() {
         <ArrowLeft color={theme.color.secondary} size={24} />
       </TouchableOpacity>
 
-      <Text style={styles.headerTitle}>Delete Account</Text>
+      <Text style={styles.headerTitle}> {t("deleteAccount")}</Text>
 
       <View style={styles.placeholder} />
     </View>
@@ -34,19 +35,15 @@ export default function DeleteAccountScreen() {
     >
       <View style={styles.textWrapper}>
         <Text style={styles.boldText}>
-          Are you sure you want to delete your Account?
+          {t("deleteTitle")}
         </Text>
 
         <Text style={styles.normalText}>
-          Once you delete your account, it cannot be undone. All your data will
-          permanently be erased from this app, including your profile
-          information, preferences, saved content, and any activity history.
+          {t("warning1")}
         </Text>
 
         <Text style={styles.normalText}>
-          We&apos;re sad to see you go, but we understand that sometimes
-          it&apos;s necessary. Please take a moment to consider the consequences
-          before proceeding.
+          {t("warning2")}
         </Text>
       </View>
 

@@ -17,8 +17,13 @@
   "letsChat": "لنبدأ الدردشة",
   "learnHadith": "تعلّم الأحاديث",
   "learnHadithText": "ابحث عن النور والهداية لما تشعر به، من خلال القرآن أو الحديث.",
+  
+  "reflection": "تأمل",
+  "savedReflections": "تأملاتي المحفوظة",
+  "noReflections": "لا توجد تأملات بعد",
+  "startReflecting": "ابدأ بالتأمل في الآيات لرؤيتها هنا",
+  "searchChapter": "ابحث عن سورة",
   "reflectionTitle": "تأمل اليوم",
-
   "reflectVerse": "تأمل في الآية",
   "personalReflection": "تأملك الشخصي",
   "reflectionMessage": "اكتب ما تعنيه لك هذه الآية...",
@@ -33,6 +38,14 @@
   "reflectSuccessButton": "العودة إلى التأمل",
   "openReflectionJournal": "افتح دفتر التأمل",
 
+  "startReflectionJourney": "ابدأ رحلتك في التفكر بإضافة تأملات حول آيات القرآن",
+  "savedStartReflecting": "ابدأ التفكر",
+  "loadingReflections": "جاري تحميل التأملات...",
+  "confirmDelete": "تأكيد الحذف",
+  "deleteReflectionQuestion": "هل أنت متأكد أنك تريد حذف هذا التأمل؟",
+  "keepReflection": "احتفظ بالتأمل",
+  "deleteReflection": "نعم! احذف التأمل",
+
   "editProfile": "تعديل الملف الشخصي",
   "notifications": "الإشعارات",
   "selectLanguage": "اختر اللغة",
@@ -40,5 +53,20 @@
   "support": "الدعم",
   "logout": "تسجيل الخروج",
   "deleteAccount": "حذف الحساب",
-  "profile": "الملف الشخصي"
+  "profile": "الملف الشخصي",
+  "profileGreetings": "نسأل الله أن يملأ أيامك نورًا.",
+
+  "supportScreenTitle": "الدعم",
+  "supportScreenContact": "اتصل بنا",
+  "supportScreenFAQ": "الأسئلة الشائعة",
+
+  "prayerReminder": "تذكير الصلاة",
+  "reflectionReminder": "تذكير التأمل",
+  "deenAIMessageAlert": "تنبيه رسالة دين أي",
+
+  "appLanguage": "لغة التطبيق",
+
+  "deleteTitle": "هل أنت متأكد أنك تريد حذف حسابك؟",
+  "warning1": "بمجرد حذف حسابك، لا يمكن التراجع عن هذا الإجراء. سيتم حذف جميع بياناتك بشكل دائم من هذا التطبيق، بما في ذلك معلومات ملفك الشخصي، التفضيلات، المحتوى المحفوظ، وأي سجل نشاط.",
+  "warning2": "نحن حزينون لرؤيتك تغادر، لكننا نتفهم أنه في بعض الأحيان يكون ذلك ضروريًا. يرجى أخذ لحظة للتفكير في العواقب قبل المتابعة."
 }

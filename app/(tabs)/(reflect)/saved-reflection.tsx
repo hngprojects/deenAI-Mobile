@@ -4,11 +4,11 @@ import { quranService } from '@/service/quran.service';
 import { reflectService } from '@/service/reflect.service';
 import { theme } from '@/styles/theme';
 import { Reflection } from '@/types/reflect.types';
-
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Edit2, Trash2 } from 'lucide-react-native';
 import React, { useCallback, useState } from 'react';
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -51,6 +51,7 @@ export default function SavedReflectionsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedReflection, setSelectedReflection] = useState<ReflectionWithData | null>(null);
+  const { t } = useTranslation();
 
   const loadReflections = async () => {
     try {
@@ -221,7 +222,7 @@ export default function SavedReflectionsPage() {
     >
       <View style={styles.fixedHeader}>
         <ScreenHeader
-          title="Reflections"
+          title={t("reflection")}
           showBackButton={true}
 
         // rightComponent={
@@ -237,15 +238,15 @@ export default function SavedReflectionsPage() {
 
       {reflections.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyStateTitle}>No Reflections Yet</Text>
+          <Text style={styles.emptyStateTitle}>{t("noReflections")}</Text>
           <Text style={styles.emptyStateText}>
-            Start your reflection journey by adding thoughts on Quranic verses
+            {t("startReflectionJourney")}
           </Text>
           <TouchableOpacity
             style={styles.emptyStateButton}
             onPress={() => navigation.navigate('index')}
           >
-            <Text style={styles.emptyStateButtonText}>Start Reflecting</Text>
+            <Text style={styles.emptyStateButtonText}>{t("savedStartReflecting")}</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -274,9 +275,9 @@ export default function SavedReflectionsPage() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Confirm Delete</Text>
+            <Text style={styles.modalTitle}>{t("confirmDelete")}</Text>
             <Text style={styles.modalText}>
-              Are you sure you want to delete your reflection?
+              {t("deleteReflectionQuestion")}
             </Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity
@@ -284,14 +285,14 @@ export default function SavedReflectionsPage() {
                 onPress={cancelDelete}
                 activeOpacity={0.7}
               >
-                <Text style={styles.cancelButtonText}>Keep My Reflection</Text>
+                <Text style={styles.cancelButtonText}>{t("keepReflection")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.deleteButton]}
                 onPress={() => selectedReflection && handleDeleteReflection(selectedReflection.id)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.deleteButtonText}>Yes! Delete Reflection</Text>
+                <Text style={styles.deleteButtonText}>{t("deleteReflection")}</Text>
               </TouchableOpacity>
             </View>
           </View>

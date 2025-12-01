@@ -13,12 +13,17 @@
   "azkar": "Azkar",
   "streaks": "Séries",
 
-  "discoverTitle": "Découvrez de nouvelles choses étonnantes avec Deen Ai",
+  "discoverTitle": "Découvrez de nouvelles choses étonnantes avec Deen AI",
   "letsChat": "Discutons",
   "learnHadith": "Apprendre les hadiths",
   "learnHadithText": "Trouvez la lumière et la guidance pour ce que vous ressentez, à travers le Coran ou les Hadiths.",
+  
+  "reflection": "Réflexion",
+  "savedReflections": "Mes Réflexions Enregistrées",
+  "noReflections": "Aucune réflexion pour le moment",
+  "startReflecting": "Commencez à réfléchir sur les versets pour les voir ici",
+  "searchChapter": "Rechercher un chapitre",
   "reflectionTitle": "Réflexion du jour",
-
   "reflectVerse": "Réfléchir au verset",
   "personalReflection": "Votre réflexion",
   "reflectionMessage": "Écrivez ce que ce verset signifie pour vous...",
@@ -33,6 +38,14 @@
   "reflectSuccessButton": "Retour à la réflexion",
   "openReflectionJournal": "Ouvrir le journal de réflexion",
 
+  "startReflectionJourney": "Commencez votre parcours de réflexion en ajoutant des pensées sur les versets du Coran",
+  "savedStartReflecting": "Commencer la réflexion",
+  "loadingReflections": "Chargement des réflexions...",
+  "confirmDelete": "Confirmer la suppression",
+  "deleteReflectionQuestion": "Êtes-vous sûr de vouloir supprimer votre réflexion ?",
+  "keepReflection": "Garder ma réflexion",
+  "deleteReflection": "Oui ! Supprimer la réflexion",
+
   "editProfile": "Modifier le profil",
   "notifications": "Notifications",
   "selectLanguage": "Choisir la langue",
@@ -40,5 +53,20 @@
   "support": "Support",
   "logout": "Déconnexion",
   "deleteAccount": "Supprimer le compte",
-  "profile": "Profil"
+  "profile": "Profil",
+  "profileGreetings": "Que tous tes jours soient remplis de lumière.",
+
+  "supportScreenTitle": "Support",
+  "supportScreenContact": "Nous contacter",
+  "supportScreenFAQ": "Foire aux questions",
+
+  "prayerReminder": "Rappel de prière",
+  "reflectionReminder": "Rappel de réflexion",
+  "deenAIMessageAlert": "Alerte message Deen AI",
+
+  "appLanguage": "Langue de l'application",
+
+  "deleteTitle": "Êtes-vous sûr de vouloir supprimer votre compte ?",
+  "warning1": "Une fois que vous supprimez votre compte, cette action est irréversible. Toutes vos données seront définitivement effacées de cette application, y compris vos informations de profil, préférences, contenus enregistrés et tout historique d'activité.",
+  "warning2": "Nous sommes tristes de vous voir partir, mais nous comprenons que cela soit parfois nécessaire. Prenez un moment pour réfléchir aux conséquences avant de continuer."
 }

@@ -13,12 +13,17 @@
   "azkar": "Azkar",
   "streaks": "Streaks",
 
-  "discoverTitle": "Uncover new and amazing things with Deen Ai",
+  "discoverTitle": "Uncover new and amazing things with Deen AI",
   "letsChat": "Let's Chat",
   "learnHadith": "Learn about Hadiths",
   "learnHadithText": "Find light and guidance for how you feel, see, through the Quran or Hadith.",
+  
   "reflectionTitle": "Today's Reflection",
-
+  "reflection": "Reflection",
+  "savedReflections": "My Saved Reflections",
+  "noReflections": "No reflections yet",
+  "startReflecting": "Start reflecting on verses to see them here",
+  "searchChapter": "Search a chapter",
   "reflectVerse": "Reflect on Verse",
   "personalReflection": "Your Reflection",
   "reflectionMessage": "Write what this verse means to you...",
@@ -33,6 +38,14 @@
   "reflectSuccessButton": "Back to Reflection",
   "openReflectionJournal": "Open reflection journal",
 
+  "startReflectionJourney": "Start your reflection journey by adding thoughts on Quranic verses",
+  "savedStartReflecting": "Start Reflecting",
+  "loadingReflections": "Loading reflections...",
+  "confirmDelete": "Confirm Delete",
+  "deleteReflectionQuestion": "Are you sure you want to delete your reflection?",
+  "keepReflection": "Keep My Reflection",
+  "deleteReflection": "Yes! Delete Reflection",
+  
   "editProfile": "Edit Profile",
   "notifications": "Notifications",
   "selectLanguage": "Select Language",
@@ -40,5 +53,20 @@
   "support": "Support",
   "logout": "Log Out",
   "deleteAccount": "Delete Account",
-  "profile": "Profile"
+  "profile": "Profile",
+  "profileGreetings": "May all your days be filled with Light.",
+
+  "supportScreenTitle": "Support",
+  "supportScreenContact": "Contact Us",
+  "supportScreenFAQ": "Frequently Asked Questions",
+
+  "prayerReminder": "Prayer Reminder",
+  "reflectionReminder": "Reflection Reminder",
+  "deenAIMessageAlert": "Deen AI Message Alert",
+
+  "appLanguage": "App Language",
+
+  "deleteTitle": "Are you sure you want to delete your Account?",
+  "warning1": "Once you delete your account, it cannot be undone. All your data will permanently be erased from this app, including your profile information, preferences, saved content, and any activity history.",
+  "warning2": "We're sad to see you go, but we understand that sometimes it's necessary. Please take a moment to consider the consequences before proceeding."
 }

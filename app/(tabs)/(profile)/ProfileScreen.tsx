@@ -1,5 +1,10 @@
+import ScreenContainer from "@/components/ScreenContainer";
+import { useUser } from "@/hooks/useUser";
+import { useAuthStore } from "@/store/auth-store";
 import { theme } from "@/styles/theme";
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
+import { ArrowLeft } from "lucide-react-native";
 import React, { useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
@@ -13,11 +18,6 @@ import {
   View,
 } from "react-native";
 import SignOutConfirmationModal from "./delete/SignOut";
-import { useUser } from "@/hooks/useUser";
-import { useAuthStore } from "@/store/auth-store";
-import ScreenContainer from "@/components/ScreenContainer";
-import { ArrowLeft } from "lucide-react-native";
-import { useFocusEffect } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
@@ -62,11 +62,11 @@ const ProfileScreen: React.FC = () => {
     return require("@/assets/images/woman-in-hijab.png");
   };
 
+  const profileName = userData?.name || authUser?.name || "User";
+
   const profile = {
     avatar: getAvatarSource(),
-    name: userData?.name || authUser?.name || "User",
-    nameGreeting: `Asalam Alaykum ${userData?.name || authUser?.name || "User"},\n`,
-    greeting: "May all your days be filled with Light.",
+    name: profileName,
     options: [
       {
         id: "1",
@@ -144,7 +144,7 @@ const ProfileScreen: React.FC = () => {
         <ArrowLeft color={theme.color.secondary} size={24} />
       </TouchableOpacity>
 
-      <Text style={styles.headerTitle}>Profile</Text>
+      <Text style={styles.headerTitle}>{t('profile')}</Text>
 
       <View style={styles.placeholder} />
     </View>
@@ -159,6 +159,9 @@ const ProfileScreen: React.FC = () => {
     );
   }
 
+  
+  console.log("greeting:", t("greeting"));
+
   return (
     <ScreenContainer
       fixedHeader={fixedHeader}
@@ -169,8 +172,8 @@ const ProfileScreen: React.FC = () => {
       <View style={styles.profileHeader}>
         <Image source={profile.avatar} style={styles.avatar} />
         <Text style={[styles.nameGreeting, { color: theme.color.secondary }]}>
-          {profile.nameGreeting}
-          <Text style={styles.greeting}>{profile.greeting}</Text>
+           {t("greeting")} {profile.name}, {"\n"}
+          <Text style={styles.greeting}>{t("profileGreetings")}</Text>
         </Text>
       </View>
 
