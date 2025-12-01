@@ -11,7 +11,7 @@ export default function NotificationScreen() {
   const [notifications, setNotifications] = useState([
     { id: 1, title: "Prayer Reminder", enabled: true },
     { id: 2, title: "Reflection Reminder", enabled: false },
-    { id: 3, title: "Noor AI Message Alert", enabled: true },
+    { id: 3, title: "Deen AI Message Alert", enabled: true },
   ]);
 
   const toggleNotification = (id: number) => {

@@ -92,7 +92,7 @@ export default function LoginScreen() {
                     <View style={styles.welcomeContainer}>
                         <Text style={styles.welcomeSubtitle}>Welcome back!</Text>
                         <Text style={styles.welcomeSubtitle}>
-                            Ready to connect with DeenAI?
+                            Ready to connect with Deen AI?
                         </Text>
                     </View>
 
