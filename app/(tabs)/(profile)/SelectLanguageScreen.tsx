@@ -20,7 +20,6 @@ export default function SelectLanguage() {
     { key: "French", subtitle: "Français", code: "fr" },
     { key: "Turkish", subtitle: "Türkçe", code: "tr" },
     { key: "Hausa", subtitle: "Hausa", code: "ha" },
-    { key: "Swahili", subtitle: "Kiswahili", code: "sw" },
   ];
 
   const onSelect = (label: string, langCode: string) => {

@@ -1,13 +1,15 @@
-import { theme } from "@/styles/theme";
-import { useRouter } from "expo-router";
-import React from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import ScreenContainer from "@/components/ScreenContainer";
 import { useLanguageStore } from "@/store/language-store";
+import { theme } from "@/styles/theme";
+import { useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function AppLanguageScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { language } = useLanguageStore();
 
   // Fixed Header Component
@@ -21,7 +23,7 @@ export default function AppLanguageScreen() {
         <ArrowLeft color={theme.color.secondary} size={24} />
       </TouchableOpacity>
 
-      <Text style={styles.headerTitle}>App Language</Text>
+      <Text style={styles.headerTitle}>{t('appLanguage')}</Text>
 
       <View style={styles.placeholder} />
     </View>
@@ -39,7 +41,7 @@ export default function AppLanguageScreen() {
         onPress={() => router.push("/(tabs)/(profile)/SelectLanguageScreen")}
       >
         <View style={styles.languageTextWrapper}>
-          <Text style={styles.languageHeading}>App Language</Text>
+          <Text style={styles.languageHeading}>{t('appLanguage')}</Text>
           <Text style={styles.languageValue}>{language}</Text>
         </View>
 

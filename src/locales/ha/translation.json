@@ -13,12 +13,17 @@
   "azkar": "Azkar",
   "streaks": "Jere",
 
-  "discoverTitle": "Gano sabon ilimi da abubuwan al'ajabi tare da Deen Ai",
+  "discoverTitle": "Gano sabon ilimi da abubuwan al'ajabi tare da Deen AI",
   "letsChat": "Mu tattauna",
   "learnHadith": "Koyi game da Hadisi",
   "learnHadithText": "Nemo haske da shiriya ga yadda kake ji, ta hanyar Al-Qur'ani ko Hadisi.",
-  "reflectionTitle": "Tunanin Yau",
 
+  "reflection": "Tunanin",
+  "savedReflections": "Tunanin da Na Ajiye",
+  "noReflections": "Babu tunanin da aka yi tukuna",
+  "startReflecting": "Fara tunani kan ayoyi don ganin su anan",
+  "searchChapter": "Bincika babi",
+  "reflectionTitle": "Tunanin Yau",
   "reflectVerse": "Yi tunani a kan aya",
   "personalReflection": "Tunaninka",
   "reflectionMessage": "Rubuta abin da wannan aya ke nufi a gare ka...",
@@ -33,12 +38,35 @@
   "reflectSuccessButton": "Komawa Tunanin",
   "openReflectionJournal": "Bude kundin tunani",
 
+   "startReflectionJourney": "Fara tafiyar tunaninka ta hanyar rubuta tunani game da ayoyin Alƙur’ani",
+  "savedStartReflecting": "Fara Tunani",
+  "loadingReflections": "Ana loda tunani...",
+  "confirmDelete": "Tabbatar da Goge",
+  "deleteReflectionQuestion": "Ka tabbata kana son goge wannan tunanin?",
+  "keepReflection": "Ajiye Tunanina",
+  "deleteReflection": "Eh! Goge Tunanin",
+  
   "editProfile": "Gyara Bayanai",
   "notifications": "Sanarwa",
-   "selectLanguage": "Zaɓi Harshe",
+  "selectLanguage": "Zaɓi Harshe",
   "language": "Yare",
   "support": "Tallafi",
   "logout": "Fita",
   "deleteAccount": "Share Asusu",
-  "profile": "Bayanan Asusu"
+  "profile": "Bayanan Asusu",
+  "profileGreetings": "Allah Ya cika kwanakin ka da haske.",
+
+  "supportScreenTitle": "Taimako",
+  "supportScreenContact": "Tuntuɓi Mu",
+  "supportScreenFAQ": "Tambayoyi Masu Yawan Yi",
+
+  "prayerReminder": "Tuno Sallah",
+  "reflectionReminder": "Tuno Tunanin Zuciya",
+  "deenAIMessageAlert": "Faɗakarwar Saƙon Deen AI",
+
+  "appLanguage": "Harshe na App",
+  
+  "deleteTitle": "Shin kai tabbas kana son share asusunka?",
+  "warning1": "Da zarar ka share asusunka, ba za a iya dawo da shi ba. Duk bayananka za a goge su gaba daya daga wannan manhaja, ciki har da bayanan asusun ka, zaɓuɓɓuka, abun da aka adana, da duk wani tarihin ayyuka.",
+  "warning2": "Muna bakin ciki da ganin ka tafi, amma mun fahimci cewa wani lokaci ya zama dole. Da fatan ka ɗauki lokaci ka yi la’akari da sakamakon kafin ci gaba."
 }

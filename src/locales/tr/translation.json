@@ -13,12 +13,17 @@
   "azkar": "Zikirler",
   "streaks": "Seriler",
 
-  "discoverTitle": "Deen Ai ile yeni ve harika şeyler keşfedin",
+  "discoverTitle": "Deen AI ile yeni ve harika şeyler keşfedin",
   "letsChat": "Sohbet edelim",
   "learnHadith": "Hadisleri öğren",
   "learnHadithText": "Hissettikleriniz için ışık ve rehberlik bulun, Kur'an veya Hadis aracılığıyla.",
+  
+  "reflection": "Yansıma",
+  "savedReflections": "Kaydedilmiş Yansımalarım",
+  "noReflections": "Henüz yansıma yok",
+  "startReflecting": "Ayetler üzerinde düşünmeye başlayın, burada görebilirsiniz",
+  "searchChapter": "Bir sure ara",
   "reflectionTitle": "Bugünün Yansıması",
-
   "reflectVerse": "Ayet üzerine düşün",
   "personalReflection": "Kişisel yansıman",
   "reflectionMessage": "Bu ayetin senin için ne ifade ettiğini yaz...",
@@ -28,10 +33,18 @@
   "updateReflection": "Yansımanızı güncelleyin...",
   "saveReflection": "Yansımayı kaydet",
   "shareReflection": "Yansımayı paylaş",
-   "reflectSuccessHeader": "Yansımanız kaydedildi",
+  "reflectSuccessHeader": "Yansımanız kaydedildi",
   "reflectSuccessText": "Yansımanız günlüğünüze eklendi; istediğiniz zaman huzur ve hatırlama için geri dönebileceğiniz bir alan.",
   "reflectSuccessButton": "Yansıma Sayfasına Dön",
   "openReflectionJournal": "Yansıma günlüğünü aç",
+
+  "startReflectionJourney": "Kur’an ayetleri üzerine düşüncelerinizi ekleyerek tefekkür yolculuğunuza başlayın",
+  "savedStartReflecting": "Tefekküre Başla",
+  "loadingReflections": "Düşünceler yükleniyor...",
+  "confirmDelete": "Silme Onayı",
+  "deleteReflectionQuestion": "Bu düşüncenizi silmek istediğinizden emin misiniz?",
+  "keepReflection": "Düşüncemi Tut",
+  "deleteReflection": "Evet! Düşünceyi Sil",
 
   "editProfile": "Profili Düzenle",
   "notifications": "Bildirimler",
@@ -40,5 +53,20 @@
   "support": "Destek",
   "logout": "Çıkış Yap",
   "deleteAccount": "Hesabı Sil",
-  "profile": "Profil"
+  "profile": "Profil",
+  "profileGreetings": "Tüm günlerin nurla dolsun.",
+
+  "supportScreenTitle": "Destek",
+  "supportScreenContact": "Bize Ulaşın",
+  "supportScreenFAQ": "Sıkça Sorulan Sorular",
+
+  "prayerReminder": "Namaz Hatırlatıcısı",
+  "reflectionReminder": "Refleksiyon Hatırlatıcısı",
+  "deenAIMessageAlert": "Deen AI Mesaj Uyarısı",
+
+  "appLanguage": "Uygulama Dili",
+
+  "deleteTitle": "Hesabınızı silmek istediğinizden emin misiniz?",
+  "warning1": "Hesabınızı sildiğinizde bu işlem geri alınamaz. Profil bilgileriniz, tercihlerinizi, kaydedilmiş içeriklerinizi ve tüm etkinlik geçmişiniz dahil olmak üzere tüm verileriniz kalıcı olarak silinecektir.",
+  "warning2": "Sizi kaybettiğimiz için üzgünüz, ancak bazen bunun gerekli olduğunu anlıyoruz. Devam etmeden önce sonuçları düşünmek için bir an ayırın."
 }
