@@ -15,13 +15,13 @@ export default function ReflectScreen() {
   const { t } = useTranslation();
   return (
     <ScreenContainer>
-      <ScreenHeader title="Edit Reflection" />
+      <ScreenHeader title={t("editReflection")} />
 
       <ReflectionQuote />
 
       <View style={styles.reflection}>
         <Text style={styles.reflectionHeader}>{t("personalReflection")}</Text>
-        <Text>{t("reflectionMessage")}</Text>
+        <Text>{t("editReflectionMessage")}</Text>
 
         <TextInput
           style={styles.textarea}
