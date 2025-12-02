@@ -4,32 +4,24 @@ import { theme } from "@/styles/theme";
 import { router } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
 import React, { useState } from "react";
-import { useTranslation } from 'react-i18next';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useTranslation } from "react-i18next";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useToast } from "@/hooks/useToast";
 
 export default function NotificationScreen() {
   const { t } = useTranslation();
-  const [notifications, setNotifications] = useState([
-    { id: 1, title: t("prayerReminder"), enabled: true },
+  const { showToast } = useToast();
+
+  const [notifications] = useState([
+    { id: 1, title: t("prayerReminder"), enabled: false },
     { id: 2, title: t("reflectionReminder"), enabled: false },
-    { id: 3, title: t("deenAIMessageAlert"), enabled: true },
+    { id: 3, title: t("deenAIMessageAlert"), enabled: false },
   ]);
 
-  const toggleNotification = (id: number) => {
-    setNotifications((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, enabled: !item.enabled } : item
-      )
-    );
+  const handleComingSoon = (title: string) => {
+    showToast(`${title} is coming soon`, "info");
   };
 
-  // Fixed Header Component
   const fixedHeader = (
     <View style={styles.header}>
       <TouchableOpacity
@@ -63,7 +55,8 @@ export default function NotificationScreen() {
 
             <Toggle
               value={item.enabled}
-              onChange={() => toggleNotification(item.id)}
+              onChange={() => handleComingSoon(item.title)}
+              disabled={true} // prevent toggle from sliding
             />
           </View>
         ))}

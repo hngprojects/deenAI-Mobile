@@ -27,6 +27,46 @@ export default function HadithDetailScreen() {
     setCurrentHadithIndex(0);
   }, [currentBook]);
 
+  // Auto-skip to next hadith if current one has no content
+  useEffect(() => {
+    if (!currentCollection || !currentBook) return;
+
+    const checkAndSkipEmptyHadith = () => {
+      const currentHadithNumber =
+        currentBook.hadiths[currentHadithIndex]?.hadithnumber;
+
+      if (!currentHadithNumber) return;
+
+      const arabicHadith = getHadithByNumber(
+        currentCollection,
+        currentHadithNumber,
+        "arabic"
+      );
+      const englishHadith = getHadithByNumber(
+        currentCollection,
+        currentHadithNumber,
+        "english"
+      );
+
+      // Check if hadith has no content
+      const hasNoContent =
+        !arabicHadith?.text?.trim() || !englishHadith?.text?.trim();
+
+      if (hasNoContent) {
+        // Try to move to next hadith
+        if (currentHadithIndex < currentBook.hadiths.length - 1) {
+          setCurrentHadithIndex(currentHadithIndex + 1);
+        } else {
+          // If this was the last hadith, go back
+          showToast("No content available", "info");
+          router.back();
+        }
+      }
+    };
+
+    checkAndSkipEmptyHadith();
+  }, [currentHadithIndex, currentCollection, currentBook]);
+
   if (!currentCollection || !currentBook) {
     return (
       <View style={styles.container}>
@@ -108,7 +148,7 @@ export default function HadithDetailScreen() {
     );
   }
 
-  const extractNarrator = (text: string): string => {
+  const extractNarrator = (text: string): string | null => {
     const patterns = [
       /Narrated ['"]?([^:'"]+)['"]?:/i,
       /^([^:]+):/,
@@ -118,11 +158,16 @@ export default function HadithDetailScreen() {
     for (const pattern of patterns) {
       const match = text.match(pattern);
       if (match && match[1]) {
-        return match[1].trim();
+        const narrator = match[1].trim();
+        // Return null if narrator is "Unknown" or empty
+        if (narrator.toLowerCase() === 'unknown' || !narrator) {
+          return null;
+        }
+        return narrator;
       }
     }
 
-    return "Unknown";
+    return null;
   };
 
   const narrator = extractNarrator(englishHadith.text);
@@ -144,7 +189,6 @@ export default function HadithDetailScreen() {
           <Text style={styles.headerTitle} numberOfLines={1}>
             {currentBook.book}
           </Text>
-          <Ionicons name="chevron-down" size={20} color="#000" />
         </View>
 
         <View style={styles.placeholder} />
@@ -170,7 +214,10 @@ export default function HadithDetailScreen() {
           <Text style={styles.arabicText}>{arabicHadith.text}</Text>
         </View>
 
-        <Text style={styles.narrator}>Narrated &apos;{narrator}:</Text>
+        {/* Only show narrator if it's not null/unknown */}
+        {narrator && (
+          <Text style={styles.narrator}>Narrated &apos;{narrator}:</Text>
+        )}
 
         <Text style={styles.englishText}>{englishHadith.text}</Text>
 
@@ -445,6 +492,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     paddingVertical: 16,
     paddingHorizontal: 40,
+        paddingBottom: 35,
     backgroundColor: "#FFF",
     borderTopWidth: 1,
     borderTopColor: "#F0F0F0",

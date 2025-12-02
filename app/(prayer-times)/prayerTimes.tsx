@@ -1,3 +1,4 @@
+// app/(prayer-times)/prayerTimes.tsx
 import UpcomingSolatCard from '@/components/UpcomingSolatCard';
 import { theme } from '@/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +16,7 @@ import {
 } from 'react-native';
 import LocationPermissionModal from '../../components/LocationPermissionModal';
 import { usePrayerTimes } from '../../hooks/usePrayerTimes';
+import prayerService from '../../service/prayer.service';
 
 export default function PrayerTimesScreen() {
   const {
@@ -66,14 +68,11 @@ export default function PrayerTimesScreen() {
         } else if (error) {
           setPermissionError(error);
         } else {
-          // Even if there's no savedLocation yet, close modal
-          // as the location service will use default location
           setShowPermissionModal(false);
         }
         setPermissionLoading(false);
       }, 1500);
     } catch {
-      // Don't show error, just close modal as we have fallback location
       console.log('Location request completed with fallback');
       setShowPermissionModal(false);
       setPermissionLoading(false);
@@ -82,7 +81,6 @@ export default function PrayerTimesScreen() {
 
   const handleCloseModal = () => {
     setShowPermissionModal(false);
-    // Navigate back if no location is set
     if (!savedLocation) {
       router.back();
     }
@@ -90,11 +88,9 @@ export default function PrayerTimesScreen() {
 
   const isToday = selectedDate.toDateString() === new Date().toDateString();
 
-  // Calculate which prayer is next for today or tomorrow
   const getNextPrayerForDisplay = () => {
     const now = new Date();
 
-    // If viewing today, find next prayer
     if (isToday && prayerTimes) {
       const prayersList = [
         { name: 'Fajr', time: new Date(prayerTimes.fajr) },
@@ -104,14 +100,12 @@ export default function PrayerTimesScreen() {
         { name: 'Isha', time: new Date(prayerTimes.isha) },
       ];
 
-      // Find first prayer that hasn't passed yet
       for (const prayer of prayersList) {
         if (now < prayer.time) {
           return prayer;
         }
       }
 
-      // All prayers done for today, return Fajr as next (tomorrow)
       return { name: 'Fajr', time: new Date(prayerTimes.fajr), isNextDay: true };
     }
 
@@ -121,7 +115,6 @@ export default function PrayerTimesScreen() {
   const renderPrayerItem = (name: string, time: Date, isNext: boolean = false) => {
     const isPast = new Date() > time && isToday;
 
-    // Don't render if prayer has passed or if it's the next prayer (shown in upcoming card)
     if (isPast || isNext) {
       return null;
     }
@@ -158,31 +151,31 @@ export default function PrayerTimesScreen() {
     );
   };
 
-  const getForbiddenTimeImage = (label: string) => {
-    switch (label) {
-      case 'Sunrise':
+  const getForbiddenTimeImage = (type: string) => {
+    switch (type) {
+      case 'sunrise':
         return require('../../assets/images/material-symbols-light_prayer-times.png');
-      case 'Noon':
+      case 'zawal':
         return require('../../assets/images/material-symbols-light_prayer-times-sun.png');
-      case 'Sunset':
+      case 'sunset':
         return require('../../assets/images/material-symbols-light_prayer-times-nig.png');
       default:
         return require('../../assets/images/material-symbols-light_prayer-times.png');
     }
   };
 
-  const renderForbiddenTime = (label: string, startTime: Date, endTime: Date) => {
+  const renderForbiddenTime = (name: string, startTime: Date, endTime: Date, type: string, description: string) => {
     return (
-      <View key={label} style={styles.forbiddenItem}>
+      <View key={name} style={styles.forbiddenItem}>
         <View style={styles.forbiddenIcon}>
           <Image
-            source={getForbiddenTimeImage(label)}
+            source={getForbiddenTimeImage(type)}
             style={styles.forbiddenImage}
             resizeMode="contain"
           />
         </View>
         <View style={styles.forbiddenInfo}>
-          <Text style={styles.forbiddenLabel}>{label}</Text>
+          <Text style={styles.forbiddenLabel}>{name}</Text>
           <View style={styles.forbiddenTimes}>
             <Text style={styles.forbiddenTime}>{formatTime(startTime)}</Text>
             <View style={styles.timeSeparator} />
@@ -247,17 +240,10 @@ export default function PrayerTimesScreen() {
     );
   }
 
-  // Calculate forbidden times
-  const sunriseEnd = new Date(prayerTimes.sunrise);
-  sunriseEnd.setMinutes(sunriseEnd.getMinutes() + 15);
-
-  const noonStart = new Date(prayerTimes.dhuhr);
-  noonStart.setMinutes(noonStart.getMinutes() - 8);
-  const noonEnd = new Date(prayerTimes.dhuhr);
-  noonEnd.setMinutes(noonEnd.getMinutes() + 8);
-
-  const sunsetStart = new Date(prayerTimes.maghrib);
-  sunsetStart.setMinutes(sunsetStart.getMinutes() - 15);
+  // Get accurate forbidden times using the service
+  const forbiddenTimes = savedLocation
+    ? prayerService.getForbiddenTimes(prayerTimes, savedLocation.latitude, savedLocation.longitude)
+    : [];
 
   const nextPrayerForDisplay = getNextPrayerForDisplay();
 
@@ -324,15 +310,14 @@ export default function PrayerTimesScreen() {
           {renderPrayerItem('Asr', prayerTimes.asr, isToday && nextPrayerForDisplay?.name === 'Asr')}
           {renderPrayerItem('Maghrib', prayerTimes.maghrib, isToday && nextPrayerForDisplay?.name === 'Maghrib')}
           {renderPrayerItem('Isha', prayerTimes.isha, isToday && nextPrayerForDisplay?.name === 'Isha')}
-          {renderPrayerItem('Tahajjud', prayerTimes.fajr, false)}
         </View>
 
         {/* Forbidden Prayer Times */}
         <View style={styles.forbiddenContainer}>
           <Text style={styles.forbiddenTitle}>Forbidden Salat Times</Text>
-          {renderForbiddenTime('Sunrise', prayerTimes.sunrise, sunriseEnd)}
-          {renderForbiddenTime('Noon', noonStart, noonEnd)}
-          {renderForbiddenTime('Sunset', sunsetStart, prayerTimes.maghrib)}
+          {forbiddenTimes.map(ft =>
+            renderForbiddenTime(ft.name, ft.start, ft.end, ft.type)
+          )}
         </View>
       </ScrollView>
     </View>
@@ -496,7 +481,6 @@ const styles = StyleSheet.create({
   },
   forbiddenLabel: {
     fontSize: 16,
-    fontWeight: '500',
     color: '#333',
     marginBottom: 8,
     fontFamily: theme.font.regular,

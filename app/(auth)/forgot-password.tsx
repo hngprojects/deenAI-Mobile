@@ -64,10 +64,10 @@ export default function ForgotPassword() {
                 />
             </View>
 
-            <Text style={styles.footerText}>
+            {/* <Text style={styles.footerText}>
                 By using Deen AI, you agree to the{" "}
                 <Text style={styles.link}>Terms and Privacy Policy.</Text>
-            </Text>
+            </Text> */}
         </ScreenContainer>
     );
 }

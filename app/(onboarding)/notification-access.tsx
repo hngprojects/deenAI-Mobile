@@ -8,6 +8,7 @@ import {
     Alert,
     StyleSheet,
     Text,
+    TouchableOpacity,
     View,
 } from 'react-native';
 import PrimaryButton from '../../components/primaryButton';
@@ -82,10 +83,22 @@ export default function NotificationAccessScreen() {
 
             <View style={{ flex: 1 }} />
 
-            <Text style={styles.termsText}>
-                By using Deen Ai, you agree to the{' '}
-                <Text style={styles.termsLink}>Terms and Privacy Policy.</Text>
-            </Text>
+
+            {/* <View style={styles.bottomContainer}>
+                <Text style={styles.termsText}>
+                    By using Deen Ai, you agree to the
+                </Text>
+
+                <View style={styles.termsContainer}>
+                    <TouchableOpacity onPress={() => router.push("/(auth)/terms")}>
+                        <Text style={styles.termsLink}>Terms of service</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.termsContainerText}> and </Text>
+                    <TouchableOpacity onPress={() => router.push("/(auth)/privacy")}>
+                        <Text style={styles.termsLink}>Privacy Policy</Text>
+                    </TouchableOpacity>
+                </View>
+            </View> */}
         </ScreenContainer>
     );
 }
@@ -136,8 +149,27 @@ const styles = StyleSheet.create({
         marginBottom: 30,
         lineHeight: 20,
     },
+     termsContainerText: {
+        fontSize: 14,
+        fontFamily: theme.font.regular,
+        color: '#666',
+    },
     termsLink: {
         color: theme.color.brand,
+        fontWeight: '600',
         fontFamily: theme.font.semiBold,
     },
+    termsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        // marginTop: -30,
+    },
+    bottomContainer: {
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+        marginTop: 40
+    }
 });

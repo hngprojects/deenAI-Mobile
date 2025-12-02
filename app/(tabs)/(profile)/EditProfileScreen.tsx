@@ -118,7 +118,7 @@ export default function EditProfileScreen() {
                 ? { uri: avatarUri }
                 : userData?.avatar
                   ? { uri: userData.avatar }
-                  : require("@/assets/images/woman-in-hijab.png")
+                  : require("@/assets/images/ava.jpg")
             }
             style={styles.avatar}
           />
@@ -164,7 +164,7 @@ export default function EditProfileScreen() {
               editable={!isPending}
             />
 
-            <InputField
+            {/* <InputField
               label="Username"
               placeholder="Username"
               value={values.username}
@@ -172,7 +172,7 @@ export default function EditProfileScreen() {
               onBlur={handleBlur("username")}
               error={touched.username ? errors.username : undefined}
               editable={!isPending}
-            />
+            /> */}
 
             <InputField
               label="Email Address"
