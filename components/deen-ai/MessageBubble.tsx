@@ -1,9 +1,21 @@
 import { setStringAsync } from "expo-clipboard";
 import { router } from "expo-router";
-import { BookOpen, BookOpenText, Copy, Share } from "lucide-react-native";
+import {
+  BookOpen,
+  BookOpenText,
+  Copy,
+  Share as ShareIcon,
+} from "lucide-react-native";
 import moment from "moment";
 import React from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Markdown from "react-native-markdown-display";
 
 import { useToast } from "@/hooks/useToast";
@@ -103,6 +115,36 @@ function MessageBubble({ message }: MessageBubbleProps) {
       console.error("Error navigating to Hadith:", error);
     }
   };
+
+  const handleChatShare = () => {
+    const shareContent = `Deen AI:\n\n${
+      message.content
+    }\n\nReferences:\n${message.aiReferences
+      ?.map((ref) => {
+        if (ref.type === "quran" && ref.surah) {
+          return `Quran ${ref.surah}:${ref.startAyah || 1}${
+            ref.endAyah && ref.endAyah !== ref.startAyah
+              ? `-${ref.endAyah}`
+              : ""
+          }`;
+        } else if (
+          ref.type === "hadith" &&
+          ref.collection &&
+          ref.hadithNumber
+        ) {
+          return `${ref.collection} • Hadith ${ref.hadithNumber}`;
+        }
+        return "";
+      })
+      .join("\n")}`;
+
+    try {
+      Share.share({ message: shareContent });
+    } catch {
+      showToast("Failed to share the message.");
+    }
+  };
+
   return (
     <View
       style={{
@@ -268,7 +310,9 @@ function MessageBubble({ message }: MessageBubbleProps) {
             >
               <Copy size={20} color={theme.color.actionIcon} />
             </TouchableOpacity>
-            <Share size={20} color={theme.color.actionIcon} />
+            <TouchableOpacity onPress={handleChatShare}>
+              <ShareIcon size={20} color={theme.color.actionIcon} />
+            </TouchableOpacity>
           </View>
         )}
 
