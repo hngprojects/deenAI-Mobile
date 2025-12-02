@@ -18,6 +18,7 @@ import {
   View,
 } from "react-native";
 import SignOutConfirmationModal from "./delete/SignOut";
+import { useQueryClient } from "@tanstack/react-query";
 
 const { width } = Dimensions.get("window");
 
@@ -39,21 +40,37 @@ interface Option {
   title: string;
   route?: any;
   iconKey: keyof typeof icons.left;
+  requiresAuth?: boolean; // NEW: Flag to indicate if auth is required
 }
 
 const ProfileScreen: React.FC = () => {
   const router = useRouter();
   const [signOutModalVisible, setSignOutModalVisible] = useState(false);
   const { data: userData, isLoading, refetch } = useUser();
-  const { user: authUser } = useAuthStore();
+  const { user: authUser, isGuest, clearAuth } = useAuthStore();
+  const queryClient = useQueryClient();
   const { t } = useTranslation();
 
   // Refetch user data when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
-      refetch();
-    }, [refetch])
+      if (!isGuest) {
+        refetch();
+      }
+    }, [refetch, isGuest])
   );
+
+  // Handle guest login (sign out from guest mode)
+  const handleGuestLogin = () => {
+    try {
+      clearAuth();
+      queryClient.clear();
+      router.replace("/(auth)/login");
+    } catch (error) {
+      console.error("Guest logout failed:", error);
+      router.replace("/(auth)/login");
+    }
+  };
 
   const getAvatarSource = () => {
     if (userData?.avatar) {
@@ -62,50 +79,63 @@ const ProfileScreen: React.FC = () => {
     return require("@/assets/images/woman-in-hijab.png");
   };
 
-  const profileName = userData?.name || authUser?.name || "User";
+  const profileName = userData?.name || authUser?.name || "Guest";
 
-  const profile = {
-    avatar: getAvatarSource(),
-    name: profileName,
-    options: [
-      {
-        id: "1",
-        title: t('editProfile'),
-        route: "/(tabs)/(profile)/EditProfileScreen",
-        iconKey: "edit",
-      },
-      {
-        id: "2",
-        title: t('notifications'),
-        route: "/(tabs)/(profile)/NotificationScreen",
-        iconKey: "notifications",
-      },
-      {
-        id: "3",
-        title: t('selectLanguage'),
-        route: "/(tabs)/(profile)/AppLanguageScreen",
-        iconKey: "language",
-      },
-      {
-        id: "4",
-        title: t('support'),
-        route: "/(tabs)/(profile)/SupportScreen",
-        iconKey: "support",
-      },
-      {
-        id: "5",
-        title: t('logout'),
-        route: "/(tabs)/(profile)/delete/SignOut",
-        iconKey: "signout",
-      },
-      {
-        id: "6",
-        title: t('deleteAccount'),
-        route: "/(tabs)/(profile)/DeleteAccountScreen",
-        iconKey: "delete",
-      },
-    ] as Option[],
-  };
+  // Define all options with requiresAuth flag
+  const allOptions: Option[] = [
+    {
+      id: "1",
+      title: t('editProfile'),
+      route: "/(tabs)/(profile)/EditProfileScreen",
+      iconKey: "edit",
+      requiresAuth: true,
+    },
+    {
+      id: "2",
+      title: t('notifications'),
+      route: "/(tabs)/(profile)/NotificationScreen",
+      iconKey: "notifications",
+      requiresAuth: true,
+    },
+    {
+      id: "3",
+      title: t('selectLanguage'),
+      route: "/(tabs)/(profile)/AppLanguageScreen",
+      iconKey: "language",
+      requiresAuth: false,
+    },
+    {
+      id: "4",
+      title: t('support'),
+      route: "/(tabs)/(profile)/SupportScreen",
+      iconKey: "support",
+      requiresAuth: false,
+    },
+    {
+      id: "5",
+      title: isGuest ? 'Login' : t('logout'),
+      route: "/(tabs)/(profile)/delete/SignOut",
+      iconKey: "signout",
+      requiresAuth: false,
+    },
+    {
+      id: "6",
+      title: t('deleteAccount'),
+      route: "/(tabs)/(profile)/DeleteAccountScreen",
+      iconKey: "delete",
+      requiresAuth: true,
+    },
+  ];
+
+  // Filter options based on authentication status
+  const filteredOptions = allOptions.filter(option => {
+    if (isGuest) {
+      // For guests, only show options that don't require auth
+      return !option.requiresAuth;
+    }
+    // For authenticated users, show all options
+    return true;
+  });
 
   const renderOption = ({ item }: { item: Option }) => (
     <TouchableOpacity
@@ -113,7 +143,14 @@ const ProfileScreen: React.FC = () => {
       style={styles.optionContainer}
       onPress={() => {
         if (item.id === "5") {
-          setSignOutModalVisible(true);
+          // Handle Login/Logout based on guest status
+          if (isGuest) {
+            // For guests, log out and navigate to login screen
+            handleGuestLogin();
+          } else {
+            // For authenticated users, show logout modal
+            setSignOutModalVisible(true);
+          }
         } else if (item.route) {
           router.push(item.route);
         }
@@ -136,31 +173,18 @@ const ProfileScreen: React.FC = () => {
   // Fixed Header Component
   const fixedHeader = (
     <View style={styles.header}>
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => router.push("/(tabs)")}
-        activeOpacity={0.7}
-      >
-        <ArrowLeft color={theme.color.secondary} size={24} />
-      </TouchableOpacity>
-
       <Text style={styles.headerTitle}>{t('profile')}</Text>
-
-      <View style={styles.placeholder} />
     </View>
   );
 
-  // Show loading state while fetching profile
-  if (isLoading) {
+  // Show loading state while fetching profile (only for authenticated users)
+  if (isLoading && !isGuest) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.color.primary} />
       </View>
     );
   }
-
-  
-  console.log("greeting:", t("greeting"));
 
   return (
     <ScreenContainer
@@ -170,15 +194,15 @@ const ProfileScreen: React.FC = () => {
       backgroundColor={theme.color.background}
     >
       <View style={styles.profileHeader}>
-        <Image source={profile.avatar} style={styles.avatar} />
+        <Image source={getAvatarSource()} style={styles.avatar} />
         <Text style={[styles.nameGreeting, { color: theme.color.secondary }]}>
-           {t("greeting")} {profile.name}, {"\n"}
+          {t("greeting")} {profileName}, {"\n"}
           <Text style={styles.greeting}>{t("profileGreetings")}</Text>
         </Text>
       </View>
 
       <FlatList
-        data={profile.options}
+        data={filteredOptions}
         keyExtractor={(item) => item.id}
         renderItem={renderOption}
         scrollEnabled={false}
@@ -189,10 +213,13 @@ const ProfileScreen: React.FC = () => {
         contentContainerStyle={{ paddingHorizontal: 0, marginTop: 30 }}
       />
 
-      <SignOutConfirmationModal
-        visible={signOutModalVisible}
-        setVisible={setSignOutModalVisible}
-      />
+      {/* Only show sign out modal for authenticated users */}
+      {!isGuest && (
+        <SignOutConfirmationModal
+          visible={signOutModalVisible}
+          setVisible={setSignOutModalVisible}
+        />
+      )}
     </ScreenContainer>
   );
 };
@@ -206,7 +233,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     marginBottom: 15,
     paddingHorizontal: 20,
   },
@@ -235,14 +262,14 @@ const styles = StyleSheet.create({
     borderRadius: (width * 0.32) / 2,
   },
   nameGreeting: {
-    fontSize: 20,
+    fontSize: 18,
     marginTop: 8,
     textAlign: "center",
     fontWeight: "600",
     fontFamily: theme.font.semiBold,
   },
   greeting: {
-    fontSize: 20,
+    fontSize: 16,
     marginBottom: 22,
     textAlign: "center",
     fontFamily: theme.font.regular,

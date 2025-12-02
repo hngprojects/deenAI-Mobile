@@ -12,7 +12,7 @@ import i18n from "@/src/i18n";
 export default function SelectLanguage() {
   const router = useRouter();
   const { language, setLanguage } = useLanguageStore();
-  
+
 
   const languages = [
     { key: "English", subtitle: "English", code: "en" },
@@ -25,7 +25,7 @@ export default function SelectLanguage() {
   const onSelect = (label: string, langCode: string) => {
     setLanguage(langCode);
     i18n.changeLanguage(langCode);
-    router.push("/(tabs)/(profile)/AppLanguageScreen");
+    router.push("/(tabs)/(profile)");
   };
 
   return (

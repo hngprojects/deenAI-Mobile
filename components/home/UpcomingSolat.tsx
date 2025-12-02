@@ -6,7 +6,10 @@ import React, { useState, useCallback, memo } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
+  Alert,
   Image,
+  Linking,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -116,12 +119,12 @@ export default function UpcomingSolat() {
       return 'Getting location...';
     }
 
-    // Add source label (+user or +emulator)
-    // const label = savedLocation.source === 'emulator' ? '+emulator' : '+user';
     return `${locationName}`;
   };
 
   const displayLocation = getLocationDisplay();
+
+
 
   // Memoize all handlers to prevent unnecessary re-renders
   const handleSeeAll = useCallback(() => {
@@ -142,8 +145,27 @@ export default function UpcomingSolat() {
       console.log('🔄 User requesting location from home screen');
       await refreshLocation();
       console.log('✅ Location refresh completed');
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Error requesting location:", error);
+
+      // The location service already shows appropriate alerts:
+      // - For location services disabled -> "Enable location services" alert
+      // - For permission denied (can't ask again) -> "Go to settings" alert
+      // We don't need to show additional alerts here since they're handled in the service
+
+      // Just log for debugging
+      if (error.message?.includes('disabled') || error.message?.includes('services')) {
+        console.log('📍 Location services disabled - alert already shown');
+      } else if (error.message?.includes('denied') || error.message?.includes('settings')) {
+        console.log('📍 Permission denied - settings alert already shown');
+      } else {
+        // Only show alert for unexpected errors
+        Alert.alert(
+          "Location Error",
+          error.message || "Unable to get your location. Please try again.",
+          [{ text: "OK" }]
+        );
+      }
     } finally {
       setIsRequestingLocation(false);
     }
@@ -198,8 +220,6 @@ export default function UpcomingSolat() {
             )}
           </TouchableOpacity>
         </View>
-
-        {/* <QuickActions /> */}
       </View>
     );
   }
@@ -222,8 +242,6 @@ export default function UpcomingSolat() {
             <Text style={styles.loadingLocationText}>{displayLocation}</Text>
           )}
         </View>
-
-        {/* <QuickActions /> */}
       </View>
     );
   }
@@ -259,8 +277,6 @@ export default function UpcomingSolat() {
             <Text style={styles.errorRetry}>Tap to retry</Text>
           )}
         </TouchableOpacity>
-
-        {/* <QuickActions /> */}
       </View>
     );
   }

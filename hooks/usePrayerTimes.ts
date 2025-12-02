@@ -3,7 +3,7 @@ import prayerService, { HijriDate, PrayerSettings, PrayerTimesData, SavedLocatio
 import { useLocation } from './useLocation';
 
 export const usePrayerTimes = () => {
-  const { getCurrentLocation, getAddress } = useLocation();
+  const { getCurrentLocation, getAddress, requestPermission } = useLocation();
   const [prayerTimes, setPrayerTimes] = useState<PrayerTimesData | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [hijriDate, setHijriDate] = useState<HijriDate | null>(null);
@@ -126,8 +126,9 @@ export const usePrayerTimes = () => {
         setSavedLocation(savedLoc);
         setLocationName(savedLoc.city || 'Unknown Location');
       } else {
-        // No saved location - get current location in background
-        fetchCurrentLocation();
+        // No saved location - try to get current location in background
+        // This will only work if permission was already granted
+        fetchCurrentLocationSilently();
       }
 
       initialLoadComplete.current = true;
@@ -147,9 +148,9 @@ export const usePrayerTimes = () => {
   };
 
   /**
-   * Fetch current location (non-blocking)
+   * Fetch current location silently (only works if permission already granted)
    */
-  const fetchCurrentLocation = async () => {
+  const fetchCurrentLocationSilently = async () => {
     if (isLoadingLocation.current) return;
 
     isLoadingLocation.current = true;
@@ -192,10 +193,8 @@ export const usePrayerTimes = () => {
         setLocationName(address);
       }
     } catch (err) {
-      console.error('Failed to get current location:', err);
-      if (isMounted.current) {
-        setError('Location access required for prayer times');
-      }
+      console.log('Could not get location silently (permission may not be granted)');
+      // Don't set error - user hasn't explicitly requested location yet
     } finally {
       isLoadingLocation.current = false;
     }
@@ -236,18 +235,37 @@ export const usePrayerTimes = () => {
   );
 
   /**
-   * Refresh location and prayer times
+   * Refresh location - REQUEST PERMISSION FIRST, then get location
+   * This is the function that should be called when user explicitly taps "Allow Location"
    */
   const refreshLocation = useCallback(async () => {
     try {
+      console.log('🔄 Starting location refresh with permission request...');
       setLoading(true);
       setError(null);
 
-      const coords = await getCurrentLocation();
+      // CRITICAL FIX: Request permission first
+      const permissionResult = await requestPermission();
+
+      if (!permissionResult.granted) {
+        console.log('❌ Permission not granted:', permissionResult.error);
+        throw new Error(
+          permissionResult.servicesDisabled
+            ? 'Location services are disabled. Please enable them in your device settings.'
+            : permissionResult.error || 'Location permission denied'
+        );
+      }
+
+      console.log('✅ Permission granted, getting location...');
+
+      // Permission granted, now get the location
+      const coords = permissionResult.location || await getCurrentLocation();
 
       if (!coords) {
         throw new Error('Could not get location');
       }
+
+      console.log('📍 Got coordinates:', coords.latitude, coords.longitude);
 
       // Get location name
       let address = 'Unknown Location';
@@ -257,7 +275,7 @@ export const usePrayerTimes = () => {
           address = reverseGeocode;
         }
       } catch (geoError) {
-        console.log('Reverse geocoding failed');
+        console.log('⚠️ Reverse geocoding failed, using default');
       }
 
       if (!isMounted.current) return;
@@ -277,18 +295,20 @@ export const usePrayerTimes = () => {
 
       if (isMounted.current) {
         setSavedLocation(newLocation);
+        console.log('✅ Location saved successfully');
       }
     } catch (err: any) {
-      console.error('Error refreshing location:', err);
+      console.error('❌ Error refreshing location:', err);
       if (isMounted.current) {
-        setError(err.message || 'Failed to refresh location');
+        setError(err.message || 'Failed to get location');
       }
+      throw err; // Re-throw so UI can handle it
     } finally {
       if (isMounted.current) {
         setLoading(false);
       }
     }
-  }, [getCurrentLocation, getAddress]);
+  }, [requestPermission, getCurrentLocation, getAddress]);
 
   /**
    * Set location manually
