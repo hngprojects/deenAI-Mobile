@@ -24,12 +24,12 @@ export default function FAQScreen() {
 
   return (
     <ScreenContainer backgroundColor={theme.color.background3}>
-      <ScreenHeader title="Frequently Asked Questions" onBackPress={() => router.push('/(tabs)/(profile)/ProfileScreen')}/>
+      <ScreenHeader title="Frequently Asked Questions" onBackPress={() => router.back()}/>
 
       <View style={styles.list}>
         {faqList.map((item, index) => (
-          <TouchableOpacity 
-            key={index} 
+          <TouchableOpacity
+            key={index}
             style={styles.item}
             onPress={() => router.push({
               pathname: item.route,

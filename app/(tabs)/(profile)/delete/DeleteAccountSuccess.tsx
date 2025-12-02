@@ -1,16 +1,20 @@
 import ScreenContainer from "@/components/ScreenContainer";
+import { useLogout } from "@/hooks/useAuth";
 import { theme } from "@/styles/theme";
 import { useRouter } from "expo-router";
-import { Image, StyleSheet, Text, View } from "react-native";
 import { useEffect } from "react";
+import { Image, StyleSheet, Text, View } from "react-native";
 
 export default function DeleteAccountSuccess() {
   const router = useRouter();
+  const logoutMutation = useLogout();
+
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
+      await logoutMutation.mutateAsync();
       router.replace("/(auth)/login");
-    }, 5000);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, []);

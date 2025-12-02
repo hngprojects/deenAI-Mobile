@@ -16,6 +16,7 @@ export interface LocationPermissionResult {
     location?: LocationCoordinates;
     error?: string;
     servicesDisabled?: boolean;
+    canAskAgain?: boolean; // NEW: Indicates if we can show system dialog again
 }
 
 const DEFAULT_LOCATION = {
@@ -82,6 +83,29 @@ class LocationService {
     }
 
     /**
+     * Show alert when permission was previously denied (can't ask again)
+     */
+    private showPermissionDeniedAlert(): void {
+        Alert.alert(
+            'Location Permission Required',
+            'You previously denied location access. To enable prayer times, please allow location permission in your device settings.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Open Settings',
+                    onPress: () => {
+                        if (Platform.OS === 'ios') {
+                            Linking.openURL('app-settings:');
+                        } else {
+                            Linking.openSettings();
+                        }
+                    }
+                }
+            ]
+        );
+    }
+
+    /**
      * Request foreground location permission
      */
     async requestPermission(): Promise<LocationPermissionResult> {
@@ -106,26 +130,50 @@ class LocationService {
                 };
             }
 
-            const { status } = await Location.requestForegroundPermissionsAsync();
+            // Check current permission status
+            const { status: currentStatus, canAskAgain } = await Location.getForegroundPermissionsAsync();
 
-            if (status === 'granted') {
+            // If permission already denied and we can't ask again
+            if (currentStatus === 'denied' && !canAskAgain) {
+                console.log('⚠️ Permission previously denied, cannot ask again');
+                this.showPermissionDeniedAlert();
+                return {
+                    granted: false,
+                    canAskAgain: false,
+                    error: 'Location permission was previously denied. Please enable it in settings.',
+                };
+            }
+
+            // Request permission (this will show system dialog if canAskAgain is true)
+            const { status: newStatus, canAskAgain: canAskAgainAfter } = await Location.requestForegroundPermissionsAsync();
+
+            if (newStatus === 'granted') {
                 try {
                     const location = await this.getCurrentLocation();
                     return {
                         granted: true,
                         location,
+                        canAskAgain: true,
                     };
                 } catch (locationError) {
                     console.log('Permission granted but could not get location:', locationError);
                     return {
                         granted: true,
                         error: 'Could not determine current location',
+                        canAskAgain: true,
                     };
                 }
             }
 
+            // Permission denied
+            if (!canAskAgainAfter) {
+                // User selected "Don't Allow" or "Deny & Don't Ask Again"
+                this.showPermissionDeniedAlert();
+            }
+
             return {
                 granted: false,
+                canAskAgain: canAskAgainAfter,
                 error: 'Location permission denied',
             };
         } catch (error) {
@@ -208,6 +256,23 @@ class LocationService {
     }
 
     /**
+     * Check if we can ask for permission again (user hasn't permanently denied it)
+     */
+    async canAskForPermission(): Promise<boolean> {
+        try {
+            if (this.isEmulator()) {
+                return true;
+            }
+
+            const { canAskAgain } = await Location.getForegroundPermissionsAsync();
+            return canAskAgain;
+        } catch (error) {
+            console.error('Check can ask permission error:', error);
+            return false;
+        }
+    }
+
+    /**
      * Get location address from coordinates
      */
     async getAddressFromCoordinates(
@@ -283,7 +348,7 @@ class LocationService {
             );
         } catch (error) {
             console.error('Watch location error:', error);
-            throw error; // Throw error instead of returning null
+            throw error;
         }
     }
 
@@ -331,7 +396,7 @@ class LocationService {
                 return this.getDefaultLocation();
             }
 
-            throw error; // Throw error on real device
+            throw error;
         }
     }
 

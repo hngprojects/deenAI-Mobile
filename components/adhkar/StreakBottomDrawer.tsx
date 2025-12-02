@@ -41,7 +41,7 @@ const StreakBottomDrawer: React.FC<StreakBottomDrawerProps> = ({
         currentStreak === 0;
 
     const handleContinue = () => {
-        useStreakStore.getState().markDrawerAsSeen();
+        // useStreakStore.getState().markDrawerAsSeen();
         router.push("/(adhkar)/streak-analytics");
         onClose();
 

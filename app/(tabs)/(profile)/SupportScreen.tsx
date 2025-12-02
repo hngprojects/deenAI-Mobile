@@ -15,7 +15,7 @@ export default function SupportScreen() {
     <View style={styles.header}>
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => router.back()}
+        onPress={() => router.push("/(tabs)/(profile)")}
         activeOpacity={0.7}
       >
         <ArrowLeft color={theme.color.secondary} size={24} />
