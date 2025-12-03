@@ -1,3 +1,4 @@
+import DeleteConfirmModal from '@/components/delete/DeleteConfirmModal';
 import { quranService } from '@/service/quran.service';
 import { useReflectStore } from '@/store/reflect-store';
 import { theme } from '@/styles/theme';
@@ -23,9 +24,13 @@ const VerseItem: React.FC<VerseItemProps> = ({
   verseNumber,
   arabicText,
   translation,
+  transliteration,
   isBookmarked = false,
   onBookmarkPress,
+  onReflectPress,
+  showTransliteration = true,
   surahNumber,
+  surahName,
 }) => {
   const { setDraft } = useReflectStore();
   const router = useRouter();
@@ -67,14 +72,17 @@ const VerseItem: React.FC<VerseItemProps> = ({
   return (
     <View style={styles.container}>
       <Text style={styles.arabicText}>{arabicText}</Text>
+
+      {showTransliteration && transliteration && (
+        <Text style={styles.transliteration}>{transliteration}</Text>
+      )}
+
       <Text style={styles.translation}>{translation}</Text>
 
-      <TouchableOpacity
-        onPress={() => setShowDeleteConfirm(true)}
-        style={styles.deleteBtn}
-      >
-        <Text style={styles.deleteText}>Delete Bookmark</Text>
-      </TouchableOpacity>
+      <View style={styles.verseHeader}>
+        <View style={styles.verseNumberBadge}>
+          <Text style={styles.verseNumberText}>{verseNumber}</Text>
+        </View>
 
         <View style={styles.saurahActions}>
           <TouchableOpacity
@@ -86,13 +94,11 @@ const VerseItem: React.FC<VerseItemProps> = ({
             <Edit size={16} color={theme.color.secondary} />
           </TouchableOpacity>
 
-          {/* {onBookmarkPress && (
+          {onBookmarkPress && (
             <TouchableOpacity
               style={styles.bookmarkButton}
               activeOpacity={0.7}
-              onPress={onBookmarkPress} // Tap toggles bookmark
-              onLongPress={handleBookmarkLongPress} // Long press navigates based on bookmarks
-              delayLongPress={300}
+              onPress={onBookmarkPress} 
             >
               <Bookmark
                 size={20}
@@ -100,19 +106,87 @@ const VerseItem: React.FC<VerseItemProps> = ({
                 fill={isBookmarked ? theme.color.brand : 'transparent'}
               />
             </TouchableOpacity>
-          )} */}
+          )}
         </View>
       </View>
     </View>
+    
+    
+  
+
   );
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 16, backgroundColor: theme.color.white, marginBottom: 12, borderRadius: 12 },
-  arabicText: { fontSize: 18, fontFamily: "Scheherazade-Regular", color: theme.color.secondary },
-  translation: { fontSize: 16, fontFamily: theme.font.regular, color: theme.color.secondary },
-  deleteBtn: { marginTop: 12, padding: 8, backgroundColor: "#E55153", borderRadius: 8 },
-  deleteText: { color: theme.color.white, textAlign: "center" },
+  container: {
+    paddingHorizontal: 30,
+    paddingVertical: 16,
+    backgroundColor: theme.color.white,
+    marginBottom: 12,
+    borderRadius: 12,
+  },
+  verseHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  verseNumberBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  verseNumberText: {
+    fontSize: 14,
+    fontFamily: theme.font.semiBold,
+  },
+  bookmarkButton: {
+    padding: 8,
+  },
+  reflectButton: {
+    backgroundColor: '#F7EEDB',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  arabicText: {
+    fontSize: 18,
+    fontFamily: 'Scheherazade-Regular',
+    color: theme.color.secondary,
+    textAlign: 'right',
+    lineHeight: 50,
+    marginBottom: 12,
+  },
+  transliteration: {
+    fontSize: 14,
+    fontFamily: theme.font.regular,
+    color: theme.color.secondary,
+    opacity: 0.6,
+    fontStyle: 'italic',
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  translation: {
+    fontSize: 16,
+    fontFamily: theme.font.regular,
+    color: theme.color.secondary,
+    lineHeight: 24,
+  },
+  saurahActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  saurahActionsText: {
+    fontSize: 14,
+    fontFamily: theme.font.semiBold,
+    color: theme.color.secondary,
+  },
 });
 
 export default VerseItem;

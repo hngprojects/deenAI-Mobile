@@ -176,7 +176,7 @@ const BookmarkScreen: React.FC = () => {
               style={styles.dropdownItem}
               onPress={() => {
                 setMenuVisible(false);
-                router.push("/(tabs)/(bookmark)/deleteconfirm");
+                router.push("/(tabs)/(bookmark)/delete/index");
               }}
             >
               <View style={styles.dropdownRow}>
