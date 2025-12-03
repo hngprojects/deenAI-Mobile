@@ -1,5 +1,7 @@
+// service/prayer.service.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CalculationMethod, Coordinates, HighLatitudeRule, Madhab, PrayerTimes, Qibla } from 'adhan';
+import moment from 'moment-hijri'; // Changed from regular moment
 
 export interface PrayerTimesData {
   fajr: Date;
@@ -31,6 +33,14 @@ export interface PrayerSettings {
   calculationMethod: string;
   madhab: string;
   highLatitudeRule: string;
+}
+
+export interface ForbiddenTime {
+  name: string;
+  start: Date;
+  end: Date;
+  type: 'sunrise' | 'zawal' | 'sunset';
+  description: string;
 }
 
 const STORAGE_KEYS = {
@@ -114,7 +124,6 @@ class PrayerService {
 
   /**
    * Get the next prayer name and time
-   * FIXED: Now accepts coordinates to properly calculate tomorrow's Fajr
    */
   getNextPrayer(
     prayerTimes: PrayerTimesData,
@@ -160,82 +169,119 @@ class PrayerService {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
 
-
+  /**
+   * Get accurate Hijri date using moment-hijri library with Umm al-Qura calendar
+   */
   getHijriDate(date: Date = new Date()): HijriDate {
-    const gY = date.getFullYear();
-    const gM = date.getMonth() + 1;
-    const gD = date.getDate();
-
-    // Gregorian to Julian Day calculation
-    const a = Math.floor((14 - gM) / 12);
-    const y = gY + 4800 - a;
-    const m = gM + 12 * a - 3;
-
-    const jd = gD + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
-
-    // Julian Day to Hijri conversion
-    const N = jd - 1948440 + 0.5;
-    const q = Math.floor(N / 10631);
-    const r = N % 10631;
-    const a2 = Math.floor(r / 325);
-    const b = r % 325;
-    const c = Math.floor(b / 30);
-    const d = b % 30;
-
-    let islamicYear = 30 * q + a2 + 1;
-    let islamicMonth = c + 1;
-    let islamicDay = Math.floor(d + 1);
-
-    // Ensure valid ranges
-    if (islamicMonth > 12) {
-      islamicMonth = 12;
-    }
-    if (islamicDay > 30) {
-      islamicDay = 30;
-    }
-    if (islamicDay < 1) {
-      islamicDay = 1;
-    }
+    // Use moment-hijri which implements the Umm al-Qura calendar
+    const hijriMoment = moment(date);
 
     const monthNames = [
-      'Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani',
-      'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', 'Shaban',
-      'Ramadan', 'Shawwal', 'Dhul-Qadah', 'Dhul-Hijjah'
+      'Muharram', 'Safar', "Rabi' al-Awwal", "Rabi' al-Thani",
+      'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', "Sha'ban",
+      'Ramadan', 'Shawwal', "Dhu al-Qi'dah", "Dhu al-Hijjah"
     ];
 
-    const monthIndex = Math.max(0, Math.min(11, islamicMonth - 1));
-    const monthName = monthNames[monthIndex];
+    // Get Hijri date components
+    const day = hijriMoment.iDate(); // Islamic date
+    const month = hijriMoment.iMonth(); // Islamic month (0-11)
+    const year = hijriMoment.iYear(); // Islamic year
+    const monthName = monthNames[month];
 
     return {
-      day: islamicDay,
-      month: islamicMonth,
-      monthName: monthName,
-      year: islamicYear,
-      formatted: `${islamicDay} ${monthName} | ${islamicYear}AH`,
+      day,
+      month: month + 1, // Return 1-12 for consistency
+      monthName,
+      year,
+      formatted: `${day} ${monthName} ${year} AH`,
     };
   }
 
   /**
-   * Check if it's a forbidden prayer time
+   * Calculate accurate forbidden prayer times
    */
-  isForbiddenTime(prayerTimes: PrayerTimesData): boolean {
-    const now = new Date();
+  getForbiddenTimes(prayerTimes: PrayerTimesData, latitude: number, longitude: number): ForbiddenTime[] {
+    const forbiddenTimes: ForbiddenTime[] = [];
+
+    // 1. SUNRISE FORBIDDEN TIME
+    const sunriseStart = prayerTimes.sunrise;
     const sunriseEnd = new Date(prayerTimes.sunrise);
     sunriseEnd.setMinutes(sunriseEnd.getMinutes() + 15);
 
-    const noonStart = new Date(prayerTimes.dhuhr);
-    noonStart.setMinutes(noonStart.getMinutes() - 8);
-    const noonEnd = new Date(prayerTimes.dhuhr);
-    noonEnd.setMinutes(noonEnd.getMinutes() + 8);
+    forbiddenTimes.push({
+      name: 'Sunrise',
+      start: sunriseStart,
+      end: sunriseEnd,
+      type: 'sunrise',
+      description: 'When the sun is rising'
+    });
 
+    // 2. ZAWAL (SOLAR NOON) FORBIDDEN TIME
+    const zawalTime = this.calculateZawal(prayerTimes.dhuhr, latitude);
+    const zawalStart = new Date(zawalTime);
+    zawalStart.setMinutes(zawalStart.getMinutes() - 5);
+    const zawalEnd = new Date(prayerTimes.dhuhr);
+
+    forbiddenTimes.push({
+      name: 'Noon',
+      start: zawalStart,
+      end: zawalEnd,
+      type: 'zawal',
+      description: 'When the sun is at its zenith'
+    });
+
+    // 3. SUNSET FORBIDDEN TIME
     const sunsetStart = new Date(prayerTimes.maghrib);
-    sunsetStart.setMinutes(sunsetStart.getMinutes() - 15);
+    sunsetStart.setMinutes(sunsetStart.getMinutes() - 18);
+    const sunsetEnd = prayerTimes.maghrib;
 
-    return (
-      (now >= prayerTimes.sunrise && now <= sunriseEnd) ||
-      (now >= noonStart && now <= noonEnd) ||
-      (now >= sunsetStart && now <= prayerTimes.maghrib)
-    );
+    forbiddenTimes.push({
+      name: 'Sunset',
+      start: sunsetStart,
+      end: sunsetEnd,
+      type: 'sunset',
+      description: 'When the sun is setting'
+    });
+
+    return forbiddenTimes;
+  }
+
+  /**
+   * Calculate Zawal (Solar Noon) time
+   */
+  private calculateZawal(dhuhrTime: Date, latitude: number): Date {
+    const zawalTime = new Date(dhuhrTime);
+    zawalTime.setMinutes(zawalTime.getMinutes() - 3);
+    return zawalTime;
+  }
+
+  /**
+   * Check if current time is a forbidden prayer time
+   */
+  isForbiddenTime(prayerTimes: PrayerTimesData, latitude?: number, longitude?: number): boolean {
+    const now = new Date();
+    const lat = latitude || 0;
+    const lon = longitude || 0;
+    const forbiddenTimes = this.getForbiddenTimes(prayerTimes, lat, lon);
+    return forbiddenTimes.some(ft => now >= ft.start && now <= ft.end);
+  }
+
+  /**
+   * Get current forbidden period if any
+   */
+  getCurrentForbiddenPeriod(prayerTimes: PrayerTimesData, latitude: number, longitude: number): ForbiddenTime | null {
+    const now = new Date();
+    const forbiddenTimes = this.getForbiddenTimes(prayerTimes, latitude, longitude);
+    return forbiddenTimes.find(ft => now >= ft.start && now <= ft.end) || null;
+  }
+
+  /**
+   * Get next forbidden period
+   */
+  getNextForbiddenPeriod(prayerTimes: PrayerTimesData, latitude: number, longitude: number): ForbiddenTime | null {
+    const now = new Date();
+    const forbiddenTimes = this.getForbiddenTimes(prayerTimes, latitude, longitude);
+    return forbiddenTimes.find(ft => ft.start > now) || null;
   }
 
   /**

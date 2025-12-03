@@ -166,7 +166,7 @@ export default function ReflectVerseScreen() {
     };
 
     loadVerseData();
-    
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editMode, surahNumberFromParams, startAyahFromParams, draft.surahNumber]);
 
@@ -439,7 +439,7 @@ export default function ReflectVerseScreen() {
 
             </View>
             <Text style={styles.reflectionSubtitle}>
-              {editMode ? t("EditReflectionMessage") : t("reflectionMessage")}
+              {editMode ? t("editReflectionMessage") : t("reflectionMessage")}
             </Text>
 
             <View style={styles.textareaContainer}>
@@ -516,7 +516,7 @@ export default function ReflectVerseScreen() {
 const styles = StyleSheet.create({
   fixedHeader: {
     paddingTop:
-      Platform.OS === "android" ? 
+      Platform.OS === "android" ?
       (StatusBar.currentHeight || 0) + 10 : 54,
     paddingHorizontal: 20,
     paddingBottom: 10,

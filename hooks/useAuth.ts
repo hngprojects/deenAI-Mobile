@@ -121,13 +121,13 @@ export const useGuestLogin = () => {
         },
         onSuccess: async () => {
             // Set guest mode
-            setGuest(true);
+            checkPermissionsAndRoute();
             queryClient.invalidateQueries({ queryKey: ['user'] });
 
             showToast('Continuing as guest', 'info');
+            setGuest(true);
 
             // Check permissions for guest users (allow skip option)
-            await checkPermissionsAndRoute({ isGuest: true, allowSkip: true });
         },
         onError: (error) => {
             console.error('Guest login error:', error);

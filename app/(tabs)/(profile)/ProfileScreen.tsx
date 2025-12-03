@@ -76,7 +76,7 @@ const ProfileScreen: React.FC = () => {
     if (userData?.avatar) {
       return { uri: userData.avatar };
     }
-    return require("@/assets/images/woman-in-hijab.png");
+    return require("@/assets/images/ava.jpg");
   };
 
   const profileName = userData?.name || authUser?.name || "Guest";
@@ -255,11 +255,15 @@ const styles = StyleSheet.create({
   profileHeader: {
     alignItems: "center",
     marginTop: 10,
+    // backgroundColor: 'red',
   },
   avatar: {
     width: width * 0.32,
     height: width * 0.32,
     borderRadius: (width * 0.32) / 2,
+    borderWidth: 2,
+    borderColor: '#e1e1e1ff',
+
   },
   nameGreeting: {
     fontSize: 18,
