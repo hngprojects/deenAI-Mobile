@@ -16,8 +16,12 @@ import {
   StyleSheet,
   Text,
   View,
+  TouchableOpacity,
 } from "react-native";
 import { useReadingStore } from "@/store/reading-store";
+
+import { Bookmark } from "lucide-react-native";
+import { useBookmarkStore } from "@/store/bookMark-store";
 
 export default function Quran() {
   const [searchText, setSearchText] = useState("");
@@ -26,6 +30,7 @@ export default function Quran() {
   const [error, setError] = useState<string | null>(null);
 
   const lastRead = useReadingStore((state) => state.lastRead);
+  const bookmarks = useBookmarkStore((state) => state.bookmarks);
 
   useEffect(() => {
     loadQuranData();
@@ -85,7 +90,7 @@ export default function Quran() {
       return (
         <SurahListItem
           surah={item}
-          lastReadVerse={lastReadVerse} // pass it here
+          lastReadVerse={lastReadVerse}
           onPress={() =>
             router.push({
               pathname: "/(tabs)/(quran)/surahDetail",
@@ -106,7 +111,7 @@ export default function Quran() {
             surah={lastReadSurah}
             onPress={handleContinueReading}
             verseNumber={lastRead.verseNumber}
-            totalVerses={lastReadSurah.numberOfAyahs} // <-- add this
+            totalVerses={lastReadSurah.numberOfAyahs}
           />
         )}
 
@@ -119,7 +124,7 @@ export default function Quran() {
                 params: { surah: JSON.stringify(alFatihah) },
               })
             }
-            totalVerses={alFatihah.numberOfAyahs} // <-- add this
+            totalVerses={alFatihah.numberOfAyahs}
           />
         )}
 
@@ -169,15 +174,37 @@ export default function Quran() {
       keyboardAvoiding={false}
     >
       <View style={styles.fixedHeader}>
-        <ScreenHeader
-          titleAlign="left"
-          showBackButton={false}
-          title="Quran"
-          titleStyle={{
-            fontSize: 28,
-            fontFamily: theme.font.bold,
+
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
-        />
+        >
+          <ScreenHeader
+            titleAlign="left"
+            showBackButton={false}
+            title="Quran"
+            titleStyle={{
+              fontSize: 28,
+              fontFamily: theme.font.bold,
+            }}
+          />
+
+          <TouchableOpacity
+            onPress={() => {
+              if (!bookmarks || bookmarks.length === 0) {
+                router.push("/(tabs)/(bookmark)/bookmarklistscreen");
+              } else {
+                router.push("/(tabs)/(bookmark)");
+              }
+            }}
+            style={{ padding: -15 }}
+          >
+            <Bookmark size={26} color={theme.color.secondary} />
+          </TouchableOpacity>
+        </View>
 
         <SearchBar
           placeholder="Search a chapter"
@@ -203,7 +230,7 @@ const styles = StyleSheet.create({
   fixedHeader: {
     paddingTop:
       Platform.OS === "android" ? (StatusBar.currentHeight || 0) + 10 : 54,
-    paddingHorizontal: 20,
+    paddingHorizontal: 30,
     paddingBottom: 10,
     backgroundColor: theme.color.white,
   },

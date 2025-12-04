@@ -1,3 +1,4 @@
+import DeleteConfirmModal from '@/components/delete/DeleteConfirmModal';
 import { quranService } from '@/service/quran.service';
 import { useReflectStore } from '@/store/reflect-store';
 import { theme } from '@/styles/theme';
@@ -93,13 +94,11 @@ const VerseItem: React.FC<VerseItemProps> = ({
             <Edit size={16} color={theme.color.secondary} />
           </TouchableOpacity>
 
-          {/* {onBookmarkPress && (
+          {onBookmarkPress && (
             <TouchableOpacity
               style={styles.bookmarkButton}
               activeOpacity={0.7}
-              onPress={onBookmarkPress} // Tap toggles bookmark
-              onLongPress={handleBookmarkLongPress} // Long press navigates based on bookmarks
-              delayLongPress={300}
+              onPress={onBookmarkPress} 
             >
               <Bookmark
                 size={20}
@@ -107,10 +106,14 @@ const VerseItem: React.FC<VerseItemProps> = ({
                 fill={isBookmarked ? theme.color.brand : 'transparent'}
               />
             </TouchableOpacity>
-          )} */}
+          )}
         </View>
       </View>
     </View>
+    
+    
+  
+
   );
 };
 
