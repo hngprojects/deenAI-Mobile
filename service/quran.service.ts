@@ -14,6 +14,7 @@ import {
 const quranArabicRaw = require("../assets/data/quran-arabic-raw.json");
 const quranTranslationRaw = require("../assets/data/quran-translation-raw.json");
 const quranTransliterationRaw = require("../assets/data/quran-transliteration-raw.json");
+const quranArabicClean = require("../assets/data/cleaned-quran-data.json");
 
 const STORAGE_KEYS = {
   BOOKMARKS: "@quran_bookmarks",
@@ -955,7 +956,7 @@ class QuranService {
 
       // Process Arabic data
       if (quranArabicRaw.data?.surahs) {
-        quranArabicRaw.data.surahs.forEach((surah: any) => {
+        quranArabicClean.forEach((surah: any) => {
           const surahNumber = surah.number;
 
           if (surah.ayahs && Array.isArray(surah.ayahs)) {
