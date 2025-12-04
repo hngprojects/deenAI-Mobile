@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -15,9 +15,9 @@ import VerseItem from "@/components/quran/verseItem";
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
 import { quranService } from "@/service/quran.service";
+import { useReadingStore } from "@/store/reading-store";
 import { theme } from "@/styles/theme";
 import { Surah, Verse } from "@/types/quran.types";
-import { useReadingStore } from "@/store/reading-store";
 
 export default function SurahDetail() {
   const params = useLocalSearchParams();
@@ -158,6 +158,21 @@ export default function SurahDetail() {
     </View>
   );
 
+  const BasmalaHeader = () => {
+    // Don't show Basmala for Al-Fatiha (1) and At-Tawbah (9)
+    if (surah.number === 1 || surah.number === 9) {
+      return null;
+    }
+
+    return (
+      <View style={styles.basmalaContainer}>
+        <Text style={styles.basmalaText}>
+          بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
+        </Text>
+      </View>
+    );
+  };
+
   if (loading) {
     return (
       <ScreenContainer
@@ -211,6 +226,7 @@ export default function SurahDetail() {
         data={verses}
         keyExtractor={(item) => item.number.toString()}
         renderItem={renderItem}
+        ListHeaderComponent={BasmalaHeader}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         style={styles.flatList}
@@ -286,5 +302,18 @@ const styles = StyleSheet.create({
     fontFamily: theme.font.regular,
     color: "#FF4444",
     textAlign: "center",
+  },
+  basmalaContainer: {
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  basmalaText: {
+    fontSize: 32,
+    fontFamily: "Scheherazade-Regular",
+    color: theme.color.brand,
+    textAlign: "center",
+    lineHeight: 50,
   },
 });
