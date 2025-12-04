@@ -1,6 +1,7 @@
 import MessageBubble from "@/components/deen-ai/MessageBubble";
 import TypingIndicator from "@/components/deen-ai/TypingIndicator";
 import ScreenHeader from "@/components/screenHeader";
+import { useToast } from "@/hooks/useToast";
 import { chatService } from "@/service/chat.service";
 import { useChatStore } from "@/store/chat.store";
 import { theme } from "@/styles/theme";
@@ -33,6 +34,8 @@ export default function ChatRoom() {
   const [waitingForStream, setWaitingForStream] = useState(false);
   const streamCleanupRef = useRef<(() => void) | null>(null);
   const chatListRef = useRef<FlatList<any> | null>(null);
+
+  const { showToast } = useToast();
 
   const {
     addMessage,
@@ -144,8 +147,22 @@ export default function ChatRoom() {
           updateLastMessage(`Error: ${error}`);
         }
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to stream first message", error);
+      showToast(error.message ?? "Failed to send message");
+
+      if (error.status_code == 402) {
+        const aiMessagePlaceholder = {
+          chatId: chatId,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          role: "assistant" as const,
+          id: `temp-ai-${Date.now()}`,
+          content:
+            "Error: Free Tier Limit Reached. Please upgrade your plan to continue using Deen AI.",
+        };
+        addMessage(aiMessagePlaceholder);
+      }
       setLoadingMessages(false);
       setWaitingForStream(false);
       setStreaming(false);
@@ -261,8 +278,23 @@ export default function ChatRoom() {
           updateLastMessage(`Error: ${error}`);
         }
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to send message", error);
+      showToast(error.message ?? "Failed to send message");
+
+      if (error.status_code == 402) {
+        const aiMessagePlaceholder = {
+          chatId: chatId,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          role: "assistant" as const,
+          id: `temp-ai-${Date.now()}`,
+          content:
+            "Error: Free Tier Limit Reached. Please upgrade your plan to continue using Deen AI.",
+        };
+        addMessage(aiMessagePlaceholder);
+      }
+
       setLoading(false);
       setWaitingForStream(false);
       setStreaming(false);

@@ -16,9 +16,9 @@ import {
   View,
 } from "react-native";
 
+import PrimaryButton from "@/components/primaryButton";
 import { LinearGradient } from "expo-linear-gradient";
 import { RefreshCcw } from "lucide-react-native";
-import PrimaryButton from "@/components/primaryButton";
 
 const { width } = Dimensions.get("window");
 const COMPASS_SIZE = width * 0.6;
@@ -117,7 +117,10 @@ const Qibla = () => {
   }, [needsCalibration, hasShownAutoCalibration, sensorAvailable]);
 
   // Safe number formatting
-  const formatNumber = (num: number | null | undefined, decimals: number = 1): string => {
+  const formatNumber = (
+    num: number | null | undefined,
+    decimals: number = 1
+  ): string => {
     try {
       if (num === null || num === undefined || isNaN(num)) return "—";
       return num.toFixed(decimals);
@@ -194,8 +197,8 @@ const Qibla = () => {
               />
               <Text style={styles.errorText}>Compass Not Available</Text>
               <Text style={styles.errorSubtext}>
-                Your device doesn&apos;t support compass sensors. You can still see
-                the Qibla direction based on your location.
+                Your device doesn&apos;t support compass sensors. You can still
+                see the Qibla direction based on your location.
               </Text>
             </View>
           )}
@@ -266,7 +269,7 @@ const Qibla = () => {
                 <Text style={styles.infoLabel}>Qibla</Text>
                 <Text style={styles.infoValue}>
                   {qiblaDirection !== null
-                    ? `${formatNumber(qiblaDirection + 90)}°`
+                    ? `${formatNumber(qiblaDirection - 90)}°`
                     : "—"}
                 </Text>
               </View>
@@ -279,7 +282,9 @@ const Qibla = () => {
                 />
                 <Text style={styles.infoLabel}>Distance</Text>
                 <Text style={styles.infoValue}>
-                  {distanceToMecca ? `${formatNumber(distanceToMecca, 0)} km` : "—"}
+                  {distanceToMecca
+                    ? `${formatNumber(distanceToMecca, 0)} km`
+                    : "—"}
                 </Text>
               </View>
             </View>
@@ -301,8 +306,7 @@ const Qibla = () => {
 
             <Text style={styles.modalText}>
               Move your phone in a figure 8 motion to improve accuracy. This
-              helps recalibrate the compass sensors for precise Qibla
-              direction.
+              helps recalibrate the compass sensors for precise Qibla direction.
             </Text>
 
             {magneticFieldStrength > 0 && (
@@ -373,7 +377,7 @@ const styles = StyleSheet.create({
   },
   calibrationInfoSubtext: {
     fontSize: 12,
-    color: theme.color.gray,
+    color: theme.color.text,
     textAlign: "center",
   },
   calibrationBanner: {
