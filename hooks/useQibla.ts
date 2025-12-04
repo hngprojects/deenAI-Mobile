@@ -1,5 +1,5 @@
 import { Magnetometer } from "expo-sensors";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform } from "react-native";
 import { useLocation } from "./useLocation";
 
@@ -8,12 +8,17 @@ const MECCA_LAT = 21.4225;
 const MECCA_LNG = 39.8262;
 
 // Calibration offset for device orientation
-const CALIBRATION_OFFSET = 90; // degrees
+const CALIBRATION_OFFSET = -90; // degrees
 
 function getHeading({ x, y }: { x: number; y: number }) {
   try {
     // Validate inputs
-    if (typeof x !== 'number' || typeof y !== 'number' || isNaN(x) || isNaN(y)) {
+    if (
+      typeof x !== "number" ||
+      typeof y !== "number" ||
+      isNaN(x) ||
+      isNaN(y)
+    ) {
       console.warn("Invalid magnetometer values:", { x, y });
       return 0;
     }
@@ -35,7 +40,7 @@ function getHeading({ x, y }: { x: number; y: number }) {
 // Convert degrees to radians
 const toRadians = (degrees: number): number => {
   try {
-    if (typeof degrees !== 'number' || isNaN(degrees)) return 0;
+    if (typeof degrees !== "number" || isNaN(degrees)) return 0;
     return degrees * (Math.PI / 180);
   } catch (error) {
     console.error("Error in toRadians:", error);
@@ -46,7 +51,7 @@ const toRadians = (degrees: number): number => {
 // Convert radians to degrees
 const toDegrees = (radians: number): number => {
   try {
-    if (typeof radians !== 'number' || isNaN(radians)) return 0;
+    if (typeof radians !== "number" || isNaN(radians)) return 0;
     return radians * (180 / Math.PI);
   } catch (error) {
     console.error("Error in toDegrees:", error);
@@ -126,8 +131,8 @@ const calculateDistanceToMecca = (userLat: number, userLng: number): number => {
 // Validate if coordinates are reasonable
 const isValidCoordinates = (lat: number, lng: number): boolean => {
   return (
-    typeof lat === 'number' &&
-    typeof lng === 'number' &&
+    typeof lat === "number" &&
+    typeof lng === "number" &&
     lat >= -90 &&
     lat <= 90 &&
     lng >= -180 &&
@@ -144,8 +149,12 @@ const detectCalibrationNeeded = (
 ): { needsCalibration: boolean; fieldStrength: number } => {
   try {
     // Validate input
-    if (!magneticData || typeof magneticData.x !== 'number' ||
-        typeof magneticData.y !== 'number' || typeof magneticData.z !== 'number') {
+    if (
+      !magneticData ||
+      typeof magneticData.x !== "number" ||
+      typeof magneticData.y !== "number" ||
+      typeof magneticData.z !== "number"
+    ) {
       return { needsCalibration: false, fieldStrength: 0 };
     }
 
@@ -249,7 +258,7 @@ export function useQibla() {
               Magnetometer.isAvailableAsync(),
               new Promise<boolean>((resolve) =>
                 setTimeout(() => resolve(false), 3000)
-              )
+              ),
             ]);
             return result;
           } catch (err) {
@@ -286,14 +295,22 @@ export function useQibla() {
             if (!isMountedRef.current) return;
 
             // Validate magnetometer data
-            if (!data || typeof data.x !== 'number' ||
-                typeof data.y !== 'number' || typeof data.z !== 'number') {
+            if (
+              !data ||
+              typeof data.x !== "number" ||
+              typeof data.y !== "number" ||
+              typeof data.z !== "number"
+            ) {
               console.warn("Invalid magnetometer data received:", data);
               return;
             }
 
             // Additional validation for extreme values
-            if (Math.abs(data.x) > 1000 || Math.abs(data.y) > 1000 || Math.abs(data.z) > 1000) {
+            if (
+              Math.abs(data.x) > 1000 ||
+              Math.abs(data.y) > 1000 ||
+              Math.abs(data.z) > 1000
+            ) {
               console.warn("Extreme magnetometer values detected:", data);
               return;
             }
@@ -301,7 +318,10 @@ export function useQibla() {
             const calculatedHeading = getHeading(data);
 
             // Validate calculated heading
-            if (typeof calculatedHeading !== 'number' || isNaN(calculatedHeading)) {
+            if (
+              typeof calculatedHeading !== "number" ||
+              isNaN(calculatedHeading)
+            ) {
               console.warn("Invalid heading calculated:", calculatedHeading);
               return;
             }
@@ -309,7 +329,10 @@ export function useQibla() {
             setHeading(calculatedHeading);
 
             // Update readings using ref (prevents re-render and stale closures)
-            const currentReadings = [...previousReadingsRef.current, calculatedHeading];
+            const currentReadings = [
+              ...previousReadingsRef.current,
+              calculatedHeading,
+            ];
             if (currentReadings.length > 10) {
               currentReadings.shift();
             }
@@ -397,17 +420,19 @@ export function useQibla() {
     }
   }, [location]);
 
-  // Calculate rotation for compass needle with safety checks
-  const rotation = (() => {
+  // Calculate rotation for compass needle - use useMemo to recalculate when heading or qiblaDirection changes
+  const rotation = useMemo(() => {
     try {
       if (qiblaDirection === null || !sensorAvailable) return 0;
-      const calc = -((qiblaDirection - heading + 180) % 360);
+      // Corrected rotation calculation
+      // rotation = qiblaDirection - heading
+      const calc = qiblaDirection - heading;
       return isNaN(calc) ? 0 : calc;
     } catch (err) {
       console.error("Error calculating rotation:", err);
       return 0;
     }
-  })();
+  }, [heading, qiblaDirection, sensorAvailable]);
 
   return {
     heading,
