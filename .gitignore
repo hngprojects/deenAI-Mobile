@@ -59,3 +59,5 @@ project_structure.text
 keystore.txt
 GoogleService-Info.plist
 deenai-release-key.keystore
+build.gradle
+.gradle
