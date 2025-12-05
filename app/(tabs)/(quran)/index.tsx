@@ -18,8 +18,8 @@ import {
   StyleSheet,
   Text,
   View,
-  // TouchableOpacity, // REMOVED: Not needed here
-  // Image, // REMOVED: Not needed here
+  // TouchableOpacity,
+  // Image,
 } from "react-native";
 import { useReadingStore } from "@/store/reading-store";
 
@@ -28,11 +28,10 @@ export default function Quran() {
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // const [initialReadPage, setInitialReadPage] = useState<number>(1); // REMOVED: Not needed here
 
   const lastRead = useReadingStore((state) => state.lastRead);
   const isReadMode = useReadingStore((state) => state.isReadMode);
-  // const toggleReadMode = useReadingStore((state) => state.toggleReadMode); // REMOVED: Not needed here
+
   const lastReadPage = useReadingStore((state) => state.lastReadPage);
 
   useEffect(() => {
@@ -219,10 +218,10 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontFamily: theme.font.bold,
     color: theme.color.secondary,
-    // FIX: To take up the full width since the toggle is gone
+
     flex: 1,
   },
-  // REMOVED STYLES: toggleButton, toggleIcon, readModeHeader, readModeTitle, placeholder
+
   listContent: {
     paddingHorizontal: 20,
     paddingBottom: 20,
