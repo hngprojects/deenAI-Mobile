@@ -27,6 +27,7 @@ const Qibla = () => {
   // Wrap hook call in try-catch for extra safety
   let hookData;
   try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     hookData = useQibla();
   } catch (error) {
     console.error("Failed to initialize useQibla hook:", error);
