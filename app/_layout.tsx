@@ -117,6 +117,8 @@ export default function RootLayout() {
     "NunitoSans-Black": require("../assets/fonts/NunitoSans-Black.ttf"),
     "DigitalNumbers-Regular": require("../assets/fonts/DigitalNumbers-Regular.ttf"),
     "AmiriQuran-Regular": require("../assets/fonts/AmiriQuran-Regular.ttf"),
+    KFGQPCHafs: require("../assets/fonts/KFGQPCHafs.otf"),
+    me_quran: require("../assets/fonts/me_quran.ttf"),
   });
 
   useEffect(() => {

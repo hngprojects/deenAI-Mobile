@@ -8,6 +8,7 @@ import {
   QuranSettings,
   Surah,
   Verse,
+  PageVerse, // <-- ADDED THIS IMPORT
 } from "../types/quran.types";
 
 // Import JSON files
@@ -968,6 +969,12 @@ class QuranService {
                 surahNumber,
                 ayah.numberInSurah
               ),
+              page: ayah.page,
+              juz: ayah.juz,
+              manzil: ayah.manzil,
+              ruku: ayah.ruku,
+              hizbQuarter: ayah.hizbQuarter,
+              numberInSurah: ayah.numberInSurah,
             }));
           }
         });
@@ -1095,6 +1102,103 @@ class QuranService {
 
     return results;
   }
+
+  // --- START OF NEW PAGE-RELATED METHODS ---
+
+  /**
+   * Get all verses for a specific page
+   */
+  async getPageVerses(pageNumber: number): Promise<PageVerse[]> {
+    await this.initialize();
+    const pageVerses: PageVerse[] = [];
+
+    if (!this.quranData) return pageVerses;
+
+    // Iterate through all surahs to find verses on this page
+    this.quranData.surahs.forEach((surah) => {
+      const verses = this.quranData!.verses[surah.number];
+      verses?.forEach((verse) => {
+        // Get the page number from raw data
+        const rawVerse = this.getRawVerse(surah.number, verse.number);
+        if (rawVerse?.page === pageNumber) {
+          pageVerses.push({
+            surahNumber: surah.number,
+            verseNumber: verse.number,
+            text: verse.arabic,
+            numberInSurah: verse.number,
+          });
+        }
+      });
+    });
+
+    return pageVerses;
+  }
+
+  /**
+   * Get raw verse data (includes page, juz, etc.)
+   */
+  private getRawVerse(surahNumber: number, verseNumber: number): any {
+    try {
+      if (quranArabicRaw.data?.surahs) {
+        const surah = quranArabicRaw.data.surahs.find(
+          (s: any) => s.number === surahNumber
+        );
+        if (surah?.ayahs) {
+          return surah.ayahs.find((a: any) => a.numberInSurah === verseNumber);
+        }
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Get page number for a specific verse
+   */
+  async getPageForVerse(
+    surahNumber: number,
+    verseNumber: number
+  ): Promise<number | null> {
+    await this.initialize();
+    const rawVerse = this.getRawVerse(surahNumber, verseNumber);
+    return rawVerse?.page || null;
+  }
+
+  /**
+   * Get the total number of pages in the Quran (should be 604)
+   */
+  getTotalPages(): number {
+    return 604;
+  }
+
+  /**
+   * Get surah and verse info for the first verse on a page
+   */
+  async getFirstVerseOnPage(
+    pageNumber: number
+  ): Promise<{ surahNumber: number; verseNumber: number } | null> {
+    await this.initialize();
+
+    if (!this.quranData) return null;
+
+    for (const surah of this.quranData.surahs) {
+      const verses = this.quranData.verses[surah.number];
+      for (const verse of verses || []) {
+        const rawVerse = this.getRawVerse(surah.number, verse.number);
+        if (rawVerse?.page === pageNumber) {
+          return {
+            surahNumber: surah.number,
+            verseNumber: verse.number,
+          };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  // --- END OF NEW PAGE-RELATED METHODS ---
 
   async getBookmarks(): Promise<BookmarkData[]> {
     try {
