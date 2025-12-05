@@ -169,7 +169,7 @@ export default function TermsAndConditions() {
                     If you have questions about these Terms, contact us at:
                 </Text>
 
-                <Text style={styles.bulletPoint}>• Email: <Text style={styles.link}>buddy.deen@gmail.com</Text></Text>
+                <Text style={styles.bulletPoint}>• Email: <Text style={styles.link}>support@deenai.app</Text></Text>
                 <Text style={styles.bulletPoint}>• In-App Support: Available through the settings section</Text>
 
                 <Text style={styles.paragraph}>
