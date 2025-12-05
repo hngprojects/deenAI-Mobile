@@ -304,7 +304,7 @@ export default function ChatRoom() {
   const handleHistoryPress = () => router.push("/(deenai)/chat-history");
 
   const handleBackPress = () => {
-    router.dismissAll();
+    router.back();
   };
 
   if (loadingMessages) {

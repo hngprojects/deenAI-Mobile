@@ -19,9 +19,15 @@ interface ChatRoomItemProps {
   chat: IChat;
   onDelete?: () => void;
   onRename?: () => void;
+  onBack?: () => void;
 }
 
-const ChatRoomItem = ({ chat, onDelete, onRename }: ChatRoomItemProps) => {
+const ChatRoomItem = ({
+  chat,
+  onDelete,
+  onRename,
+  onBack,
+}: ChatRoomItemProps) => {
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(false);
@@ -30,6 +36,10 @@ const ChatRoomItem = ({ chat, onDelete, onRename }: ChatRoomItemProps) => {
   const [isRenaming, setIsRenaming] = useState(false);
 
   const handlePress = () => {
+    if (onBack) {
+      onBack();
+      return;
+    }
     router.replace(`/(deenai)/${chat.id}` as any);
   };
 

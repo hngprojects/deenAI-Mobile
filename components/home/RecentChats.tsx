@@ -46,6 +46,10 @@ const RecentChats = () => {
     router.push("/(deenai)/chat-history");
   };
 
+  const handleRefresh = () => {
+    fetchRecentChats();
+  };
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -77,7 +81,9 @@ const RecentChats = () => {
           <ChatRoomItem
             key={chat.id}
             chat={chat}
-            // onPress={() => handleChatPress(chat.id)}
+            onBack={() => handleChatPress(chat.id)}
+            onDelete={handleRefresh}
+            onRename={handleRefresh}
           />
         ))}
       </View>
