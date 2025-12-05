@@ -1,4 +1,3 @@
-import { useAuth } from "@/hooks/useAuth";
 import { useAuthStore } from "@/store/auth-store";
 import { theme } from "@/styles/theme";
 import { Image } from "expo-image";
@@ -30,7 +29,6 @@ const listData = [
 ];
 
 const GuestUserModal = () => {
-  const { isGuest } = useAuth();
   const { clearAuth } = useAuthStore();
 
   const handleSignUpClick = () => {

@@ -27,50 +27,58 @@ const ChatHistory = () => {
   };
 
   useEffect(() => {
-    const fetchChatHistory = async () => {
-      try {
-        setLoading(true);
-        const res = await chatService.getUserChats();
-        if (res && res.length > 0) {
-          const today = new Date();
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-
-          const todayList: IChat[] = [];
-          const yesterdayList: IChat[] = [];
-          const earlierList: IChat[] = [];
-
-          res.forEach((chat) => {
-            const chatDate = new Date(chat.createdAt);
-            if (
-              chatDate.getDate() === today.getDate() &&
-              chatDate.getMonth() === today.getMonth() &&
-              chatDate.getFullYear() === today.getFullYear()
-            ) {
-              todayList.push(chat);
-            } else if (
-              chatDate.getDate() === yesterday.getDate() &&
-              chatDate.getMonth() === yesterday.getMonth() &&
-              chatDate.getFullYear() === yesterday.getFullYear()
-            ) {
-              yesterdayList.push(chat);
-            } else {
-              earlierList.push(chat);
-            }
-          });
-          setTodayChats(todayList);
-          setYesterdayChats(yesterdayList);
-          setEarlierChats(earlierList);
-        }
-      } catch (e) {
-        console.error("Error fetching chat history:", e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchChatHistory();
   }, []);
+
+  const fetchChatHistory = async () => {
+    try {
+      setLoading(true);
+      const res = await chatService.getUserChats();
+      if (res && res.length > 0) {
+        const today = new Date();
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        const todayList: IChat[] = [];
+        const yesterdayList: IChat[] = [];
+        const earlierList: IChat[] = [];
+
+        res.forEach((chat) => {
+          const chatDate = new Date(chat.createdAt);
+          if (
+            chatDate.getDate() === today.getDate() &&
+            chatDate.getMonth() === today.getMonth() &&
+            chatDate.getFullYear() === today.getFullYear()
+          ) {
+            todayList.push(chat);
+          } else if (
+            chatDate.getDate() === yesterday.getDate() &&
+            chatDate.getMonth() === yesterday.getMonth() &&
+            chatDate.getFullYear() === yesterday.getFullYear()
+          ) {
+            yesterdayList.push(chat);
+          } else {
+            earlierList.push(chat);
+          }
+        });
+        setTodayChats(todayList);
+        setYesterdayChats(yesterdayList);
+        setEarlierChats(earlierList);
+      } else {
+        setTodayChats([]);
+        setYesterdayChats([]);
+        setEarlierChats([]);
+      }
+    } catch (e) {
+      console.error("Error fetching chat history:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    fetchChatHistory();
+  };
 
   return (
     <ScreenContainer
@@ -96,7 +104,12 @@ const ChatHistory = () => {
               <View>
                 <Text>Today</Text>
                 {todayChats.map((chat) => (
-                  <ChatRoomItem key={chat.id} chat={chat} />
+                  <ChatRoomItem
+                    key={chat.id}
+                    chat={chat}
+                    onDelete={handleRefresh}
+                    onRename={handleRefresh}
+                  />
                 ))}
               </View>
             )}
@@ -106,7 +119,12 @@ const ChatHistory = () => {
               <View>
                 <Text>Yesterday</Text>
                 {yesterdayChats.map((chat) => (
-                  <ChatRoomItem key={chat.id} chat={chat} />
+                  <ChatRoomItem
+                    key={chat.id}
+                    chat={chat}
+                    onDelete={handleRefresh}
+                    onRename={handleRefresh}
+                  />
                 ))}
               </View>
             )}
@@ -116,7 +134,12 @@ const ChatHistory = () => {
               <View>
                 <Text>Earlier</Text>
                 {earlierChats.map((chat) => (
-                  <ChatRoomItem key={chat.id} chat={chat} />
+                  <ChatRoomItem
+                    key={chat.id}
+                    chat={chat}
+                    onDelete={handleRefresh}
+                    onRename={handleRefresh}
+                  />
                 ))}
               </View>
             )}
