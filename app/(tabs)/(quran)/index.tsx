@@ -1,5 +1,7 @@
+// app/(tabs)/(quran)/index.tsx
 import FeaturedSurahCard from "@/components/quran/featuredSurahCard";
 import SurahListItem from "@/components/quran/surahListItem";
+// import ReadModeView from "../(quran)/readMode"; // REMOVED: Not needed here
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
 import SearchBar from "@/components/searchBar";
@@ -16,6 +18,8 @@ import {
   StyleSheet,
   Text,
   View,
+  // TouchableOpacity, // REMOVED: Not needed here
+  // Image, // REMOVED: Not needed here
 } from "react-native";
 import { useReadingStore } from "@/store/reading-store";
 
@@ -24,8 +28,12 @@ export default function Quran() {
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // const [initialReadPage, setInitialReadPage] = useState<number>(1); // REMOVED: Not needed here
 
   const lastRead = useReadingStore((state) => state.lastRead);
+  const isReadMode = useReadingStore((state) => state.isReadMode);
+  // const toggleReadMode = useReadingStore((state) => state.toggleReadMode); // REMOVED: Not needed here
+  const lastReadPage = useReadingStore((state) => state.lastReadPage);
 
   useEffect(() => {
     loadQuranData();
@@ -85,7 +93,7 @@ export default function Quran() {
       return (
         <SurahListItem
           surah={item}
-          lastReadVerse={lastReadVerse} // pass it here
+          lastReadVerse={lastReadVerse}
           onPress={() =>
             router.push({
               pathname: "/(tabs)/(quran)/surahDetail",
@@ -106,7 +114,7 @@ export default function Quran() {
             surah={lastReadSurah}
             onPress={handleContinueReading}
             verseNumber={lastRead.verseNumber}
-            totalVerses={lastReadSurah.numberOfAyahs} // <-- add this
+            totalVerses={lastReadSurah.numberOfAyahs}
           />
         )}
 
@@ -119,7 +127,7 @@ export default function Quran() {
                 params: { surah: JSON.stringify(alFatihah) },
               })
             }
-            totalVerses={alFatihah.numberOfAyahs} // <-- add this
+            totalVerses={alFatihah.numberOfAyahs}
           />
         )}
 
@@ -169,15 +177,9 @@ export default function Quran() {
       keyboardAvoiding={false}
     >
       <View style={styles.fixedHeader}>
-        <ScreenHeader
-          titleAlign="left"
-          showBackButton={false}
-          title="Quran"
-          titleStyle={{
-            fontSize: 28,
-            fontFamily: theme.font.bold,
-          }}
-        />
+        <View style={styles.headerRow}>
+          <Text style={styles.headerTitle}>Quran</Text>
+        </View>
 
         <SearchBar
           placeholder="Search a chapter"
@@ -207,6 +209,20 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     backgroundColor: theme.color.white,
   },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontFamily: theme.font.bold,
+    color: theme.color.secondary,
+    // FIX: To take up the full width since the toggle is gone
+    flex: 1,
+  },
+  // REMOVED STYLES: toggleButton, toggleIcon, readModeHeader, readModeTitle, placeholder
   listContent: {
     paddingHorizontal: 20,
     paddingBottom: 20,
