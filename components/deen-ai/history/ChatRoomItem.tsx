@@ -241,7 +241,11 @@ const ChatRoomItem = ({ chat, onDelete, onRename }: ChatRoomItemProps) => {
                 style={[styles.modalButton, styles.primaryButton]}
                 onPress={confirmRename}
                 activeOpacity={0.8}
-                disabled={isRenaming}
+                disabled={
+                  isRenaming ||
+                  !newChatName.trim() ||
+                  newChatName.trim().length < 4
+                }
               >
                 {isRenaming ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
