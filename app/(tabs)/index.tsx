@@ -56,14 +56,14 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <RecentChats />
+          {/* <RecentChats /> */}
         </View>
 
         {/* Streak Bottom Drawer */}
-        <StreakBottomDrawer
+        {/* <StreakBottomDrawer
           visible={showStreakDrawer}
           onClose={handleCloseDrawer}
-        />
+        /> */}
       </ScreenContainer>
       {/* FAB Button */}
       <View style={styles.fabContainer}>

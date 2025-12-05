@@ -1,4 +1,6 @@
 import AnimatedSplash from "@/components/AnimatedSplash";
+// import { BatteryOptimizationWarning } from "@/components/BatteryOptimizationWarning";
+import NotificationManager from "@/components/NotificationManager";
 import ToastProvider from "@/components/ToastProvider";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -101,6 +103,8 @@ function RootLayoutNav() {
         <Stack.Screen name="profile" />
         <Stack.Screen name="(qibla)" />
       </Stack>
+      <NotificationManager />
+      {/* <BatteryOptimizationWarning /> */}
     </SafeAreaProvider>
   );
 }
