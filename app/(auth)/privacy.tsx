@@ -180,7 +180,7 @@ export default function PrivacyPolicy() {
 
             <View style={[styles.buttonContainer, { paddingBottom: insets.bottom + 10 }]}>
                 <PrimaryButton
-                    title="Acct & Continue"
+                    title="Accept & Continue"
                     onPress={handleAccept}
                 />
 
