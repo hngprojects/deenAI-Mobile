@@ -3,6 +3,7 @@ import StreakBottomDrawer from "@/components/adhkar/StreakBottomDrawer";
 import DailyReflection from "@/components/home/DailyReflection";
 import HomeHeader from "@/components/home/HomeHeader";
 import QuickActions from "@/components/home/QuickActions";
+import RecentChats from "@/components/home/RecentChats";
 import UpcomingSolat from "@/components/home/UpcomingSolat";
 import { useStreakStore } from "@/store/streak-store";
 import { theme } from "@/styles/theme";
@@ -54,6 +55,8 @@ export default function HomeScreen() {
               <DailyReflection />
             </View>
           </View>
+
+          <RecentChats />
         </View>
 
         {/* Streak Bottom Drawer */}

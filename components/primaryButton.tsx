@@ -50,8 +50,8 @@ const styles = StyleSheet.create({
     color: theme.color.white,
   },
   disabledButton: {
-    backgroundColor: "#ccc",
-    shadowOpacity: 0,
+    backgroundColor: "#DEC7B0",
+    opacity: 0.6,
   },
   disabledText: {
     color: theme.color.white,

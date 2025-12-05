@@ -36,6 +36,42 @@ class ChatService {
     }
   }
 
+  async renameChatRoom(chatRoomId: string, newName: string) {
+    try {
+      const response = await apiService.patch<ChatResponse<IChat>>(
+        "/chats/" + chatRoomId + "/rename",
+        {
+          title: newName,
+        }
+      );
+
+      console.log("Rename Chatroom Response:", response);
+
+      if (response.success) {
+        return true;
+      }
+      console.warn("Failed to Rename Chatroom");
+    } catch (error) {
+      console.error("Error Renaming Chatroom", error);
+    }
+  }
+
+  async deleteChatRoom(chatRoomId: string) {
+    try {
+      const response = await apiService.delete<ChatResponse<null>>(
+        "/chats/" + chatRoomId
+      );
+      if (response.success) {
+        return true;
+      }
+      console.warn("Failed to Delete Chatroom");
+      return false;
+    } catch (error) {
+      console.error("Error Deleting Chatroom", error);
+      return false;
+    }
+  }
+
   async sendMessageToChatRoom(message: string, chatRoomId: string) {
     if (!message) throw new Error("Message cannot be empty!");
 
