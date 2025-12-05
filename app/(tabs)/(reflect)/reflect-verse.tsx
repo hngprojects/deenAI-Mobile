@@ -14,21 +14,26 @@ import { Surah } from '@/types/quran.types';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useLocalSearchParams } from 'expo-router';
+import * as Sharing from 'expo-sharing';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Share,
   StatusBar,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
+import { captureRef } from 'react-native-view-shot';
 
 type ReflectStackParamList = {
   'reflect-verse': {
@@ -50,6 +55,7 @@ export default function ReflectVerseScreen() {
   const navigation = useNavigation<ReflectScreenProp>();
   const params = useLocalSearchParams();
   const textInputRef = useRef<TextInput>(null);
+  const reflectionCardRef = useRef<View>(null);
   const { showToast } = useToast();
   const { t } = useTranslation();
 
@@ -75,6 +81,7 @@ export default function ReflectVerseScreen() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [showGuestModal, setShowGuestModal] = useState(false);
+  const [showShareOptions, setShowShareOptions] = useState(false);
   const logoutMutation = useLogout();
 
   // Get status bar height
@@ -201,7 +208,6 @@ export default function ReflectVerseScreen() {
       console.error('Logout failed:', error);
     }
     setShowGuestModal(false);
-    // Navigate to signup at root level (outside of reflect)
     if (navigation.canGoBack()) {
       navigation.goBack();
     }
@@ -214,7 +220,6 @@ export default function ReflectVerseScreen() {
   const handleSaveReflection = async () => {
     Keyboard.dismiss();
 
-    // Check if user is guest
     if (isGuest) {
       setShowGuestModal(true);
       return;
@@ -242,7 +247,6 @@ export default function ReflectVerseScreen() {
         clearDraft();
         showToast('Reflection updated successfully!', 'success');
         setTimeout(() => {
-          // Navigate back to index within reflect tab
           navigation.navigate('index');
         }, 1000);
       } else {
@@ -255,9 +259,7 @@ export default function ReflectVerseScreen() {
 
         await reflectService.createReflection(submissionData);
         clearDraft();
-        // showToast('Reflection saved successfully!', 'success');
         setTimeout(() => {
-          // Navigate to reflect-success within the same reflect tab
           navigation.navigate('reflect-success');
         }, 1000);
       }
@@ -298,8 +300,7 @@ export default function ReflectVerseScreen() {
                 clearDraft();
               }
               showToast('Changes discarded', 'info');
-              // Go back to Quran tab (where user came from)
-              navigation.navigate('(quran)' as any);
+              navigation.goBack(); 
             }
           }
         ]
@@ -308,13 +309,75 @@ export default function ReflectVerseScreen() {
       if (!editMode) {
         clearDraft();
       }
-      // Go back to Quran tab (where user came from)
-      navigation.navigate('(quran)' as any);
+      navigation.goBack(); 
     }
   };
 
   const handleShare = () => {
-    showToast('Share functionality coming soon!', 'info');
+    if (!content.trim()) {
+      showToast('Please write your reflection before sharing', 'warning');
+      return;
+    }
+    setShowShareOptions(true);
+  };
+
+  const handleShareAsText = async () => {
+    setShowShareOptions(false);
+    
+    if (!content.trim()) {
+      showToast('No reflection to share', 'error');
+      return;
+    }
+
+    try {
+      const verseInfo = surah 
+        ? `${surah.englishName} (${surah.name}), Verse ${verseData?.verseNumber || draft.verseNumber || startAyahFromParams}`
+        : draft.surahName 
+        ? `${draft.surahName}, Verse ${draft.verseNumber}`
+        : `Surah ${surahNumberFromParams}, Verse ${startAyahFromParams}`;
+
+      const verseText = verseData?.translation || draft.translation || verseTextFromParams;
+      
+      const shareText = `Personal Reflection\n\n"${verseText}"\n\n${verseInfo}\n\n${content}\n\n- Shared from Deen AI`;
+
+      await Share.share({
+        message: shareText,
+      });
+    } catch (error) {
+      showToast('Failed to share reflection', 'error');
+    }
+  };
+
+  const handleShareAsImage = async () => {
+    setShowShareOptions(false);
+    
+    if (!reflectionCardRef.current) {
+      showToast('Unable to capture reflection', 'error');
+      return;
+    }
+
+    try {
+      showToast('Preparing image...', 'info');
+      
+      const uri = await captureRef(reflectionCardRef, {
+        format: 'png',
+        quality: 1,
+      });
+
+      const isAvailable = await Sharing.isAvailableAsync();
+      
+      if (isAvailable) {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'image/png',
+          dialogTitle: 'Share Reflection',
+        });
+      } else {
+        showToast('Sharing is not available on this device', 'error');
+      }
+    } catch (error) {
+      console.error('Error sharing as image:', error);
+      showToast('Failed to share image', 'error');
+    }
   };
 
   const handleFocus = () => {
@@ -325,7 +388,6 @@ export default function ReflectVerseScreen() {
     setIsFocused(false);
   };
 
-  // Check if we have verse details
   const showVerseDetails = surah || draft.surahNumber || surahNumberFromParams;
 
   if (!showVerseDetails && !editMode) {
@@ -377,7 +439,6 @@ export default function ReflectVerseScreen() {
           title={editMode ? "Edit Reflection" : t("personalReflection")}
           showBackButton={true}
           onBackPress={handleCancel}
-
         />
       </View>
 
@@ -391,6 +452,7 @@ export default function ReflectVerseScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Regular display - always visible */}
           {showVerseDetails && (
             <View style={styles.quoteCard}>
               {(verseData?.translation || draft.translation || verseTextFromParams) && (
@@ -433,10 +495,51 @@ export default function ReflectVerseScreen() {
             </View>
           )}
 
+          {/* Hidden view for image capture - only used when sharing */}
+          <View 
+            ref={reflectionCardRef}
+            collapsable={false}
+            style={styles.hiddenShareableContent}
+          >
+            <View style={styles.imageCard}>
+              {/* Quote Section */}
+              <View style={styles.imageQuoteSection}>
+                <Text style={styles.imageQuote}>
+                  &quot;{verseData?.translation || draft.translation || verseTextFromParams}&quot;
+                </Text>
+                <Text style={styles.imageReference}>
+                  — {surah 
+                    ? `${surah.englishName} (${surah.name}), Verse ${verseData?.verseNumber || draft.verseNumber || startAyahFromParams}`
+                    : draft.surahName 
+                    ? `${draft.surahName}, Verse ${draft.verseNumber}`
+                    : `Surah ${surahNumberFromParams}, Verse ${startAyahFromParams}`}
+                </Text>
+              </View>
+
+              {/* Reflection Section */}
+              {content.trim() && (
+                <View style={styles.imageReflectionSection}>
+                  <Text style={styles.imageReflectionText}>{content}</Text>
+                </View>
+              )}
+
+              {/* Footer with Logo */}
+              <View style={styles.imageFooter}>
+                <View style={styles.imageFooterLeft}>
+                  <Image 
+                    source={require('@/assets/images/icon.png')}
+                    style={styles.footerLogo}
+                  />
+                  <Text style={styles.footerAppName}>DeenAI</Text>
+                </View>
+                <Text style={styles.footerLabel}>Quran Reflection</Text>
+              </View>
+            </View>
+          </View>
+
           <View style={styles.reflectionSection}>
             <View style={styles.headerWithCounter}>
               <Text style={styles.reflectionHeader}>{t("personalReflection")}</Text>
-
             </View>
             <Text style={styles.reflectionSubtitle}>
               {editMode ? t("editReflectionMessage") : t("reflectionMessage")}
@@ -497,7 +600,7 @@ export default function ReflectVerseScreen() {
               title={t("shareReflection")}
               onPress={handleShare}
               style={styles.button}
-              disabled={saving}
+              disabled={saving || !content.trim()}
             />
           </View>
         </ScrollView>
@@ -509,6 +612,39 @@ export default function ReflectVerseScreen() {
         onContinueReading={handleGuestContinueReading}
         verseText={verseData?.translation || draft.translation || verseTextFromParams}
       />
+
+      {showShareOptions && (
+        <TouchableOpacity 
+          style={styles.shareModalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowShareOptions(false)}
+        >
+          <View style={styles.shareModal}>
+            <Text style={styles.shareModalTitle}>Share Reflection</Text>
+            
+            <TouchableOpacity 
+              style={styles.shareOption}
+              onPress={handleShareAsText}
+            >
+              <Text style={styles.shareOptionText}>Share as Text</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.shareOption}
+              onPress={handleShareAsImage}
+            >
+              <Text style={styles.shareOptionText}>Share as Image</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.shareOption, styles.cancelOption]}
+              onPress={() => setShowShareOptions(false)}
+            >
+              <Text style={styles.cancelOptionText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      )}
     </ScreenContainer>
   );
 }
@@ -526,19 +662,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9F9F9',
   },
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F9F9F9',
-  },
   keyboardAvoidingView: {
     flex: 1,
   },
   scrollView: {
     flex: 1,
     backgroundColor: '#F9F9F9',
-    paddingHorizontal: 20,
-  },
-  scrollContent: {
     paddingHorizontal: 20,
   },
   centerContainer: {
@@ -568,15 +697,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: theme.font.regular,
     color: theme.color.black,
-    textAlign: 'center',
     lineHeight: 20,
     marginBottom: 12,
   },
   quoteVerse: {
-    color: "#3C3A35",
+    color: '#964B00',
     fontSize: 16,
     fontFamily: theme.font.bold,
-    textAlign: 'center',
+    borderRadius: 35,
+    backgroundColor: '#FFF4EA',
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
   },
   editModeIndicator: {
     fontSize: 12,
@@ -586,8 +720,86 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 8,
   },
+  hiddenShareableContent: {
+    position: 'absolute',
+    left: -9999,
+    top: 0,
+    width: 400,
+    backgroundColor: theme.color.white,
+  },
+  imageCard: {
+    backgroundColor: theme.color.white,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  imageQuoteSection: {
+    backgroundColor: '#F3EAD8',
+    padding: 20,
+    gap: 8,
+  },
+  imageQuote: {
+    fontSize: 16,
+    fontFamily: theme.font.semiBold,
+    color: '#4E3B18',
+    lineHeight: 24,
+    textAlign: 'center',
+  },
+  imageReference: {
+    fontSize: 14,
+    fontFamily: theme.font.regular,
+    color: '#4E3B18',
+    textAlign: 'center',
+  },
+  imageReflectionSection: {
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderRightWidth: 1,
+    borderLeftWidth: 1,
+    borderColor: '#E3E3E3',
+  },
+  imageReflectionText: {
+    fontSize: 16,
+    fontFamily: theme.font.semiBold,
+    color: '#555',
+    lineHeight: 24,
+    textAlign: 'center',
+  },
+  imageFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    // borderBottomWidth: 1,
+    borderRightWidth: 1,
+    borderLeftWidth: 1,
+    borderColor: '#E3E3E3',
+    backgroundColor: theme.color.white,
+  },
+  imageFooterLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  footerLogo: {
+    width: 24,
+    height: 24,
+  },
+  footerAppName: {
+    fontSize: 14,
+    fontFamily: theme.font.extraBold,
+    color: theme.color.secondary,
+  },
+  footerLabel: {
+    fontSize: 14,
+    fontFamily: theme.font.bold,
+    color: '#666',
+    paddingLeft: 8,
+  },
   reflectionSection: {
     gap: 8,
+    marginTop: 20,
   },
   headerWithCounter: {
     flexDirection: 'row',
@@ -601,16 +813,8 @@ const styles = StyleSheet.create({
     color: '#3C3A35',
     lineHeight: 24,
   },
-  charCounter: {
-    fontSize: 12,
-    fontFamily: theme.font.semiBold,
-    color: theme.color.black,
-  },
   charCounterWarning: {
     color: '#ff5555',
-  },
-  charCounterValid: {
-    color: theme.color.brand,
   },
   reflectionSubtitle: {
     fontSize: 14,
@@ -673,5 +877,52 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: '#ff5555',
     textAlign: 'center',
-  }
+  },
+  shareModalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+  },
+  shareModal: {
+    backgroundColor: theme.color.white,
+    borderRadius: 20,
+    padding: 20,
+    paddingBottom: 40,
+    margin: 26
+  },
+  shareModalTitle: {
+    fontSize: 18,
+    fontFamily: theme.font.bold,
+    color: theme.color.secondary,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  shareOption: {
+    backgroundColor: "white",
+    borderColor: '#9B9B9B',
+    borderWidth: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  shareOptionText: {
+    fontSize: 16,
+    fontFamily: theme.font.semiBold,
+    color: theme.color.black,
+  },
+  cancelOption: {
+    backgroundColor: '#F9F9F9',
+    marginTop: 8,
+  },
+  cancelOptionText: {
+    fontSize: 16,
+    fontFamily: theme.font.semiBold,
+    color: theme.color.secondary,
+  },
 });
