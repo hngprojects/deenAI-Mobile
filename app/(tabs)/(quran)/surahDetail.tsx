@@ -3,14 +3,17 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Platform,
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
   ViewToken,
 } from "react-native";
 
+import ReadModeView from "@/app/(tabs)/(quran)/readMode";
 import VerseItem from "@/components/quran/verseItem";
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
@@ -27,12 +30,16 @@ export default function SurahDetail() {
     : null;
 
   const setLastRead = useReadingStore((state) => state.setLastRead);
+  const isReadMode = useReadingStore((state) => state.isReadMode);
+  const toggleReadMode = useReadingStore((state) => state.toggleReadMode);
+  const setLastReadPage = useReadingStore((state) => state.setLastReadPage);
 
   const [verses, setVerses] = useState<Verse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
   const [currentVerseNumber, setCurrentVerseNumber] = useState(1);
+  const [pageForSurah, setPageForSurah] = useState<number | null>(null);
 
   const flatListRef = useRef<FlatList>(null);
 
@@ -42,6 +49,11 @@ export default function SurahDetail() {
       setError(null);
       const surahVerses = await quranService.getSurahVerses(surah.number);
       setVerses(surahVerses);
+
+      const page = await quranService.getPageForVerse(surah.number, 1);
+      if (page) {
+        setPageForSurah(page);
+      }
     } catch (err) {
       console.error("Error loading surah verses:", err);
       setError("Failed to load verses");
@@ -115,13 +127,25 @@ export default function SurahDetail() {
     }
   };
 
+  const handleToggleReadMode = async () => {
+    try {
+      // If switching TO read mode, save the current page
+      if (!isReadMode && pageForSurah) {
+        setLastReadPage(pageForSurah);
+      }
+
+      toggleReadMode();
+    } catch (err) {
+      console.error("Error toggling read mode:", err);
+    }
+  };
+
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       if (viewableItems.length > 0) {
         const firstVisibleVerse = viewableItems[0].item as Verse;
         const verseNumber = firstVisibleVerse.number;
 
-        // Update the current verse number in state
         setCurrentVerseNumber(verseNumber);
         setLastRead(surah.number, verseNumber, surah.englishName);
       }
@@ -173,6 +197,36 @@ export default function SurahDetail() {
     );
   };
 
+  if (isReadMode) {
+    return (
+      <ScreenContainer
+        backgroundColor="#FFFFFF"
+        statusBarStyle="dark"
+        scrollable={false}
+        keyboardAvoiding={false}
+      >
+        <View style={styles.readModeHeader}>
+          <ScreenHeader
+            title={surah.englishName}
+            showBackButton={true}
+            rightComponent={
+              <TouchableOpacity
+                onPress={handleToggleReadMode}
+                style={styles.toggleButton}
+              >
+                <Image
+                  source={require("@/assets/images/qurantoggle.png")}
+                  style={styles.toggleIcon}
+                />
+              </TouchableOpacity>
+            }
+          />
+        </View>
+        <ReadModeView initialPage={pageForSurah || 1} />
+      </ScreenContainer>
+    );
+  }
+
   if (loading) {
     return (
       <ScreenContainer
@@ -214,9 +268,23 @@ export default function SurahDetail() {
       scrollable={false}
       keyboardAvoiding={false}
     >
-      {/* FIXED HEADER - Always visible */}
+      {/* FIXED HEADER */}
       <View style={styles.fixedHeader}>
-        <ScreenHeader title={surah.englishName} showBackButton={true} />
+        <ScreenHeader
+          title={surah.englishName}
+          showBackButton={true}
+          rightComponent={
+            <TouchableOpacity
+              onPress={handleToggleReadMode}
+              style={styles.toggleButton}
+            >
+              <Image
+                source={require("@/assets/images/qurantoggle.png")}
+                style={styles.toggleIcon}
+              />
+            </TouchableOpacity>
+          }
+        />
         <SurahInfoCard />
       </View>
 
@@ -254,6 +322,28 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E5E5",
+  },
+  readModeHeader: {
+    backgroundColor: "#FFFFFF",
+    paddingTop:
+      Platform.OS === "android" ? (StatusBar.currentHeight || 0) + 10 : 54,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+  },
+  toggleButton: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 20,
+    // backgroundColor: theme.color.gray,
+  },
+  toggleIcon: {
+    width: 24,
+    height: 24,
+    tintColor: "#737373",
+    borderRightWidth: 2,
+    borderRightColor: "#737373",
   },
   flatList: {
     flex: 1,
