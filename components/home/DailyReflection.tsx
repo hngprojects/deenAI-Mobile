@@ -1,9 +1,11 @@
 import { quranService } from '@/service/quran.service';
 import { useReflectStore } from '@/store/reflect-store';
+import { useAuthStore } from '@/store/auth-store'; // Add this import
 import { theme } from '@/styles/theme';
 import { Verse } from '@/types/quran.types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
+import { Edit3Icon } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from "react-i18next";
 import {
@@ -30,16 +32,23 @@ export default function DailyReflection() {
     const router = useRouter();
     // const { loadCollection, loadedData } = useHadithStore();
     const { setDraft } = useReflectStore();
+    const { isGuest } = useAuthStore(); // Add this
     const { t } = useTranslation();
 
     const [content, setContent] = useState<DailyContent | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [guestMode, setGuestMode] = useState(false); // Add this
 
     useEffect(() => {
         loadDailyContent();
     }, []);
+
+    useEffect(() => {
+        // Update only after hydration (one render later)
+        setGuestMode(isGuest);
+    }, [isGuest]);
 
     const getDayOfYear = (): number => {
         const now = new Date();
@@ -208,7 +217,7 @@ export default function DailyReflection() {
     */
 
     const handleReflect = () => {
-        if (!content) return;
+        if (!content || guestMode) return; // Add guestMode check
 
         // Only handle Quran content now
         // if (content.type === 'quran' && content.verse) {
@@ -298,9 +307,9 @@ export default function DailyReflection() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>{t("reflectionTitle")}</Text>
 
             <View style={styles.card}>
+                <Text style={styles.title}>{t("reflectionTitle")}</Text>
                 <View style={styles.contentContainer}>
                     <Text style={styles.text}>
                         {truncatedText || ''}
@@ -317,23 +326,24 @@ export default function DailyReflection() {
                         </TouchableOpacity>
                     )}
 
-                    <View style={styles.referenceContainer}>
-                        <Text style={styles.referenceText}>
-                            ({sourceInfo})
-                        </Text>
+                    <View style={styles.referenceRow}>
+                        {/* Surah container */}
+                        <View style={styles.referenceContainer}>
+                            <Text style={styles.referenceText}>({sourceInfo})</Text>
+                        </View>
+
+                        {/* Edit button - Add disabled state */}
+                        <TouchableOpacity 
+                            style={[styles.editContainer, guestMode && styles.editContainerDisabled]}
+                            onPress={handleReflect}
+                            disabled={guestMode}
+                        >
+                            <Edit3Icon size={16} color="#F9F9F9" />
+                            <Text style={styles.editText}>Reflect</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             </View>
-
-            <TouchableOpacity
-                style={styles.reflectButton}
-                onPress={handleReflect}
-                activeOpacity={0.8}
-            >
-                <Text style={styles.reflectButtonText}>
-                    {t("reflectVerse")}
-                </Text>
-            </TouchableOpacity>
         </View>
     );
 }
@@ -343,10 +353,11 @@ const styles = StyleSheet.create({
         marginVertical: 8,
     },
     title: {
-        fontSize: 20,
+        fontSize: 18,
         fontFamily: theme.font.bold,
         color: '#000',
         marginBottom: 16,
+        lineHeight: 22,
     },
     loadingContainer: {
         backgroundColor: '#FFF',
@@ -380,16 +391,16 @@ const styles = StyleSheet.create({
         borderColor: '#ebebebff',
     },
     contentContainer: {
-        marginBottom: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
+        marginBottom: 24,
+        // justifyContent: 'center',
+        // alignItems: 'center',
     },
     text: {
         fontSize: 16,
         lineHeight: 26,
         color: '#333',
         marginBottom: 12,
-        textAlign: 'center',
+        // textAlign: 'center',
         fontFamily: theme.font.semiBold,
     },
     readMoreButton: {
@@ -402,32 +413,47 @@ const styles = StyleSheet.create({
         fontFamily: theme.font.semiBold,
     },
     referenceContainer: {
-        alignSelf: 'center',
+        borderRadius: 35,
+        backgroundColor: '#FFF4EA',
+        paddingVertical: 8,
+        paddingHorizontal: 8,
+        marginTop: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 8,
+        alignSelf: 'flex-start', // Add this
     },
     referenceText: {
-        fontSize: 16,
-        color: '#666',
-        fontFamily: theme.font.bold,
+        fontSize: 14,
+        color: '#964B00',
+        fontFamily: theme.font.semiBold,
         textAlign: 'center',
+        lineHeight: 16,
     },
-    reflectButton: {
-        backgroundColor: theme.color.brand,
-        borderRadius: 12,
-        padding: 16,
+    referenceRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        gap: 12,
+        width: '100%',
+    },
+    editContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        borderRadius: 100,
+        backgroundColor: '#964B00',
+        paddingVertical: 8,
+        paddingHorizontal: 14,
         justifyContent: 'center',
-        gap: 12,
-        shadowColor: theme.color.brand,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 4,
-        marginTop: 12,
+        minWidth: 100,
     },
-    reflectButtonText: {
-        fontSize: 16,
+    editContainerDisabled: { // Add this style
+        opacity: 0.5,
+    },
+    editText: {
+        fontSize: 14,
+        color: '#F9F9F9',
         fontFamily: theme.font.semiBold,
-        color: '#FFF',
+        marginLeft: 10, 
     },
 });
