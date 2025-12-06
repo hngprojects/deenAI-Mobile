@@ -132,7 +132,7 @@ export default function PrivacyPolicy() {
                 <Text style={styles.bulletPoint}>• Withdraw consent for optional data collection</Text>
 
                 <Text style={styles.paragraph}>
-                    To exercise your rights, contact us at <Text style={styles.link}>buddy.deen@gmail.com</Text>
+                    To exercise your rights, contact us at <Text style={styles.link}>support@deenai.app</Text>
                 </Text>
 
                 <Text style={styles.sectionTitle}>7. Data Retention</Text>
@@ -173,7 +173,7 @@ export default function PrivacyPolicy() {
                     If you have questions or concerns about this Privacy Policy:
                 </Text>
 
-                <Text style={styles.bulletPoint}>• Email: <Text style={styles.link}>buddy.deen@gmail.com</Text></Text>
+                <Text style={styles.bulletPoint}>• Email: <Text style={styles.link}>support@deenai.app</Text></Text>
                 <Text style={styles.bulletPoint}>• App Support: Available within the Deen AI app</Text>
 
             </ScreenContainer>

@@ -15,6 +15,9 @@ interface AdhkarStore {
     // Streak-related
     sessionStartTime: Date | null;
     showStreakCompleteModal: boolean;
+    
+    // Time tracking for modal
+    lastInteractionTime: Date | null;
 
     startAdhkarSession: (category: 'morning' | 'evening') => void;
     nextAdhkar: () => void;
@@ -33,6 +36,11 @@ interface AdhkarStore {
     // Streak methods
     setShowStreakCompleteModal: (show: boolean) => void;
     getSessionDuration: () => number;
+    checkAndMarkStreakCompletion: () => boolean;
+    
+    // Time-based modal methods
+    checkTimeBasedModal: () => void;
+    recordInteraction: () => void;
 }
 
 export const useAdhkarStore = create<AdhkarStore>((set, get) => ({
@@ -44,38 +52,31 @@ export const useAdhkarStore = create<AdhkarStore>((set, get) => ({
     eveningProgress: null,
     sessionStartTime: null,
     showStreakCompleteModal: false,
+    lastInteractionTime: null,
 
     startAdhkarSession: (category: 'morning' | 'evening') => {
         const adhkarList = adhkarService.getAdhkarByCategory(category);
+        const now = new Date();
 
         set({
             currentCategory: category,
             currentAdhkar: adhkarList,
             currentIndex: 0,
             completedCount: {},
-            sessionStartTime: new Date(),
+            sessionStartTime: now,
+            lastInteractionTime: now,
+            showStreakCompleteModal: false,
         });
-
-        // Mark streak as complete when user opens adhkar
-        const streakStore = useStreakStore.getState();
-        const today = new Date().toISOString().split('T')[0];
-        const existingStreak = streakStore.getStreakForDate(today);
-
-        if (!existingStreak?.completed) {
-            streakStore.completeStreakForToday(category);
-
-            // Show success modal after a brief delay
-            setTimeout(() => {
-                set({ showStreakCompleteModal: true });
-            }, 1000);
-        }
     },
 
     nextAdhkar: () => {
         const { currentIndex, currentAdhkar } = get();
 
         if (currentIndex < currentAdhkar.length - 1) {
-            set({ currentIndex: currentIndex + 1 });
+            set({ 
+                currentIndex: currentIndex + 1,
+                lastInteractionTime: new Date()
+            });
         }
     },
 
@@ -83,7 +84,10 @@ export const useAdhkarStore = create<AdhkarStore>((set, get) => ({
         const { currentIndex } = get();
 
         if (currentIndex > 0) {
-            set({ currentIndex: currentIndex - 1 });
+            set({ 
+                currentIndex: currentIndex - 1,
+                lastInteractionTime: new Date()
+            });
         }
     },
 
@@ -109,16 +113,48 @@ export const useAdhkarStore = create<AdhkarStore>((set, get) => ({
 
             set({
                 completedCount: newCompletedCount,
+                lastInteractionTime: new Date()
             });
 
-            if (newCount >= current.count && currentIndex < currentAdhkar.length - 1) {
-                // Small delay for better UX (user sees completion state)
-                setTimeout(() => {
-                    const { nextAdhkar } = get();
-                    if (nextAdhkar) {
-                        nextAdhkar();
+            // Check for time-based modal on every interaction
+            setTimeout(() => {
+                state.checkTimeBasedModal();
+            }, 100);
+
+            // Check if current adhkar is now completed
+            if (newCount >= current.count) {
+                // Check if ALL adhkar are completed
+                const allCompleted = state.isCompleted();
+                
+                if (allCompleted) {
+                    // Mark streak as complete
+                    const streakMarked = state.checkAndMarkStreakCompletion();
+                    
+                    // Only show completion modal if time modal hasn't shown today
+                    const streakStore = useStreakStore.getState();
+                    
+                    // Check if should show modal (time-based takes priority)
+                    const sessionMinutes = state.getSessionDuration();
+                    const shouldShowTimeModal = streakStore.shouldShowTimeModal(sessionMinutes);
+                    
+                    if (streakMarked && !shouldShowTimeModal) {
+                        // Mark as seen to prevent duplicate modals
+                        streakStore.markTimeModalAsSeen();
+                        setTimeout(() => {
+                            set({ showStreakCompleteModal: true });
+                        }, 800);
                     }
-                }, 800);
+                }
+                
+                // Auto-advance to next adhkar if not the last one
+                if (currentIndex < currentAdhkar.length - 1) {
+                    setTimeout(() => {
+                        const { nextAdhkar } = get();
+                        if (nextAdhkar) {
+                            nextAdhkar();
+                        }
+                    }, 800);
+                }
             }
         }
     },
@@ -129,7 +165,10 @@ export const useAdhkarStore = create<AdhkarStore>((set, get) => ({
         const newCompletedCount = { ...completedCount };
         delete newCompletedCount[currentIndex];
 
-        set({ completedCount: newCompletedCount });
+        set({ 
+            completedCount: newCompletedCount,
+            lastInteractionTime: new Date()
+        });
     },
 
     resetSession: () => {
@@ -139,6 +178,7 @@ export const useAdhkarStore = create<AdhkarStore>((set, get) => ({
             currentIndex: 0,
             completedCount: {},
             sessionStartTime: null,
+            lastInteractionTime: null,
         });
     },
 
@@ -197,14 +237,10 @@ export const useAdhkarStore = create<AdhkarStore>((set, get) => ({
         } else {
             set({ eveningProgress: progress });
         }
-
-        // TODO: Persist to AsyncStorage
-        // AsyncStorage.setItem(`adhkar_progress_${currentCategory}`, JSON.stringify(progress));
     },
 
     loadProgress: () => {
         // TODO: Load from AsyncStorage
-        // const morningProgress = await AsyncStorage.getItem('adhkar_progress_morning');
     },
 
     setShowStreakCompleteModal: (show: boolean) => {
@@ -218,5 +254,52 @@ export const useAdhkarStore = create<AdhkarStore>((set, get) => ({
         const now = new Date();
         const diff = now.getTime() - sessionStartTime.getTime();
         return Math.floor(diff / 1000 / 60); // Convert to minutes
+    },
+
+    checkAndMarkStreakCompletion: () => {
+        const state = get();
+        const { currentCategory, isCompleted } = state;
+        
+        if (!currentCategory || !isCompleted()) {
+            return false;
+        }
+        
+        const streakStore = useStreakStore.getState();
+        
+        // Use streak store's method to get today's date string
+        const todayString = streakStore.getTodayDateString();
+        
+        const existingStreak = streakStore.getStreakForDate(todayString);
+        
+        if (!existingStreak?.completed) {
+            streakStore.completeStreakForToday(currentCategory);
+            return true;
+        }
+        
+        return false;
+    },
+
+    // Check if should show time-based modal
+    checkTimeBasedModal: () => {
+        const state = get();
+        const sessionMinutes = state.getSessionDuration();
+        const streakStore = useStreakStore.getState();
+        
+        // Check if should show modal based on time
+        if (streakStore.shouldShowTimeModal(sessionMinutes)) {
+            // Mark modal as seen
+            streakStore.markTimeModalAsSeen();
+            streakStore.recordSessionDuration(sessionMinutes);
+            
+            // Show modal
+            setTimeout(() => {
+                set({ showStreakCompleteModal: true });
+            }, 500);
+        }
+    },
+
+    // Record user interaction
+    recordInteraction: () => {
+        set({ lastInteractionTime: new Date() });
     },
 }));

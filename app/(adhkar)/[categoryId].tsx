@@ -17,7 +17,6 @@ import {
   TouchableOpacity,
   View,
   Share,
-  Platform,
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -39,6 +38,8 @@ export default function AdhkarDetailScreen() {
     (state) => state.setShowStreakCompleteModal
   );
   const getSessionDuration = useAdhkarStore((state) => state.getSessionDuration);
+  const getTotalProgress = useAdhkarStore((state) => state.getTotalProgress);
+  const isCompleted = useAdhkarStore((state) => state.isCompleted);
 
   const startAdhkarSession = useAdhkarStore(
     (state) => state.startAdhkarSession
@@ -51,6 +52,7 @@ export default function AdhkarDetailScreen() {
 
   useEffect(() => {
     if (categoryId === "morning" || categoryId === "evening") {
+      // ✅ FIXED: No cleanup function expected anymore
       startAdhkarSession(categoryId);
       setIsLoading(false);
     } else {
@@ -59,6 +61,7 @@ export default function AdhkarDetailScreen() {
     }
 
     return () => {
+      // ✅ Cleanup on unmount
       resetSession();
     };
   }, [categoryId, startAdhkarSession, resetSession, router]);
@@ -75,10 +78,8 @@ export default function AdhkarDetailScreen() {
     if (!currentAdhkarItem) return;
 
     try {
-      // Haptic feedback
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-      // Construct share message
       const shareMessage = `
 ${currentAdhkarItem.content}
 
@@ -98,14 +99,11 @@ Shared from DeenAI - ${categoryId === "morning" ? "Morning" : "Evening"} Adhkar
 
       if (result.action === Share.sharedAction) {
         if (result.activityType) {
-          // Shared with activity type of result.activityType
           console.log("Shared successfully with:", result.activityType);
         } else {
-          // Shared
           console.log("Shared successfully");
         }
       } else if (result.action === Share.dismissedAction) {
-        // Dismissed
         console.log("Share dismissed");
       }
     } catch (error) {
@@ -140,6 +138,21 @@ Shared from DeenAI - ${categoryId === "morning" ? "Morning" : "Evening"} Adhkar
     if (currentCount < currentAdhkarItem.count) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       incrementCount();
+      
+      // Check if this increment completes all adhkar
+      const progress = getTotalProgress();
+      const allCompleted = progress.completed === progress.total;
+      
+      if (allCompleted && isCompleted()) {
+        // Show completion message after a delay
+        setTimeout(() => {
+          Alert.alert(
+            "Completed! 🎉",
+            `Alhamdulillah! You have completed all ${categoryId} adhkar.`,
+            [{ text: "OK" }]
+          );
+        }, 1000);
+      }
     }
   };
 
@@ -147,11 +160,16 @@ Shared from DeenAI - ${categoryId === "morning" ? "Morning" : "Evening"} Adhkar
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     if (currentIndex === currentAdhkar.length - 1) {
-      Alert.alert(
-        "Completed! 🎉",
-        `Alhamdulillah! You have completed all ${categoryId} adhkar.`,
-        [{ text: "OK", onPress: () => router.back() }]
-      );
+      // If on last adhkar and all are completed, just go back
+      if (isCompleted()) {
+        router.back();
+      } else {
+        Alert.alert(
+          "Not Completed",
+          "Please complete all counts before moving on.",
+          [{ text: "OK" }]
+        );
+      }
     } else {
       nextAdhkar();
     }
@@ -168,11 +186,10 @@ Shared from DeenAI - ${categoryId === "morning" ? "Morning" : "Evening"} Adhkar
   };
 
   const handleStreakPress = () => {
-    // Navigate to streak analytics
     router.push("/(adhkar)/streak-analytics");
   };
 
-  //   fixed header component
+  // Fixed header component
   const fixedHeader = (
     <View style={styles.header}>
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -190,7 +207,7 @@ Shared from DeenAI - ${categoryId === "morning" ? "Morning" : "Evening"} Adhkar
     </View>
   );
 
-  //   fixed footer component
+  // Fixed footer component
   const fixedFooter = (
     <View style={styles.bottomContainer}>
       <AdhkarCounter
@@ -204,8 +221,6 @@ Shared from DeenAI - ${categoryId === "morning" ? "Morning" : "Evening"} Adhkar
       />
     </View>
   );
-
-  const isCompleted = currentCount >= currentAdhkarItem.count;
 
   return (
     <ScreenContainer
