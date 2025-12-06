@@ -15,7 +15,7 @@ import ScreenHeader from "@/components/screenHeader";
 import { theme } from "@/styles/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 const GRID_COLUMNS = 3;
 const GRID_ITEM_SIZE = (width - 60) / GRID_COLUMNS;
 
@@ -73,11 +73,24 @@ export default function ShareAsImage() {
   const surahNumber = params.surahNumber as string;
   const verseNumber = params.verseNumber as string;
 
-  // Smart Auto-Scaling: Adjust font sizes based on verse length
+  const calculateCardHeight = () => {
+    const totalLength = arabicText.length + translation.length;
+
+    if (totalLength < 300) return 400;
+    else if (totalLength < 600) return 500;
+    else if (totalLength < 1000) return 600;
+    else if (totalLength < 1500) return 700;
+    else if (totalLength < 2000) return 800;
+    else return 900;
+  };
+
+  const cardHeight = calculateCardHeight();
+
+  // Auto-scaling
   const getSmartFontSizes = () => {
     const totalLength = arabicText.length + translation.length;
 
-    // Short verses (< 200 chars): Full size
+    // Short verses (< 200 chars)
     if (totalLength < 200) {
       return {
         arabic: 26,
@@ -86,7 +99,7 @@ export default function ShareAsImage() {
         lineHeightTranslation: 28,
       };
     }
-    // Medium-short verses (200-400 chars): Slightly smaller
+    // Medium-short verses (200-400 chars)
     else if (totalLength < 400) {
       return {
         arabic: 23,
@@ -95,7 +108,7 @@ export default function ShareAsImage() {
         lineHeightTranslation: 26,
       };
     }
-    // Medium verses (400-700 chars): Smaller
+    // Medium verses (400-700 chars)
     else if (totalLength < 700) {
       return {
         arabic: 20,
@@ -104,7 +117,7 @@ export default function ShareAsImage() {
         lineHeightTranslation: 24,
       };
     }
-    // Long verses (700-1100 chars): Much smaller
+    // Long verses (700-1100 chars)
     else if (totalLength < 1100) {
       return {
         arabic: 17,
@@ -113,7 +126,7 @@ export default function ShareAsImage() {
         lineHeightTranslation: 22,
       };
     }
-    // Very long verses (1100-1600 chars): Even smaller
+    // Very long verses (1100-1600 chars)
     else if (totalLength < 1600) {
       return {
         arabic: 15,
@@ -122,12 +135,12 @@ export default function ShareAsImage() {
         lineHeightTranslation: 20,
       };
     }
-    // Extremely long verses (1600+ chars): Smallest
+    // Extremely long verses (1600+ chars)
     else {
       return {
-        arabic: 13,
+        arabic: 15,
         translation: 12,
-        lineHeightArabic: 22,
+        lineHeightArabic: 24,
         lineHeightTranslation: 18,
       };
     }
@@ -168,11 +181,11 @@ export default function ShareAsImage() {
           style={styles.contentContainer}
           showsVerticalScrollIndicator={false}
         >
-          {/* Preview Card - Auto-expanding */}
+          {/* Preview Card */}
           <View style={styles.previewSection}>
             <ImageBackground
               source={selectedBackground.image}
-              style={styles.previewCard}
+              style={[styles.previewCard, { height: cardHeight }]}
               imageStyle={{ borderRadius: 16 }}
             >
               <View style={styles.overlay}>
@@ -269,7 +282,7 @@ const styles = StyleSheet.create({
   previewSection: {
     marginTop: 56,
     marginBottom: 30,
-    paddingHorizontal: 10, // Add horizontal padding to match customize screen
+    paddingHorizontal: 10,
   },
   sectionTitle: {
     fontSize: 18,
@@ -278,8 +291,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   previewCard: {
-    minHeight: 350,
-    maxHeight: height * 0.7, // Cap at 70% of screen
     width: "100%",
     borderRadius: 16,
     overflow: "hidden",
@@ -294,12 +305,13 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.35)",
   },
   previewContent: {
+    flex: 1,
     paddingVertical: 30,
     paddingHorizontal: 20,
+    justifyContent: "space-between",
   },
   previewArabic: {
     fontFamily: "AmiriQuran-Regular",
-
     marginBottom: 16,
     color: "#FFFFFF",
     textAlign: "center",
@@ -309,7 +321,6 @@ const styles = StyleSheet.create({
   },
   previewTranslation: {
     fontFamily: theme.font.regular,
-
     marginBottom: 16,
     color: "#FFFFFF",
     textAlign: "center",
@@ -321,7 +332,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: "auto",
   },
   previewReference: {
     flex: 1,
