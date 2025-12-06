@@ -21,6 +21,7 @@ export const lightTheme = {
     gradientEnd: "#964B00",
     text: "#3C3A35",
     background4: "#F5EDE6",
+    grayLight: "#737373",
   },
   // fontSize: {
   //     small: width * 0.03,

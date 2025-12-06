@@ -1,4 +1,5 @@
 import { theme } from "@/styles/theme";
+import { router } from "expo-router";
 import { Star, X } from "lucide-react-native";
 import React from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
@@ -10,7 +11,9 @@ interface UpgradePlanModalProps {
 }
 
 const UpgradePlanModal = ({ isVisible, onClose }: UpgradePlanModalProps) => {
-  const handleUpgradePress = () => {};
+  const handleUpgradePress = () => {
+    router.push("/(payment)");
+  };
 
   return (
     <Modal
