@@ -20,10 +20,8 @@ import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 const IMAGE_WIDTH = 1080;
-const IMAGE_HEIGHT = 1350;
-const IMAGE_ASPECT_RATIO = IMAGE_HEIGHT / IMAGE_WIDTH; // 1.25
 
 const COLORS = [
   "#FFFFFF", // White
@@ -61,28 +59,34 @@ export default function ShareImageCustomize() {
   const backgroundImage =
     BACKGROUND_IMAGES[backgroundImageIndex] || BACKGROUND_IMAGES["1"];
 
-  //  Auto-Scaling
+  const calculateCardHeight = () => {
+    const totalLength = arabicText.length + translation.length;
+
+    if (totalLength < 300) return 450;
+    else if (totalLength < 600) return 550;
+    else if (totalLength < 1000) return 650;
+    else if (totalLength < 1500) return 750;
+    else if (totalLength < 2000) return 850;
+    else return 950;
+  };
+
+  const cardHeight = calculateCardHeight();
+
+  // Auto-Scaling
   const getBaseTranslationFontSize = () => {
     const totalLength = arabicText.length + translation.length;
 
-    if (totalLength < 400) {
-      return 17;
-    } else if (totalLength < 700) {
-      return 15;
-    } else if (totalLength < 1100) {
-      return 14;
-    } else if (totalLength < 2000) {
-      return 12;
-    } else if (totalLength < 3000) {
-      return 10;
-    } else {
-      return 8; // Absolute minimum
-    }
+    if (totalLength < 400) return 17;
+    else if (totalLength < 700) return 15;
+    else if (totalLength < 1100) return 14;
+    else if (totalLength < 2000) return 12;
+    else if (totalLength < 3000) return 10;
+    else return 8;
   };
 
   const baseTranslationSize = getBaseTranslationFontSize();
+  const ARABIC_FONT_SIZE = 15;
 
-  const ARABIC_FONT_SIZE = 10;
   const [fontSize, setFontSize] = useState(baseTranslationSize);
   const [alignment, setAlignment] = useState<"left" | "center" | "right">(
     "center"
@@ -90,14 +94,15 @@ export default function ShareImageCustomize() {
   const [textColor, setTextColor] = useState("#FFFFFF");
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Generate the image and return the URI
   const generateImage = async (): Promise<string | null> => {
     try {
+      const exportHeight = cardHeight * 3;
+
       const uri = await captureRef(imageRef, {
         format: "jpg",
         quality: 0.9,
         width: IMAGE_WIDTH,
-        height: IMAGE_HEIGHT,
+        height: exportHeight,
       });
       return uri;
     } catch (error) {
@@ -158,16 +163,21 @@ export default function ShareImageCustomize() {
           ]}
           showsVerticalScrollIndicator={false}
         >
-          {/* Preview Card - Fixed Aspect Ratio */}
+          {/* Preview Card  */}
           <View style={styles.previewSection}>
             <View ref={imageRef} collapsable={false}>
               <ImageBackground
                 source={backgroundImage}
-                style={styles.previewCard}
+                style={[styles.previewCard, { height: cardHeight }]}
                 imageStyle={{ borderRadius: 16 }}
               >
                 <View style={styles.overlay}>
-                  <View style={styles.previewContent}>
+                  {/* SCROLLABLE CONTENT INSIDE CARD */}
+                  <ScrollView
+                    style={styles.previewContentScroll}
+                    contentContainerStyle={styles.previewContent}
+                    showsVerticalScrollIndicator={false}
+                  >
                     <Text
                       style={[
                         styles.previewArabic,
@@ -213,7 +223,7 @@ export default function ShareImageCustomize() {
                         </Text>
                       </View>
                     </View>
-                  </View>
+                  </ScrollView>
                 </View>
               </ImageBackground>
             </View>
@@ -224,7 +234,7 @@ export default function ShareImageCustomize() {
             {/* Translation Font Size */}
             <View style={styles.controlGroup}>
               <View style={styles.controlRow}>
-                <Text style={styles.controlLabel}>Translation Font Size</Text>
+                <Text style={styles.controlLabel}>Font Size</Text>
                 <View style={styles.sliderVisualContainer}>
                   <Text style={styles.smallA}>A</Text>
                   <Slider
@@ -370,15 +380,8 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     paddingHorizontal: 10,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: theme.font.semiBold,
-    color: theme.color.secondary,
-    marginBottom: 16,
-  },
   previewCard: {
     width: "100%",
-    aspectRatio: IMAGE_ASPECT_RATIO,
     borderRadius: 16,
     overflow: "hidden",
     shadowColor: "#000",
@@ -391,10 +394,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.35)",
   },
-  previewContent: {
+  previewContentScroll: {
     flex: 1,
+  },
+  previewContent: {
+    flexGrow: 1,
     paddingVertical: 30,
     paddingHorizontal: 20,
+    justifyContent: "space-between",
   },
   previewArabic: {
     fontFamily: "AmiriQuran-Regular",
@@ -418,7 +425,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: "auto",
+    marginTop: 20,
   },
   previewReference: {
     flex: 1,
