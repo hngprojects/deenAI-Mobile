@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -11,7 +11,9 @@ import {
   TouchableOpacity,
   View,
   ViewToken,
+  Share,
 } from "react-native";
+import ShareOptionsModal from "@/components/quran/shareOptionsModal";
 
 import ReadModeView from "@/app/(tabs)/(quran)/readMode";
 import VerseItem from "@/components/quran/verseItem";
@@ -25,6 +27,7 @@ import { Surah, Verse } from "@/types/quran.types";
 export default function SurahDetail() {
   const params = useLocalSearchParams();
   const surah: Surah = JSON.parse(params.surah as string);
+  const router = useRouter();
   const scrollToVerse = params.scrollToVerse
     ? Number(params.scrollToVerse)
     : null;
@@ -40,7 +43,8 @@ export default function SurahDetail() {
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
   const [currentVerseNumber, setCurrentVerseNumber] = useState(1);
   const [pageForSurah, setPageForSurah] = useState<number | null>(null);
-
+  const [shareModalVisible, setShareModalVisible] = useState(false);
+  const [selectedVerse, setSelectedVerse] = useState<Verse | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
   const loadSurahData = useCallback(async () => {
@@ -158,6 +162,43 @@ export default function SurahDetail() {
     minimumViewTime: 500,
   }).current;
 
+  const handleSharePress = (verse: Verse) => {
+    setSelectedVerse(verse);
+    setShareModalVisible(true);
+  };
+
+  const handleShareAsText = async () => {
+    if (!selectedVerse) return;
+
+    try {
+      const shareText = `${selectedVerse.arabic}\n\n${selectedVerse.translation}\n\nSurah ${surah.englishName} (${surah.number}:${selectedVerse.number})`;
+
+      await Share.share({
+        message: shareText,
+      });
+
+      setShareModalVisible(false);
+    } catch (error) {
+      console.error("Error sharing text:", error);
+    }
+  };
+
+  const handleShareAsImage = () => {
+    if (!selectedVerse) return;
+
+    setShareModalVisible(false);
+
+    router.push({
+      pathname: "/(tabs)/(quran)/shareAsImage" as any,
+      params: {
+        arabicText: selectedVerse.arabic,
+        translation: selectedVerse.translation,
+        surahName: surah.englishName,
+        surahNumber: surah.number.toString(),
+        verseNumber: selectedVerse.number.toString(),
+      },
+    });
+  };
   const renderItem = ({ item }: { item: Verse }) => (
     <VerseItem
       verseNumber={item.number}
@@ -166,7 +207,9 @@ export default function SurahDetail() {
       transliteration={item.transliteration}
       isBookmarked={bookmarks.has(item.number)}
       onBookmarkPress={() => toggleBookmark(item.number)}
+      onSharePress={() => handleSharePress(item)}
       surahNumber={surah.number}
+      surahName={surah.englishName}
     />
   );
 
@@ -308,6 +351,12 @@ export default function SurahDetail() {
             });
           }, 100);
         }}
+      />
+      <ShareOptionsModal
+        visible={shareModalVisible}
+        onClose={() => setShareModalVisible(false)}
+        onShareAsText={handleShareAsText}
+        onShareAsImage={handleShareAsImage}
       />
     </ScreenContainer>
   );
