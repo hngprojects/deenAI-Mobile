@@ -41,6 +41,7 @@ function RootLayoutNav() {
     const inHadithGroup = segments[0] === "(hadith)";
     const inAdhkarGroup = segments[0] === "(adhkar)";
     const inPrayerTimesGroup = segments[0] === "(prayer-times)";
+    const inPaymentGroup = segments[0] === "(payment)";
     const inRoot = segments.length === 0;
 
     console.log("🧭 Navigation check:", {
@@ -52,6 +53,7 @@ function RootLayoutNav() {
       inTasbihGroup,
       inHadithGroup,
       inRoot,
+      inOnboardingGroup,
     });
 
     if (isAuthenticated || isGuest) {
@@ -66,7 +68,8 @@ function RootLayoutNav() {
         !inPrayerTimesGroup &&
         !inAdhkarGroup &&
         !inQiblaGroup &&
-        !inAdhkarGroup
+        !inAdhkarGroup &&
+        !inPaymentGroup
       ) {
         console.log("➡️ Redirecting to tabs");
         router.replace("/(tabs)");
@@ -82,7 +85,8 @@ function RootLayoutNav() {
         inPrayerTimesGroup ||
         inAdhkarGroup ||
         inQiblaGroup ||
-        inAdhkarGroup
+        inAdhkarGroup ||
+        inPaymentGroup
       ) {
         console.log("➡️ Redirecting to login");
         router.replace("/(auth)/login");
@@ -102,6 +106,7 @@ function RootLayoutNav() {
         <Stack.Screen name="(adhkar)" />
         <Stack.Screen name="profile" />
         <Stack.Screen name="(qibla)" />
+        <Stack.Screen name="(payment)" />
       </Stack>
       <NotificationManager />
       {/* <BatteryOptimizationWarning /> */}

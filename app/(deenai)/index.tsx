@@ -1,6 +1,7 @@
 import GuestUserModal from "@/components/deen-ai/GuestUserModal";
 import MessageBubble from "@/components/deen-ai/MessageBubble";
 import StarterPrompts from "@/components/deen-ai/StarterPrompts";
+import UpgradePlanModal from "@/components/payments/UpgradePlanModal";
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
 import { useAuth } from "@/hooks/useAuth";
@@ -27,6 +28,8 @@ export default function DEENAI() {
   const [loading, setLoading] = useState(false);
   const { isGuest } = useAuth();
   const { showToast } = useToast();
+  const [isUpgradeModalVisible, setUpgradeModalVisible] = useState(false);
+
   const {
     currentChatId,
     addMessage,
@@ -73,11 +76,7 @@ export default function DEENAI() {
       console.error("Failed to create chat:", error);
 
       if (error.status_code === 402) {
-        showToast(
-          "Free Tier Limit Reached. Please upgrade your plan to continue using Deen AI.",
-          "error",
-          5000
-        );
+        setUpgradeModalVisible(true);
       } else {
         showToast(
           error.message || "Failed to create chat. Please try again.",
@@ -154,6 +153,11 @@ export default function DEENAI() {
                 ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
               />
             )}
+
+            <UpgradePlanModal
+              isVisible={isUpgradeModalVisible}
+              onClose={() => setUpgradeModalVisible(false)}
+            />
           </View>
 
           {/* Input form */}
