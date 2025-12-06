@@ -31,8 +31,10 @@ class ChatService {
       }
 
       console.warn("Failed to create Chatroom");
+      throw new Error("Failed to create Chatroom");
     } catch (error) {
-      console.error("Error Creating a Chatroom");
+      console.error("Error Creating a Chatroom", JSON.stringify(error));
+      throw error;
     }
   }
 

@@ -30,7 +30,11 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   clearMessages: () => set({ messages: [], currentChatId: null }),
   loadChatMessages: (messages: IMessage[]) => set({ messages }),
   createNewChat: async (_) => {
-    const response = await chatService.createChat();
-    return response?.id as string;
+    try {
+      const response = await chatService.createChat();
+      return response?.id as string;
+    } catch (error) {
+      throw error;
+    }
   },
 }));
