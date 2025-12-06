@@ -1,5 +1,6 @@
 import MessageBubble from "@/components/deen-ai/MessageBubble";
 import TypingIndicator from "@/components/deen-ai/TypingIndicator";
+import UpgradePlanModal from "@/components/payments/UpgradePlanModal";
 import ScreenHeader from "@/components/screenHeader";
 import { useToast } from "@/hooks/useToast";
 import { chatService } from "@/service/chat.service";
@@ -34,6 +35,7 @@ export default function ChatRoom() {
   const [waitingForStream, setWaitingForStream] = useState(false);
   const streamCleanupRef = useRef<(() => void) | null>(null);
   const chatListRef = useRef<FlatList<any> | null>(null);
+  const [isUpgradeModalVisible, setUpgradeModalVisible] = useState(false);
 
   const { showToast } = useToast();
 
@@ -152,16 +154,7 @@ export default function ChatRoom() {
       showToast(error.message ?? "Failed to send message");
 
       if (error.status_code == 402) {
-        const aiMessagePlaceholder = {
-          chatId: chatId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          role: "assistant" as const,
-          id: `temp-ai-${Date.now()}`,
-          content:
-            "Error: Free Tier Limit Reached. Please upgrade your plan to continue using Deen AI.",
-        };
-        addMessage(aiMessagePlaceholder);
+        setUpgradeModalVisible(true);
       }
       setLoadingMessages(false);
       setWaitingForStream(false);
@@ -283,16 +276,7 @@ export default function ChatRoom() {
       showToast(error.message ?? "Failed to send message");
 
       if (error.status_code == 402) {
-        const aiMessagePlaceholder = {
-          chatId: chatId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          role: "assistant" as const,
-          id: `temp-ai-${Date.now()}`,
-          content:
-            "Error: Free Tier Limit Reached. Please upgrade your plan to continue using Deen AI.",
-        };
-        addMessage(aiMessagePlaceholder);
+        setUpgradeModalVisible(true);
       }
 
       setLoading(false);
@@ -339,6 +323,10 @@ export default function ChatRoom() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
+        <UpgradePlanModal
+          isVisible={isUpgradeModalVisible}
+          onClose={() => setUpgradeModalVisible(false)}
+        />
         {/* Messages */}
         <View style={{ flex: 1 }}>
           {messages.length === 0 && !waitingForStream ? (
