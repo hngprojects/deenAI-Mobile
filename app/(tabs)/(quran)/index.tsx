@@ -1,7 +1,6 @@
 // app/(tabs)/(quran)/index.tsx
 import FeaturedSurahCard from "@/components/quran/featuredSurahCard";
 import SurahListItem from "@/components/quran/surahListItem";
-// import ReadModeView from "../(quran)/readMode"; // REMOVED: Not needed here
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
 import SearchBar from "@/components/searchBar";
