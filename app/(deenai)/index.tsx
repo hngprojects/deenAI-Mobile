@@ -4,6 +4,7 @@ import StarterPrompts from "@/components/deen-ai/StarterPrompts";
 import ScreenContainer from "@/components/ScreenContainer";
 import ScreenHeader from "@/components/screenHeader";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/useToast";
 import { useChatStore } from "@/store/chat.store";
 import { theme } from "@/styles/theme";
 import { router, useFocusEffect } from "expo-router";
@@ -25,6 +26,7 @@ export default function DEENAI() {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const { isGuest } = useAuth();
+  const { showToast } = useToast();
   const {
     currentChatId,
     addMessage,
@@ -67,6 +69,24 @@ export default function DEENAI() {
 
       // Navigate to the new chat room
       router.replace(`/(deenai)/${newChatId}?first=true` as any);
+    } catch (error: any) {
+      console.error("Failed to create chat:", error);
+
+      if (error.status_code === 402) {
+        showToast(
+          "Free Tier Limit Reached. Please upgrade your plan to continue using Deen AI.",
+          "error",
+          5000
+        );
+      } else {
+        showToast(
+          error.message || "Failed to create chat. Please try again.",
+          "error"
+        );
+      }
+
+      // Restore the prompt so user can try again
+      setPrompt(userPrompt);
     } finally {
       setLoading(false);
     }

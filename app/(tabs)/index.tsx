@@ -1,5 +1,4 @@
 import ScreenContainer from "@/components/ScreenContainer";
-import StreakBottomDrawer from "@/components/adhkar/StreakBottomDrawer";
 import DailyReflection from "@/components/home/DailyReflection";
 import HomeHeader from "@/components/home/HomeHeader";
 import QuickActions from "@/components/home/QuickActions";
@@ -56,7 +55,7 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          {/* <RecentChats /> */}
+          <RecentChats />
         </View>
 
         {/* Streak Bottom Drawer */}

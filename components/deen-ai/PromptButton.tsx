@@ -33,6 +33,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.color.border,
     color: theme.color.paragraph,
+    alignItems: "center",
   },
 });
 
